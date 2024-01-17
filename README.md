@@ -16,8 +16,9 @@ This repository contains resources helping to learn programming in Go.
 This repository contains the following sub-directories:
 
 - [basics](basics/) basic examples,
-- [projects](projects/) demo project(-s) created using Java,
-- [starters](starters/) starter templates for Java projects.
+- [projects](projects/) demo project(-s) created using Go,
+- [starters](starters/) starter templates for Go projects,
+- [hyperskill](hyperskill/) my solutions to [Hyperskill](https://hyperskill.org) projects.
 
 ## Learning Resources
 
