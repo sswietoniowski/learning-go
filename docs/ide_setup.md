@@ -1,8 +1,8 @@
-# IDE Setup 2024-01-17
+# IDE Setup 2024-01-18
 
 As far as I know, the best IDE (as of now) for Go is **[GoLand](https://www.jetbrains.com/go/)**. It's a paid IDE, but you can get a free license if you're a student or a teacher.
 
-Because I'm a big fan of Visual Studio Code I will try to use it as much as I can (knowing that it's not the best choice for Java development).
+Because I'm a big fan of Visual Studio Code I will try to use it as much as I can (knowing that it's not the best choice for Go development).
 
 Here I will describe how to set up VS Code for Go development, as a start read [this](https://code.visualstudio.com/docs/languages/go) tutorial and also [this](https://levene.me/boost-your-golang-development-with-these-top-vscode-extensions) one.
 
