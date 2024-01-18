@@ -32,7 +32,7 @@ Based on these (free) courses & articles:
 
 I also used these (paid) courses & books:
 
-- ✅ 🎥 [Go in 4 Hours](https://learning.oreilly.com/live-events/go-in-4-hours/0636920069801/) [:file_folder:](https://on24static.akamaized.net/event/43/79/97/5/rt/1/documents/resourceList1701200697834/pearsonlevandeckapril20221690290308931.pdf) [:file_folder:](https://github.com/AdminTurnedDevOps/PearsonCourses/tree/main/Go-Course) :+1:.
+- ✅ 🎥 [Go in 4 Hours](https://learning.oreilly.com/live-events/go-in-4-hours/0636920069801/) [:file_folder:](https://on24static.akamaized.net/event/43/79/97/5/rt/1/documents/resourceList1701200697834/pearsonlevandeckapril20221690290308931.pdf) [:file_folder:](https://github.com/AdminTurnedDevOps/PearsonCourses/tree/main/Go-Course).
 
 ## Useful Tools & Other Resources
 
