@@ -18,6 +18,8 @@ To create a Go module, run:
 go mod init <module_name>
 ```
 
+By common convention this module might be called `vendor` as it is used to store all the dependencies.
+
 To clean up the Go module, run:
 
 ```bash
