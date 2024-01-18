@@ -27,7 +27,7 @@ Based on these (free) courses & articles:
 - courses:
   - TODO:,
 - others:
-  - TODO:.
+  - [Go Developer Roadmap](https://roadmap.sh/golang).
 
 Also used these (paid) courses & books:
 
