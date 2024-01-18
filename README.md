@@ -18,7 +18,7 @@ This repository contains the following sub-directories:
 - [basics](basics/) basic examples,
 - [projects](projects/) demo project(-s) created using Go,
 - [starters](starters/) starter templates for Go projects,
-- [hyperskill](hyperskill/) my solutions to [Hyperskill](https://hyperskill.org) projects.
+- [hyperskill](hyperskill/) my solutions to [Hyperskill](https://hyperskill.org) projects from the [Go Core](https://hyperskill.org/tracks/25) track.
 
 ## Learning Resources
 
