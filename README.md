@@ -1,6 +1,6 @@
 # Learning Go
 
-This repository contains resources helping to learn programming in [Go (Golang)](https://go.dev/).
+This repository contains resources to help learn programming in [Go (Golang)](https://go.dev/).
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ Based on these (free) courses & articles:
 - others:
   - TODO:.
 
-Also used these (paid) courses & books:
+I also used these (paid) courses & books:
 
 - TODO:.
 
