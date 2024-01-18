@@ -1,6 +1,6 @@
 # Learning Go
 
-This repository contains resources helping to learn programming in [Go (Golang)](https://go.dev/).
+This repository contains resources to help learn programming in [Go (Golang)](https://go.dev/).
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ Based on these (free) courses & articles:
 - others:
   - ✅ [Go Developer Roadmap](https://roadmap.sh/golang).
 
-Also used these (paid) courses & books:
+I also used these (paid) courses & books:
 
 - 🎥 [Go in 4 Hours](https://learning.oreilly.com/live-events/go-in-4-hours/0636920069801/) [:file_folder:](https://on24static.akamaized.net/event/43/79/97/5/rt/1/documents/resourceList1701200697834/pearsonlevandeckapril20221690290308931.pdf) [:file_folder:](https://github.com/AdminTurnedDevOps/PearsonCourses/tree/main/Go-Course).
 
