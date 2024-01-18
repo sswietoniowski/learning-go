@@ -25,9 +25,9 @@ This repository contains the following sub-directories:
 Based on these (free) courses & articles:
 
 - courses:
-  - TODO:,
+  - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:],
 - others:
-  - [Go Developer Roadmap](https://roadmap.sh/golang).
+  - ✅ [Go Developer Roadmap](https://roadmap.sh/golang).
 
 Also used these (paid) courses & books:
 
