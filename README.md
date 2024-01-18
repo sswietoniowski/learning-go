@@ -25,7 +25,7 @@ This repository contains the following sub-directories:
 Based on these (free) courses & articles:
 
 - courses:
-  - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:],
+  - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets),
 - others:
   - ✅ [Go Developer Roadmap](https://roadmap.sh/golang).
 
