@@ -33,7 +33,8 @@ Based on these (free) courses & articles:
 I also used these (paid) courses & books:
 
 - ✅ 🎥 [Go in 4 Hours](https://learning.oreilly.com/live-events/go-in-4-hours/0636920069801/) [:file_folder:](https://on24static.akamaized.net/event/43/79/97/5/rt/1/documents/resourceList1701200697834/pearsonlevandeckapril20221690290308931.pdf) [:file_folder:](https://github.com/AdminTurnedDevOps/PearsonCourses/tree/main/Go-Course),
-- 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e).
+- 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
+- 🎥 [Pluralsight: Go]([Pluralsight:](https://app.pluralsight.com/paths/skill/go)).
 
 ## Useful Tools & Other Resources
 
