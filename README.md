@@ -33,7 +33,10 @@ Based on these (free) courses & articles:
 I also used these (paid) courses & books:
 
 - ✅ 🎥 [Go in 4 Hours](https://learning.oreilly.com/live-events/go-in-4-hours/0636920069801/) [:file_folder:](https://on24static.akamaized.net/event/43/79/97/5/rt/1/documents/resourceList1701200697834/pearsonlevandeckapril20221690290308931.pdf) [:file_folder:](https://github.com/AdminTurnedDevOps/PearsonCourses/tree/main/Go-Course),
+- ✅ [Hyperskill: Go Core](https://hyperskill.org/tracks/25),
 - 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
+- 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
+- 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
 - 🎥 [Pluralsight: Go](https://app.pluralsight.com/paths/skill/go).
 
 ## Useful Tools & Other Resources
