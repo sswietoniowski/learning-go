@@ -23,8 +23,10 @@ func readLine() string {
 }
 
 func readNAndSeed() (int, int) {
+	line := readLine()
 	var n, seed int
-	fmt.Scanf("%d %d", &n, &seed)
+	_, err := fmt.Sscanf(line, "%d %d", &n, &seed)
+	handleError(err)
 	return n, seed
 }
 
