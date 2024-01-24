@@ -24,7 +24,7 @@ func (v *vocabulary) addWord(word string) {
 	v.words[cleanWord(word)] = true
 }
 
-func handleErr(err error) {
+func handleError(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func handleErr(err error) {
 
 func (v *vocabulary) readWords(fileName string) {
 	file, err := os.Open(fileName)
-	handleErr(err)
+	handleError(err)
 
 	defer file.Close()
 
@@ -54,7 +54,7 @@ func checker() {
 		var line string
 
 		_, err := fmt.Scan(&line)
-		handleErr(err)
+		handleError(err)
 
 		return line
 	}
