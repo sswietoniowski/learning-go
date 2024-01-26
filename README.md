@@ -30,9 +30,10 @@ Based on these (free) courses & articles:
   - 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
   - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets),
 - documentation:
-  - ✅ 📖[Effective Go](https://go.dev/doc/effective_go),
+  - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
+  - ✅ 📖 [Go go-to guide](https://yourbasic.org/golang/),
 - others:
-  - ✅ 📖[Go Developer Roadmap](https://roadmap.sh/golang).
+  - ✅ 📖 [Go Developer Roadmap](https://roadmap.sh/golang).
 
 I also used these (paid) courses & books:
 
