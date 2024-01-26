@@ -85,6 +85,12 @@ To run tests, run:
 go test
 ```
 
+To run single test, run:
+
+```bash
+go test -run <test_name>
+```
+
 To run benchmarks, run:
 
 ```bash
