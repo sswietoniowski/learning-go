@@ -37,7 +37,7 @@ Based on these (free) courses & articles:
 
 I also used these (paid) courses & books:
 
-- ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25),
+- ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25) :+1:,
 - 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
 - 🎥 [Advanced Testing and Debugging in Go](https://learning.oreilly.com/course/advanced-testing-and/1100111TESTINGINGO/),
 - 📖 [Test-Driven Development in Go](https://learning.oreilly.com/library/view/test-driven-development-in/9781803247878/) [:file_folder:](https://github.com/PacktPublishing/Test-Driven-Development-in-Go),
@@ -55,7 +55,7 @@ I also used these (paid) courses & books:
 - 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
 - 🎥 [Pluralsight: Go](https://app.pluralsight.com/paths/skill/go):
-  - 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files),
+  - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
   - 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files),
   - 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
   - 🎥 [Managing Go Projects](https://app.pluralsight.com/library/courses/go-managing-projects/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-projects/exercise-files),
