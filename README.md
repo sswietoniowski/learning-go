@@ -47,6 +47,7 @@ I also used these (paid) courses & books:
 - 📖 [Hands-On Software Engineering with Golang](https://learning.oreilly.com/library/view/hands-on-software-engineering/9781838554491/) [:file_folder:](https://github.com/PacktPublishing/Hands-On-Software-Engineering-with-Golang),
 - 📖 [Domain-Driven Design with Golang](https://learning.oreilly.com/library/view/domain-driven-design-with/9781804613450/) [:file_folder:](https://github.com/PacktPublishing/Domain-Driven-Design-with-GoLang),
 - 📖 [Building Modern CLI Applications in Go](https://learning.oreilly.com/library/view/building-modern-cli/9781804611654/) [:file_folder:](https://github.com/PacktPublishing/Building-Modern-CLI-Applications-in-Go),
+- 📖 [Pro Go: The Complete Guide to Programming Reliable and Efficient Software Using Golang](https://learning.oreilly.com/library/view/pro-go-the/9781484273555/) [:file_folder:](https://github.com/Apress/pro-go),
 - 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
 - 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
