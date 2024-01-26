@@ -66,6 +66,12 @@ To run benchmarks, run:
 go test -bench .
 ```
 
+To run tests with coverage, run:
+
+```bash
+go test -cover
+```
+
 ## Best Practices
 
 To verify the code, run:
