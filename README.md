@@ -86,7 +86,7 @@ Some useful tools & other resources:
   - **[Visual Studio Code](https://code.visualstudio.com/)**,
 - frameworks & libraries:
   - general:
-    - TODO:,
+    - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
   - testing:
     - TODO:
   - logging:
