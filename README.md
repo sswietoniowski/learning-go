@@ -2,7 +2,7 @@
 
 This repository contains resources to help learn programming in [Go (Golang)](https://go.dev/).
 
-_I like to learn (a bit) a new programming language each year, not necessarily to use it, just for fun and to see how different programming languages are used to solve similar problems. So do not expect that this repository becomes full of great ideas & solutions (but who knows? ;-)). It is just my scratchpad to play with Go, so please treat it as such._ 
+_I like to learn (a bit) a new programming language each year, not necessarily to use it, just for fun and to see how different programming languages are used to solve similar problems. So do not expect that this repository becomes full of great ideas & solutions (but who knows? ;-)). It is just my scratchpad to play with Go, so please treat it as such._
 
 ## Table of Contents
 
@@ -30,11 +30,12 @@ Based on these (free) courses & articles:
   - 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
   - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets),
 - others:
-  - ✅ [Go Developer Roadmap](https://roadmap.sh/golang).
+  - ✅📖[Effective Go](https://go.dev/doc/effective_go),
+  - ✅📖[Go Developer Roadmap](https://roadmap.sh/golang).
 
 I also used these (paid) courses & books:
 
-- ✅ [Hyperskill: Go Core](https://hyperskill.org/tracks/25),
+- ✅📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25),
 - 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
 - 📖 [Cloud Native Go, 2nd Edition](https://learning.oreilly.com/library/view/cloud-native-go/9781098156411/),
 - 📖 [Learn Concurrent Programming with Go](https://learning.oreilly.com/library/view/learn-concurrent-programming/9781633438385/) [:file_folder:](https://github.com/cutajarj/ConcurrentProgrammingWithGo),
