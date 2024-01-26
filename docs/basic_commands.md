@@ -54,6 +54,31 @@ go install <file_name>
 
 ## Testing
 
+Tests in Go are written in the same package as the code they test, but in a separate file with `_test` suffix.
+
+To write a test, create a file with `_test` suffix and a function with `Test` prefix followed by the name of the function you want to test. As a parameter, this function takes a pointer to `testing.T` struct.
+
+For example, if you want to test a function `Sum` in `sum.go` file:
+
+```go
+func Sum(a, b int) int {
+    return a + b
+}
+```
+
+You should create a file `sum_test.go` with a function `TestSum` that takes a pointer to `testing.T` struct as a parameter.
+
+```go
+func TestSum(t *testing.T) {
+    got := Sum(1, 2)
+    want := 3
+
+    if got != want {
+        t.Errorf("Sum(1, 2) = %v, expected = %v", got, want)
+    }
+}
+```
+
 To run tests, run:
 
 ```bash
