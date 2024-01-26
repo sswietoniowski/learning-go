@@ -30,12 +30,12 @@ Based on these (free) courses & articles:
   - 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
   - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets),
 - others:
-  - ✅📖[Effective Go](https://go.dev/doc/effective_go),
-  - ✅📖[Go Developer Roadmap](https://roadmap.sh/golang).
+  - ✅ 📖[Effective Go](https://go.dev/doc/effective_go),
+  - ✅ 📖[Go Developer Roadmap](https://roadmap.sh/golang).
 
 I also used these (paid) courses & books:
 
-- ✅📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25),
+- ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25),
 - 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
 - 📖 [Cloud Native Go, 2nd Edition](https://learning.oreilly.com/library/view/cloud-native-go/9781098156411/),
 - 📖 [Learn Concurrent Programming with Go](https://learning.oreilly.com/library/view/learn-concurrent-programming/9781633438385/) [:file_folder:](https://github.com/cutajarj/ConcurrentProgrammingWithGo),
