@@ -65,3 +65,52 @@ To run benchmarks, run:
 ```bash
 go test -bench .
 ```
+
+## Best Practices
+
+To verify the code, run:
+
+```bash
+go vet
+```
+
+To check style, use `golint` (it's not the only one, but it's quite popular).
+
+First, install it:
+
+```bash
+go install golang.org/x/lint/golint@latest
+```
+
+Then, run it:
+
+```bash
+golint
+```
+
+To format the code, run:
+
+```bash
+gofmt -w <file_name> # -w flag overwrites the file
+gofmt -d <file_name> # -d flag shows the diff
+```
+
+Just to fix everything, run (it's the same as `gofmt -w -l .`):
+
+```bash
+go fmt .
+```
+
+Alternatively you can use `goimports` for formatting and fixing imports.
+
+To do that first install it:
+
+```bash
+go install golang.org/x/tools/cmd/goimports@latest
+```
+
+Then, run it:
+
+```bash
+goimports -w -l .
+```
