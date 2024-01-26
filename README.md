@@ -38,6 +38,8 @@ I also used these (paid) courses & books:
 
 - ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25),
 - 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
+- 🎥 [Advanced Testing and Debugging in Go](https://learning.oreilly.com/course/advanced-testing-and/1100111TESTINGINGO/),
+- 📖 [Test-Driven Development in Go](https://learning.oreilly.com/library/view/test-driven-development-in/9781803247878/) [:file_folder:](https://github.com/PacktPublishing/Test-Driven-Development-in-Go),
 - 📖 [Cloud Native Go, 2nd Edition](https://learning.oreilly.com/library/view/cloud-native-go/9781098156411/),
 - 📖 [Learn Concurrent Programming with Go](https://learning.oreilly.com/library/view/learn-concurrent-programming/9781633438385/) [:file_folder:](https://github.com/cutajarj/ConcurrentProgrammingWithGo),
 - 📖 [gRPC Microservices in Go](https://learning.oreilly.com/library/view/grpc-microservices-in/9781633439207/) [:file_folder:](https://github.com/huseyinbabal/grpc-microservices-in-go),
@@ -51,7 +53,20 @@ I also used these (paid) courses & books:
 - 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
 - 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
-- 🎥 [Pluralsight: Go](https://app.pluralsight.com/paths/skill/go).
+- 🎥 [Pluralsight: Go](https://app.pluralsight.com/paths/skill/go):
+  - 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files),
+  - 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files),
+  - 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
+  - 🎥 [Managing Go Projects](https://app.pluralsight.com/library/courses/go-managing-projects/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-projects/exercise-files),
+  - 🎥 [Concurrent Programming in Go](https://app.pluralsight.com/library/courses/go-programming-concurrent/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-programming-concurrent/exercise-files),
+  - 🎥 [Accessing Relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/exercise-files),
+  - 🎥 [Accessing Non-relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/exercise-files),
+  - 🎥 [Testing in Go](https://app.pluralsight.com/library/courses/go-testing/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-testing/exercise-files),
+  - 🎥 [Go CLI Playbook](https://app.pluralsight.com/library/courses/go-playbook-cli/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-playbook-cli/exercise-files),
+  - 🎥 [Building Go Web Services and Applications](https://app.pluralsight.com/library/courses/go-building-web-services-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-building-web-services-applications/exercise-files),
+  - 🎥 [Secure Coding in Go](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/exercise-files),
+  - 🎥 [Managing Errors in Go](https://app.pluralsight.com/library/courses/go-managing-errors/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-errors/exercise-files),
+  - 🎥 [Profiling Go Applications](https://app.pluralsight.com/library/courses/go-profiling-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-profiling-applications/exercise-files).
 
 ## Useful Tools & Other Resources
 
