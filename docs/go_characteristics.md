@@ -7,3 +7,5 @@ It is important to know motivations behind the design of Go language.
 ![Guiding Principles](./img/02_guiding_principles.png)
 
 ![Language Characteristics](./img/03_language_characteristics.png)
+
+![Go's Evolution](./img/04_gos_evolution.png)
