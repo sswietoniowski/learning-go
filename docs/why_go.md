@@ -9,3 +9,5 @@ It is important to know motivations behind the design of Go language.
 ![Language Characteristics](./img/03_language_characteristics.png)
 
 ![Go's Evolution](./img/04_gos_evolution.png)
+
+![Primary Use Cases](./img/05_primary_use_cases.png)

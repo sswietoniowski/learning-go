@@ -31,6 +31,8 @@ Based on these (free) courses & articles:
   - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets),
 - documentation:
   - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
+  - ✅ 📖 [Go Blog](https://go.dev/blog/),
+  - ✅ 📖 [Go Wiki](https://go.dev/wiki/),
   - ✅ 📖 [Go go-to guide](https://yourbasic.org/golang/),
 - others:
   - ✅ 📖 [Go Developer Roadmap](https://roadmap.sh/golang).
@@ -75,6 +77,7 @@ Some useful tools & other resources:
 
 - documentation:
   - [Go Documentation](https://go.dev/doc/),
+  - [Effective Go](https://go.dev/doc/effective_go),
 - playground online:
   - [Go Playground](https://go.dev/play/),
 - SDKs:
@@ -87,6 +90,11 @@ Some useful tools & other resources:
 - frameworks & libraries:
   - general:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
+    - [Cobra](https://github.com/spf13/cobra) - a library for creating powerful modern CLI applications,
+  - network services:
+    - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
+    - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
+    - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
   - testing:
     - TODO:
   - logging:
