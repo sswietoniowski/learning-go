@@ -36,7 +36,8 @@ Based on these (free) courses & articles:
   - ✅ 📖 [Go go-to guide](https://yourbasic.org/golang/),
 - others:
   - ✅ 📖 [Go Developer Roadmap](https://roadmap.sh/golang),
-  - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas).
+  - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas),
+  - ✅ 📖 [How to Sort Strings With Go Alphabetically in Any Language](https://webdevstation.com/posts/how-to-sort-strings-with-go-alphabetically-in-any-language/).
 
 I also used these (paid) courses & books:
 
