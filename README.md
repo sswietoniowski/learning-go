@@ -101,7 +101,8 @@ Some useful tools & other resources:
   - logging:
     - TODO:
 - others:
-  - [JSON to Golang Map](https://rodrigo-brito.github.io/json-to-go-map/).
+  - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
+  - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
 
 ## Extras
 
