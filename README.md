@@ -79,6 +79,7 @@ Some useful tools & other resources:
 - documentation:
   - [Go Documentation](https://go.dev/doc/),
   - [Effective Go](https://go.dev/doc/effective_go),
+  - [Standard Go Project Layout](https://github.com/golang-standards/project-layout),
 - playground online:
   - [Go Playground](https://go.dev/play/),
 - SDKs:
