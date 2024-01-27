@@ -58,7 +58,7 @@ I also used these (paid) courses & books:
 - 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
 - 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
-- 🎥 [Pluralsight: Go](https://app.pluralsight.com/paths/skill/go):
+- 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
   - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
   - 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files),
   - 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
