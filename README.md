@@ -35,7 +35,8 @@ Based on these (free) courses & articles:
   - ✅ 📖 [Go Wiki](https://go.dev/wiki/),
   - ✅ 📖 [Go go-to guide](https://yourbasic.org/golang/),
 - others:
-  - ✅ 📖 [Go Developer Roadmap](https://roadmap.sh/golang).
+  - ✅ 📖 [Go Developer Roadmap](https://roadmap.sh/golang),
+  - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas).
 
 I also used these (paid) courses & books:
 
