@@ -98,7 +98,9 @@ Some useful tools & other resources:
   - testing:
     - TODO:
   - logging:
-    - TODO:.
+    - TODO:
+- others:
+  - [JSON to Golang Map](https://rodrigo-brito.github.io/json-to-go-map/).
 
 ## Extras
 
