@@ -30,13 +30,18 @@ Based on these (free) courses & articles:
   - 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
   - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets),
 - documentation:
-  - ✅ 📖[Effective Go](https://go.dev/doc/effective_go),
+  - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
+  - ✅ 📖 [Go Blog](https://go.dev/blog/),
+  - ✅ 📖 [Go Wiki](https://go.dev/wiki/),
+  - ✅ 📖 [Go go-to guide](https://yourbasic.org/golang/),
 - others:
-  - ✅ 📖[Go Developer Roadmap](https://roadmap.sh/golang).
+  - ✅ 📖 [Go Developer Roadmap](https://roadmap.sh/golang),
+  - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas),
+  - ✅ 📖 [How to Sort Strings With Go Alphabetically in Any Language](https://webdevstation.com/posts/how-to-sort-strings-with-go-alphabetically-in-any-language/).
 
 I also used these (paid) courses & books:
 
-- ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25),
+- ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25) :+1:,
 - 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
 - 🎥 [Advanced Testing and Debugging in Go](https://learning.oreilly.com/course/advanced-testing-and/1100111TESTINGINGO/),
 - 📖 [Test-Driven Development in Go](https://learning.oreilly.com/library/view/test-driven-development-in/9781803247878/) [:file_folder:](https://github.com/PacktPublishing/Test-Driven-Development-in-Go),
@@ -53,8 +58,8 @@ I also used these (paid) courses & books:
 - 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
 - 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
-- 🎥 [Pluralsight: Go](https://app.pluralsight.com/paths/skill/go):
-  - 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files),
+- 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
+  - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
   - 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files),
   - 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
   - 🎥 [Managing Go Projects](https://app.pluralsight.com/library/courses/go-managing-projects/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-projects/exercise-files),
@@ -65,7 +70,7 @@ I also used these (paid) courses & books:
   - 🎥 [Go CLI Playbook](https://app.pluralsight.com/library/courses/go-playbook-cli/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-playbook-cli/exercise-files),
   - 🎥 [Building Go Web Services and Applications](https://app.pluralsight.com/library/courses/go-building-web-services-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-building-web-services-applications/exercise-files),
   - 🎥 [Secure Coding in Go](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/exercise-files),
-  - 🎥 [Managing Errors in Go](https://app.pluralsight.com/library/courses/go-managing-errors/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-errors/exercise-files),
+  - ✅ 🎥 [Managing Errors in Go](https://app.pluralsight.com/library/courses/go-managing-errors/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-errors/exercise-files),
   - 🎥 [Profiling Go Applications](https://app.pluralsight.com/library/courses/go-profiling-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-profiling-applications/exercise-files).
 
 ## Useful Tools & Other Resources
@@ -74,6 +79,8 @@ Some useful tools & other resources:
 
 - documentation:
   - [Go Documentation](https://go.dev/doc/),
+  - [Effective Go](https://go.dev/doc/effective_go),
+  - [Standard Go Project Layout](https://github.com/golang-standards/project-layout),
 - playground online:
   - [Go Playground](https://go.dev/play/),
 - SDKs:
@@ -85,11 +92,19 @@ Some useful tools & other resources:
   - **[Visual Studio Code](https://code.visualstudio.com/)**,
 - frameworks & libraries:
   - general:
-    - TODO:,
+    - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
+    - [Cobra](https://github.com/spf13/cobra) - a library for creating powerful modern CLI applications,
+  - network services:
+    - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
+    - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
+    - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
   - testing:
     - TODO:
   - logging:
-    - TODO:.
+    - TODO:
+- others:
+  - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
+  - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
 
 ## Extras
 
