@@ -9,3 +9,5 @@ My solutions to [Hyperskill](https://hyperskill.org) projects from the [Go Core]
 | [Obscene Vocabulary Checker](./03_obscene_vocabulary_checker) | Hard        | Completed |
 | [Version Control System (Go)](./04_version_control_system)    | Challenging | Completed |
 | [In-Memory Notepad](./05_in_memory_notepad)                   | Medium      | Completed |
+
+My [certificate](https://hyperskill.org/certificates/587a50b3-b1cc-44e5-8d9b-98bde338cd07.pdf) of completion the track.
