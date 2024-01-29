@@ -8,14 +8,12 @@ import (
 )
 
 type notepad struct {
-	notes   []string
-	maxSize int
+	notes []string
 }
 
 func newNotepad(maxSize int) *notepad {
 	return &notepad{
-		notes:   make([]string, 0, maxSize),
-		maxSize: maxSize,
+		notes: make([]string, 0, maxSize),
 	}
 }
 
@@ -24,7 +22,7 @@ func (n *notepad) create(note string) error {
 		return fmt.Errorf("Missing note argument")
 	}
 
-	if len(n.notes) == n.maxSize {
+	if len(n.notes) == cap(n.notes) {
 		return fmt.Errorf("Notepad is full")
 	}
 
@@ -34,7 +32,7 @@ func (n *notepad) create(note string) error {
 }
 
 func (n *notepad) clear() {
-	n.notes = make([]string, 0, n.maxSize)
+	n.notes = make([]string, 0, cap(n.notes))
 }
 
 func (n *notepad) list() []string {
