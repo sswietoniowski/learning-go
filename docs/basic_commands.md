@@ -10,6 +10,12 @@ To check a Go version, run:
 go version
 ```
 
+To get help for a command, run:
+
+```bash
+go help <command>
+```
+
 ## Module Management
 
 To create a Go module, run:
