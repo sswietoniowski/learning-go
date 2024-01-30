@@ -144,6 +144,33 @@ Above the function, write a comment that describes what the function does.
 
 > The comment should start with the name of the function and then describe what it does. By convention you should add a period at the end of the comment. Generally we should write comments for all exported functions and types.
 
+As a side note, we can also write comments for variables and constants (being part of the public API).
+
+```go
+// Pi is a mathematical constant.
+const Pi = 3.14
+
+// Name is a name of a person.
+var Name = "John"
+```
+
+And for types (again public ones).
+
+```go
+// Person is a person.
+type Person struct {
+    Name string
+    Age  int
+}
+```
+
+Of course we can (and should) write comments for packages.
+
+```go
+// Package math provides basic mathematical functions.
+package math
+```
+
 ## Best Practices
 
 To verify the code, run:
