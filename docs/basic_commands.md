@@ -109,6 +109,41 @@ To run tests with coverage, run:
 go test -cover
 ```
 
+## Documenting
+
+To generate documentation, run:
+
+```bash
+go doc <package_name>
+```
+
+To generate documentation for a specific function, run:
+
+```bash
+go doc <package_name>.<function_name>
+```
+
+To generate documentation for a specific function in a specific file, run:
+
+```bash
+go doc <package_name>/<file_name>.<function_name>
+```
+
+Now, there is a question: _how to write documentation?_
+
+The answer is simple: write comments.
+
+```go
+// Sum returns a sum of two integers.
+func Sum(a, b int) int {
+    return a + b
+}
+```
+
+Above the function, write a comment that describes what the function does.
+
+> The comment should start with the name of the function and then describe what it does. By convention you should add a period at the end of the comment. Generally we should write comments for all exported functions and types.
+
 ## Best Practices
 
 To verify the code, run:
