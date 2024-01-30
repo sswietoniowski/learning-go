@@ -105,7 +105,8 @@ Some useful tools & other resources:
     - TODO:
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
-  - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
+  - [JSON to Go Struct](https://mholt.github.io/json-to-go/),
+  - [Go Proverbs](https://go-proverbs.github.io/).
 
 ## Extras
 
