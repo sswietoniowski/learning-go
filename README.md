@@ -82,6 +82,7 @@ Some useful tools & other resources:
   - [Effective Go](https://go.dev/doc/effective_go),
   - [The Go Programming Language Specification](https://go.dev/ref/spec),
   - [Standard Go Project Layout](https://github.com/golang-standards/project-layout),
+  - [Go Proverbs](https://go-proverbs.github.io/),
 - playground online:
   - [Go Playground](https://go.dev/play/),
 - SDKs:
@@ -105,8 +106,7 @@ Some useful tools & other resources:
     - TODO:
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
-  - [JSON to Go Struct](https://mholt.github.io/json-to-go/),
-  - [Go Proverbs](https://go-proverbs.github.io/).
+  - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
 
 ## Extras
 
