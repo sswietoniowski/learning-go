@@ -109,6 +109,12 @@ To run tests with coverage, run:
 go test -cover
 ```
 
+To run all tests in a directory, run:
+
+```bash
+go test ./...
+```
+
 ## Documenting
 
 To generate documentation, run:

@@ -28,7 +28,7 @@ Based on these (free) courses & articles:
 
 - courses:
   - 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
-  - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets),
+  - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets) :+1:,
 - documentation:
   - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
   - ✅ 📖 [Go Blog](https://go.dev/blog/),
@@ -38,7 +38,7 @@ Based on these (free) courses & articles:
   - ✅ 📖 [Go Developer Roadmap](https://roadmap.sh/golang),
   - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas),
   - ✅ 📖 [How to Sort Strings With Go Alphabetically in Any Language](https://webdevstation.com/posts/how-to-sort-strings-with-go-alphabetically-in-any-language/),
-  - ✅ 🎥 [Go vs Rust: Which To Learn In 2024?](https://youtu.be/LjIe4w_-vzk?si=RHX5mpoQQkcI2VNo).
+  - ✅ 🎥 [Go vs Rust: Which To Learn In 2024?](https://youtu.be/LjIe4w_-vzk?si=RHX5mpoQQkcI2VNo) :+1:.
 
 I also used these (paid) courses & books:
 
@@ -61,7 +61,7 @@ I also used these (paid) courses & books:
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
 - 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
   - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
-  - 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files),
+  - ✅ 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files) :+1:,
   - 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
   - 🎥 [Managing Go Projects](https://app.pluralsight.com/library/courses/go-managing-projects/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-projects/exercise-files),
   - 🎥 [Concurrent Programming in Go](https://app.pluralsight.com/library/courses/go-programming-concurrent/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-programming-concurrent/exercise-files),
