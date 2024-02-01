@@ -29,6 +29,18 @@ Based on these (free) courses & articles:
 - courses:
   - 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
   - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets) :+1:,
+  - 🎥 [Learn Go Programming by Building 11 Projects – Full Course](https://youtu.be/jFfo23yIWac?si=G5IuLzxacB2ycRkO):
+    - Simple Web Server [:file_folder:](https://github.com/AkhilSharma90/simple-http-server-GO),
+    - CRUD API [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
+    - Book Management System [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
+    - SlackBot To Calculate Age [:file_folder:](https://github.com/AkhilSharma90/GO-Slackbot-Calculates-Age),
+    - SlackBot for File Uploading [:file_folder:](https://github.com/AkhilSharma90/GO-SlackBot-Uploads-File),
+    - Email Verifier Tool [:file_folder:](https://github.com/AkhilSharma90/GO-Email-Checking-Tool),
+    - AWS Lambda [:file_folder:](https://github.com/AkhilSharma90/Simple-go-AWS-Lambda-example),
+    - CRM (_Customer Relationship Management_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-CRM-project),
+    - HRMS (_Human Resource Management System_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-fiber-HRMS-project),
+    - Complete Serverless Stack [:file_folder:](https://github.com/AkhilSharma90/Golang-Serverless-Project),
+    - AI Bot with Wolfram, Wit.ai [:file_folder:](https://github.com/AkhilSharma90/AI-Bot-GOlang-Wit.ai-Wolfram-Slack),
 - documentation:
   - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
   - ✅ 📖 [Go Blog](https://go.dev/blog/),
