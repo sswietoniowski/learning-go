@@ -11,3 +11,5 @@ It is important to know motivations behind the design of Go language.
 ![Go's Evolution](./img/04_gos_evolution.png)
 
 ![Primary Use Cases](./img/05_primary_use_cases.png)
+
+![Concurrency in Go](./img/06_concurrency_in_go.png)
