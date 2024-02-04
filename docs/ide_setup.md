@@ -18,6 +18,12 @@ Here I will describe how to set up VS Code for Go development, as a start read [
 
 To help you set up quickly, you can download and install a binary release from [here](https://go.dev/dl/).
 
+If you're using Windows, and using [Chocolatey](https://chocolatey.org/), you can install Go by running the following command:
+
+```powershell
+choco install golang
+```
+
 ## Install Extensions
 
 To work with Go in Visual Studio Code, you will need to install some extensions.
