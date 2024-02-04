@@ -50,7 +50,8 @@ Based on these (free) courses & articles:
   - ✅ 📖 [Go Developer Roadmap](https://roadmap.sh/golang),
   - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas),
   - ✅ 📖 [How to Sort Strings With Go Alphabetically in Any Language](https://webdevstation.com/posts/how-to-sort-strings-with-go-alphabetically-in-any-language/),
-  - ✅ 🎥 [Go vs Rust: Which To Learn In 2024?](https://youtu.be/LjIe4w_-vzk?si=RHX5mpoQQkcI2VNo) :+1:.
+  - ✅ 🎥 [Go vs Rust: Which To Learn In 2024?](https://youtu.be/LjIe4w_-vzk?si=RHX5mpoQQkcI2VNo) :+1:,
+  - ✅ 📖 [Distroless or scratch for Go apps?](https://blog.baeke.info/2021/03/28/distroless-or-scratch-for-go-apps/).
 
 I also used these (paid) courses & books:
 
