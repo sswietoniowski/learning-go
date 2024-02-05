@@ -26,13 +26,29 @@ go mod init <module_name>
 
 By common convention this module might be called `vendor` as it is used to store all the dependencies.
 
+In Go a module is a collection of Go packages stored in a file tree with a `go.mod` file at its root. The `go.mod` file defines the module's module path, which is also the import path used for the root directory, and its dependency requirements, which are the other modules needed for a successful build.
+
+Example of a `go.mod` file:
+
+```go
+module github.com/username/repo
+
+go 1.21
+
+require (
+    github.com/some/dependency v1.2.3
+)
+```
+
+We should not edit the `go.mod` file manually. Instead, we should use the `go get` command to add a new dependency to the module.
+
 To clean up the Go module, run:
 
 ```bash
 go mod tidy
 ```
 
-To install a package, run:
+To install a package (add a dependency to the module), run:
 
 ```bash
 go get <package_name>
@@ -46,17 +62,31 @@ To run a Go program, run:
 go run <file_name>
 ```
 
-To build a Go program, run:
+To build a Go program (for the current module), run:
 
 ```bash
-go build <file_name>
+go build
+```
+
+By default the output file is named after the directory in which the `go build` command is run. To change the name of the output file, run:
+
+```bash
+go build -o <output_file_name>
+```
+
+We might build our program and then run it. To do that, run:
+
+```bash
+go build -o <output_file_name> && ./<output_file_name>
 ```
 
 To install a Go program, run:
 
 ```bash
-go install <file_name>
+go install
 ```
+
+After installing, the program is available for execution from any directory.
 
 ## Testing
 
