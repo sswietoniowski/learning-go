@@ -24,8 +24,6 @@ To create a Go module, run:
 go mod init <module_name>
 ```
 
-By common convention this module might be called `vendor` as it is used to store all the dependencies.
-
 In Go a module is a collection of Go packages stored in a file tree with a `go.mod` file at its root. The `go.mod` file defines the module's module path, which is also the import path used for the root directory, and its dependency requirements, which are the other modules needed for a successful build.
 
 Example of a `go.mod` file:
@@ -41,6 +39,20 @@ require (
 ```
 
 We should not edit the `go.mod` file manually. Instead, we should use the `go get` command to add a new dependency to the module.
+
+If we're working on the dependency itself, we should use the `replace` directive in the `go.mod` file to point to the local copy of the dependency.
+
+```go
+module github.com/username/repo
+
+go 1.21
+
+require (
+    github.com/some/dependency v1.2.3
+)
+
+replace github.com/some/dependency => ../dependency
+```
 
 To clean up the Go module, run:
 
