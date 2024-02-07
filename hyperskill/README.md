@@ -1,5 +1,7 @@
 # Hyperskill Projects
 
+## Go Core Track
+
 [My](https://hyperskill.org/profile/7889902) solutions to [Hyperskill](https://hyperskill.org) projects from the [Go Core](https://hyperskill.org/tracks/25) track.
 
 | Project                                                       | Level       | Status    |
