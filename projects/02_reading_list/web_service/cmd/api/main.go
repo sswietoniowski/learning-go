@@ -36,7 +36,13 @@ func main() {
 	addr := fmt.Sprintf(":%d", cfg.port)
 
 	logger.Printf("starting \"%s\" server on %s", cfg.env, addr)
-	err := http.ListenAndServe(addr, app.routes())
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: app.routes(),
+	}
+
+	err := srv.ListenAndServe()
 
 	if err != nil {
 		log.Fatal(err)
