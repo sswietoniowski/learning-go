@@ -35,11 +35,8 @@ func main() {
 
 	addr := fmt.Sprintf(":%d", cfg.port)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/healthcheck", app.healthcheck)
-
 	logger.Printf("starting \"%s\" server on %s", cfg.env, addr)
-	err := http.ListenAndServe(addr, mux)
+	err := http.ListenAndServe(addr, app.routes())
 
 	if err != nil {
 		log.Fatal(err)

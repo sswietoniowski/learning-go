@@ -1,9 +1,26 @@
 # Reading List API
 
 @baseUrl = http://localhost:4000/api/v1
+@bookId = 1
 
 ### Get health check status
 GET {{baseUrl}}/healthcheck
 
 ### An error if use POST method to get health check status
 POST {{baseUrl}}/healthcheck
+
+### Get all books
+GET {{baseUrl}}/books
+
+### Get a book by id
+GET {{baseUrl}}/books/{{bookId}}
+
+### Create a new book
+POST {{baseUrl}}/books
+
+{
+    "title": "The Lord of the Rings",
+    "author": "J.R.R. Tolkien",
+    "genre": "Fantasy",
+    "read": true
+}
