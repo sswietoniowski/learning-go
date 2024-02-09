@@ -1,6 +1,6 @@
 # Reading List
 
-This is a sample application in Go, that demonstrates how to use web services (REST API) and web applications (HTML, CSS, JS) in Go.
+This is a sample application, that demonstrates how to use web services (REST API) and web applications (HTML, CSS, JS) in Go.
 
 ## Features
 
