@@ -6,11 +6,12 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/api/v1/healthcheck", healthcheck)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/v1/healthcheck", healthcheck)
 
 	fmt.Println("Server is running on port 4000")
 
-	err := http.ListenAndServe(":4000", nil)
+	err := http.ListenAndServe(":4000", mux)
 
 	if err != nil {
 		fmt.Println(err)
