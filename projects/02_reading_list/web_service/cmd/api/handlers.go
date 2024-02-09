@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 func (app *application) getHealthcheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,8 +42,13 @@ func (app *application) getBookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := r.URL.Path[len("/api/v1/books/"):]
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
-	fmt.Fprintf(w, "get book by id: %s\n", id)
+	fmt.Fprintf(w, "get book by id: %d\n", idInt)
 }
 
 func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,8 +58,13 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	id := r.URL.Path[len("/api/v1/books/"):]
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
-	fmt.Fprintf(w, "update book by id: %s\n", id)
+	fmt.Fprintf(w, "update book by id: %d\n", idInt)
 }
 
 func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +74,11 @@ func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	id := r.URL.Path[len("/api/v1/books/"):]
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
-	fmt.Fprintf(w, "delete book by id: %s\n", id)
+	fmt.Fprintf(w, "delete book by id: %d\n", idInt)
 }
