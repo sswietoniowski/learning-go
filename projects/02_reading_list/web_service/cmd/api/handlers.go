@@ -25,7 +25,7 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 	fmt.Fprintln(w, "get all books")
 }
 
-func (app *application) postBooksHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
