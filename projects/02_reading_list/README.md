@@ -12,3 +12,4 @@ The application is built using the following technologies:
 
 - [Go](https://golang.org/) - programming language,
 - [PostgreSQL](https://www.postgresql.org/) - database.
+

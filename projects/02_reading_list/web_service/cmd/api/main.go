@@ -1,31 +1,49 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
+const version = "1.0.0"
+
+type config struct {
+	port int
+	env  string
+}
+
+type application struct {
+	config config
+	logger *log.Logger
+}
+
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/healthcheck", healthcheck)
+	var cfg config
+
+	flag.IntVar(&cfg.port, "port", 4000, "set port to run the server on")
+	flag.StringVar(&cfg.env, "env", "development", "set environment for the server (development, staging, production)")
+	flag.Parse()
 
 	fmt.Println("Server is running on port 4000")
 
-	err := http.ListenAndServe(":4000", mux)
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	app := &application{
+		config: cfg,
+		logger: logger,
+	}
+
+	addr := fmt.Sprintf(":%d", cfg.port)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/v1/healthcheck", app.healthcheck)
+
+	logger.Printf("starting \"%s\" server on %s", cfg.env, addr)
+	err := http.ListenAndServe(addr, mux)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func healthcheck(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-
-	fmt.Fprintln(w, "status: available")
-	fmt.Fprintf(w, "environment: %s\n", "development")
-	fmt.Fprintf(w, "version: %s\n", "1.0.0")
 }
