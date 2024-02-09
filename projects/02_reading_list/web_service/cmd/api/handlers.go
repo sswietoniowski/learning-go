@@ -32,7 +32,7 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fmt.Fprintln(w, "add a new book")
+	fmt.Fprintln(w, "create a new book")
 }
 
 func (app *application) getBookHandler(w http.ResponseWriter, r *http.Request) {
