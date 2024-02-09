@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -15,6 +16,7 @@ func main() {
 
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 }
 
