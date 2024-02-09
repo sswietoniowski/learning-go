@@ -44,3 +44,25 @@ func (app *application) getBookHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "get book by id: %s\n", id)
 }
+
+func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := r.URL.Path[len("/api/v1/books/"):]
+
+	fmt.Fprintf(w, "update book by id: %s\n", id)
+}
+
+func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := r.URL.Path[len("/api/v1/books/"):]
+
+	fmt.Fprintf(w, "delete book by id: %s\n", id)
+}

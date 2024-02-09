@@ -24,3 +24,16 @@ POST {{baseUrl}}/books
     "genre": "Fantasy",
     "read": true
 }
+
+### Update a book by id
+PUT {{baseUrl}}/books/{{bookId}}
+
+{
+    "title": "Hobbit",
+    "author": "J.R.R. Tolkien",
+    "genre": "Fantasy",
+    "read": false
+}
+
+### Delete a book by id
+DELETE {{baseUrl}}/books/{{bookId}}
