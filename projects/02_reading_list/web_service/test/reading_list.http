@@ -1,1 +1,6 @@
-### Sample Test Cases
+# Reading List API
+
+@baseUrl = http://localhost:4000/api/v1
+
+### Get health check status
+GET {{baseUrl}}/healthcheck
