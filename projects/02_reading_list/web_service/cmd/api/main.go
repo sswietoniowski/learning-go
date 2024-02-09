@@ -71,6 +71,7 @@ func main() {
 
 	if err := srv.Shutdown(ctx); err != nil {
 		logger.Printf("could not gracefully shutdown the server: %v\n", err)
+		hasError = true
 	}
 
 	close(done)
