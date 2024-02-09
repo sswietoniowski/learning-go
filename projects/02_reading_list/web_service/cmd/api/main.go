@@ -27,8 +27,6 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "set environment for the server (development, staging, production)")
 	flag.Parse()
 
-	fmt.Println("Server is running on port 4000")
-
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	app := &application{
 		config: cfg,
