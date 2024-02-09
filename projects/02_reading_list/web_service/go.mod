@@ -2,4 +2,4 @@ module github.com/sswietoniowski/learning-go/projects/02_reading_list/web_servic
 
 go 1.21.6
 
-require github.com/gorilla/mux v1.8.1 // indirect
+require github.com/gorilla/mux v1.8.1
