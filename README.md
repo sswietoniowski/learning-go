@@ -119,10 +119,7 @@ Some useful tools & other resources:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
     - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
     - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
-  - testing:
-    - TODO:
-  - logging:
-    - TODO:
+    - [gorilla/mux](https://github.com/gorilla/mux) - a powerful URL router and dispatcher,
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
