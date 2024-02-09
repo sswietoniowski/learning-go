@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-	"os"
 )
 
 func main() {
@@ -15,8 +15,7 @@ func main() {
 	err := http.ListenAndServe(":4000", mux)
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
