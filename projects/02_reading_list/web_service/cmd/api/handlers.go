@@ -35,13 +35,15 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 	fmt.Fprintln(w, "create a new book")
 }
 
+const booksPath = "/api/v1/books/"
+
 func (app *application) getBookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
-	id := r.URL.Path[len("/api/v1/books/"):]
+	id := r.URL.Path[len(booksPath):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -57,7 +59,7 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	id := r.URL.Path[len("/api/v1/books/"):]
+	id := r.URL.Path[len(booksPath):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -73,7 +75,7 @@ func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	id := r.URL.Path[len("/api/v1/books/"):]
+	id := r.URL.Path[len(booksPath):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
