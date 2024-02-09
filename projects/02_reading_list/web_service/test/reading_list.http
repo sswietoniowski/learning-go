@@ -4,3 +4,6 @@
 
 ### Get health check status
 GET {{baseUrl}}/healthcheck
+
+### An error if use POST method to get health check status
+POST {{baseUrl}}/healthcheck
