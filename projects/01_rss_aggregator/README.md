@@ -2,6 +2,8 @@
 
 This is a simple [RSS](https://en.wikipedia.org/wiki/RSS) aggregator.
 
+## Features
+
 It is a web server that allows clients to:
 
 - add RSS feeds to be collected,
