@@ -2,7 +2,7 @@
 
 This is a simple [RSS](https://en.wikipedia.org/wiki/RSS) aggregator.
 
-It is a web server that allows clients:
+It is a web server that allows clients to:
 
 - add RSS feeds to be collected,
 - follow and un-follow RSS feeds that other users have added,
@@ -14,4 +14,5 @@ It is based on [this](https://github.com/bootdotdev/fcc-learn-golang-assets/tree
 
 The application is built using the following technologies:
 
-- [Go](https://golang.org/) - programming language.
+- [Go](https://golang.org/) - programming language,
+- [PostgreSQL](https://www.postgresql.org/) - database.
