@@ -7,7 +7,10 @@ import (
 )
 
 func (app *application) getHealthcheckHandler(w http.ResponseWriter, r *http.Request) {
+	app.logger.Println("get healthcheck")
+
 	if r.Method != http.MethodGet {
+		app.logger.Println("get healthcheck: method not allowed")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
@@ -18,7 +21,10 @@ func (app *application) getHealthcheckHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) {
+	app.logger.Println("get all books")
+
 	if r.Method != http.MethodGet {
+		app.logger.Println("get all books: method not allowed")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
@@ -27,7 +33,10 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Request) {
+	app.logger.Println("create a new book")
+
 	if r.Method != http.MethodPost {
+		app.logger.Println("create a new book: method not allowed")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
@@ -38,7 +47,10 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 const booksPath = "/api/v1/books/"
 
 func (app *application) getBookHandler(w http.ResponseWriter, r *http.Request) {
+	app.logger.Println("get book by id")
+
 	if r.Method != http.MethodGet {
+		app.logger.Println("get book by id: method not allowed")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
@@ -46,6 +58,7 @@ func (app *application) getBookHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Path[len(booksPath):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
+		app.logger.Println("get book by id: bad request")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -54,7 +67,10 @@ func (app *application) getBookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request) {
+	app.logger.Println("update book by id")
+
 	if r.Method != http.MethodPut {
+		app.logger.Println("update book by id: method not allowed")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
@@ -62,6 +78,7 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 	id := r.URL.Path[len(booksPath):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
+		app.logger.Println("update book by id: bad request")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -70,7 +87,10 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request) {
+	app.logger.Println("delete book by id")
+
 	if r.Method != http.MethodDelete {
+		app.logger.Println("delete book by id: method not allowed")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
@@ -78,6 +98,7 @@ func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request
 	id := r.URL.Path[len(booksPath):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
+		app.logger.Println("delete book by id: bad request")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
