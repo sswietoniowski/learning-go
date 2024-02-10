@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -10,26 +9,54 @@ import (
 const contentTypeHeader = "Content-Type"
 const jsonContentType = "application/json"
 
+func validMethod(w http.ResponseWriter, r *http.Request, method string) bool {
+	if r.Method != method {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return false
+	}
+
+	return true
+}
+
+func validContentType(w http.ResponseWriter, r *http.Request, contentType string) bool {
+	if r.Header.Get(contentTypeHeader) != contentType {
+		http.Error(w, "Invalid Content-Type, expected 'application/json'", http.StatusUnsupportedMediaType)
+		return false
+	}
+
+	return true
+}
+
 func (app *application) getHealthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("get healthcheck")
 
-	if r.Method != http.MethodGet {
+	if !validMethod(w, r, http.MethodGet) {
 		app.logger.Println("get healthcheck: method not allowed")
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
-	fmt.Fprintln(w, "status: available")
-	fmt.Fprintf(w, "environment: %s\n", app.config.env)
-	fmt.Fprintf(w, "version: %s\n", version)
+	data := map[string]string{
+		"status":      "available",
+		"environment": app.config.env,
+		"version":     version,
+	}
+
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		app.logger.Println("get healthcheck: internal server error")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set(contentTypeHeader, jsonContentType)
+	w.Write(dataJSON)
 }
 
 func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("get all books")
 
-	if r.Method != http.MethodGet {
+	if !validMethod(w, r, http.MethodGet) {
 		app.logger.Println("get all books: method not allowed")
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -47,14 +74,13 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("create a new book")
 
-	if r.Header.Get(contentTypeHeader) != jsonContentType {
-		http.Error(w, "Invalid Content-Type, expected 'application/json'", http.StatusUnsupportedMediaType)
+	if !validMethod(w, r, http.MethodPost) {
+		app.logger.Println("create a new book: method not allowed")
 		return
 	}
 
-	if r.Method != http.MethodPost {
-		app.logger.Println("create a new book: method not allowed")
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	if !validContentType(w, r, jsonContentType) {
+		app.logger.Println("create a new book: unsupported media type")
 		return
 	}
 
@@ -77,8 +103,8 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set(contentTypeHeader, jsonContentType)
-	w.Write(bookJSON)
 	w.WriteHeader(http.StatusCreated)
+	w.Write(bookJSON)
 }
 
 const booksPath = "/api/v1/books/"
@@ -86,9 +112,8 @@ const booksPath = "/api/v1/books/"
 func (app *application) getBookByIdHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("get book by id")
 
-	if r.Method != http.MethodGet {
+	if !validMethod(w, r, http.MethodGet) {
 		app.logger.Println("get book by id: method not allowed")
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -123,14 +148,13 @@ func (app *application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("update book by id")
 
-	if r.Header.Get(contentTypeHeader) != jsonContentType {
-		http.Error(w, "Invalid Content-Type, expected 'application/json'", http.StatusUnsupportedMediaType)
+	if !validMethod(w, r, http.MethodPut) {
+		app.logger.Println("update book by id: method not allowed")
 		return
 	}
 
-	if r.Method != http.MethodPut {
-		app.logger.Println("update book by id: method not allowed")
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	if !validContentType(w, r, jsonContentType) {
+		app.logger.Println("update book by id: unsupported media type")
 		return
 	}
 
@@ -166,9 +190,8 @@ func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 func (app *application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("delete book by id")
 
-	if r.Method != http.MethodDelete {
+	if !validMethod(w, r, http.MethodDelete) {
 		app.logger.Println("delete book by id: method not allowed")
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
