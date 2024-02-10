@@ -9,18 +9,23 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/data"
 )
 
 const version = "1.0.0"
 
 type config struct {
-	port int
-	env  string
+	port     int
+	env      string
+	dbConfig data.DbConfig
 }
 
 type application struct {
-	config config
-	logger *log.Logger
+	config   config
+	logger   *log.Logger
+	database data.Databaser
 }
 
 func main() {
@@ -31,10 +36,12 @@ func main() {
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	app := &application{
-		config: cfg,
-		logger: logger,
-	}
+
+	loadEnv(logger)
+
+	cfg.dbConfig = data.NewConfig()
+
+	app := newApplication(cfg, logger)
 
 	addr := fmt.Sprintf(":%d", cfg.port)
 
@@ -82,4 +89,15 @@ func main() {
 	} else {
 		os.Exit(0)
 	}
+}
+
+func loadEnv(logger *log.Logger) error {
+	if err := godotenv.Load(); err != nil {
+		logger.Printf("could not load .env file: %v\n", err)
+		return err
+	}
+
+	_ = godotenv.Load(".env.local")
+
+	return nil
 }

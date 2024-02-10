@@ -1,13 +1,29 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	. "github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/data"
 	. "github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/helper"
 )
 
-var database = NewDatabase()
+func newApplication(config config, logger *log.Logger) *application {
+	var database Databaser
+	if config.dbConfig.Host != "" {
+		database = NewPostgreSQLDatabase(config.dbConfig)
+		logger.Println("using postgresql database")
+	} else {
+		database = NewInMemoryDatabase()
+		logger.Println("using in-memory database")
+	}
+
+	return &application{
+		config:   config,
+		logger:   logger,
+		database: database,
+	}
+}
 
 const booksPath = "/api/v1/books/"
 
@@ -39,8 +55,8 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	books := database.GetAll()
-	
+	books := app.database.GetAll()
+
 	err := SendJsonResponse(w, http.StatusOK, books)
 	if err != nil {
 		app.logger.Printf("get all books: internal server error: %v\n", err)
@@ -67,7 +83,7 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	book = database.Add(book)
+	book = app.database.Add(book)
 
 	err = SendJsonResponse(w, http.StatusCreated, book)
 	if err != nil {
@@ -91,7 +107,7 @@ func (app *application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 
 	app.logger.Printf("get book by id: %d\n", id)
 
-	book, found := database.GetById(id)
+	book, found := app.database.GetById(id)
 	if !found {
 		SendJsonResponse(w, http.StatusNotFound, nil)
 		return
@@ -131,7 +147,7 @@ func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	_, updated := database.ModifyById(id, book)
+	_, updated := app.database.ModifyById(id, book)
 	if !updated {
 		SendJsonResponse(w, http.StatusNotFound, nil)
 		return
@@ -159,7 +175,7 @@ func (app *application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Req
 
 	app.logger.Printf("delete book by id: %d\n", id)
 
-	_, deleted := database.RemoveById(id)
+	_, deleted := app.database.RemoveById(id)
 	if !deleted {
 		SendJsonResponse(w, http.StatusNotFound, nil)
 		return

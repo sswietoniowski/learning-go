@@ -2,28 +2,14 @@ package data
 
 import "time"
 
-// Book represents a book in the database.
-type Book struct {
-	Id        int64     `json:"id"`
-	Title     string    `json:"title"`
-	Author    string    `json:"author"`
-	Published int       `json:"year,omitempty"`
-	Pages     int       `json:"pages,omitempty"`
-	Genres    []string  `json:"genres,omitempty"`
-	Rating    float32   `json:"rating,omitempty"`
-	Version   int       `json:"version,omitempty"`
-	Read      bool      `json:"read"`
-	CreatedAt time.Time `json:"-"`
-}
-
-// Database is an in-memory database of books.
-type Database struct {
+// InMemoryDatabase is an in-memory database of books.
+type InMemoryDatabase struct {
 	books []Book
 }
 
-// NewDatabase creates a new Database with some initial data.
-func NewDatabase() *Database {
-	return &Database{
+// NewInMemoryDatabase creates a new Database with some initial data.
+func NewInMemoryDatabase() *InMemoryDatabase {
+	return &InMemoryDatabase{
 		books: []Book{
 			{
 				Id:        1,
@@ -54,12 +40,12 @@ func NewDatabase() *Database {
 }
 
 // GetAll returns all books from the database.
-func (b *Database) GetAll() []Book {
+func (b *InMemoryDatabase) GetAll() []Book {
 	return b.books
 }
 
 // Add adds a new book to the database.
-func (b *Database) Add(book Book) Book {
+func (b *InMemoryDatabase) Add(book Book) Book {
 	book.Id = int64(len(b.books) + 1)
 	book.CreatedAt = time.Now()
 	b.books = append(b.books, book)
@@ -67,7 +53,7 @@ func (b *Database) Add(book Book) Book {
 }
 
 // GetById returns a book from the database by its id or false if not found.
-func (b *Database) GetById(id int64) (Book, bool) {
+func (b *InMemoryDatabase) GetById(id int64) (Book, bool) {
 	for _, book := range b.books {
 		if book.Id == id {
 			return book, true
@@ -77,7 +63,7 @@ func (b *Database) GetById(id int64) (Book, bool) {
 }
 
 // ModifyById modifies a book in the database by its id or false if not found.
-func (b *Database) ModifyById(id int64, book Book) (Book, bool) {
+func (b *InMemoryDatabase) ModifyById(id int64, book Book) (Book, bool) {
 	for i, oldBook := range b.books {
 		if oldBook.Id == id {
 			book.Id = oldBook.Id
@@ -90,7 +76,7 @@ func (b *Database) ModifyById(id int64, book Book) (Book, bool) {
 }
 
 // RemoveById removes a book from the database by its id or false if not found.
-func (b *Database) RemoveById(id int64) (Book, bool) {
+func (b *InMemoryDatabase) RemoveById(id int64) (Book, bool) {
 	for i, book := range b.books {
 		if book.Id == id {
 			b.books = append(b.books[:i], b.books[i+1:]...)

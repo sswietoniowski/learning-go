@@ -46,7 +46,7 @@ Content-Type: application/json
 {
     "title": "The Hitchhiker's Guide to the Galaxy",
     "author": "Douglas Adams",
-    "published": 1979,
+    "year": 1979,
     "pages": 224,
     "genres": ["comedy", "science fiction"],
     "rating": 3.5,
