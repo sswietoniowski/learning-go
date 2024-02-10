@@ -2,7 +2,9 @@ package data
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"strings"
 
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
@@ -58,11 +60,13 @@ FROM books
 
 	for rows.Next() {
 		var book Book
+		var genres string
 		err := rows.Scan(&book.Id, &book.Title, &book.Author, &book.Published,
-			&book.Pages, &book.Genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
+			&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
 		if err != nil {
 			panic(err) // TODO: handle error
 		}
+		book.Genres = convertPostgreSQLArrayToSlice(genres)
 		books = append(books, book)
 	}
 
@@ -83,9 +87,11 @@ RETURNING id
 `
 	p.logger.Println(insertQuery)
 
+	genres := convertSliceToPostgreSQLArray(book.Genres)
+
 	row := db.QueryRow(insertQuery,
 		book.Title, book.Author, book.Published, book.Pages,
-		book.Genres, book.Rating, book.Version, book.Read, book.CreatedAt)
+		genres, book.Rating, book.Version, book.Read, book.CreatedAt)
 
 	err = row.Scan(&book.Id)
 	if err != nil {
@@ -112,14 +118,16 @@ WHERE id = $1
 	row := db.QueryRow(selectByIdQuery, id)
 
 	var book Book
+	var genres string
 	err = row.Scan(&book.Id, &book.Title, &book.Author, &book.Published,
-		&book.Pages, &book.Genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
+		&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return Book{}, false
 		}
 		panic(err) // TODO: handle error
 	}
+	book.Genres = convertPostgreSQLArrayToSlice(genres)
 
 	return book, true
 }
@@ -139,8 +147,10 @@ WHERE id = $10
 `
 	p.logger.Println(updateQuery)
 
+	genres := convertSliceToPostgreSQLArray(book.Genres)
+
 	_, err = db.Exec(updateQuery, book.Title, book.Author, book.Published, book.Pages,
-		book.Genres, book.Rating, book.Version, book.Read, book.CreatedAt, id)
+		genres, book.Rating, book.Version, book.Read, book.CreatedAt, id)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -169,14 +179,25 @@ RETURNING id, title, author, published, pages, genres, rating, version, read, cr
 	row := db.QueryRow(deleteQuery, id)
 
 	var book Book
+	var genres string
 	err = row.Scan(&book.Id, &book.Title, &book.Author, &book.Published,
-		&book.Pages, &book.Genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
+		&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return Book{}, false
 		}
 		panic(err) // TODO: handle error
 	}
+	book.Genres = convertPostgreSQLArrayToSlice(genres)
 
 	return book, true
+}
+
+func convertSliceToPostgreSQLArray(slice []string) string {
+	return fmt.Sprintf("{%s}", strings.Join(slice, ","))
+}
+
+func convertPostgreSQLArrayToSlice(postgreSQLArray string) []string {
+	postgreSQLArray = postgreSQLArray[1 : len(postgreSQLArray)-1]
+	return strings.Split(postgreSQLArray, ",")
 }
