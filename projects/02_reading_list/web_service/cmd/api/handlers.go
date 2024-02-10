@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 )
@@ -27,6 +28,24 @@ func isValidContentType(w http.ResponseWriter, r *http.Request, expectedContentT
 	return true
 }
 
+func sendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) error {
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return errors.New("could not encode response data to JSON")
+	}
+
+	w.Header().Set(contentTypeHeader, jsonContentType)
+	if statusCode > 0 {
+		w.WriteHeader(statusCode)
+	}
+	if data != nil {
+		w.Write(dataJSON)
+	}
+
+	return nil
+}
+
 func (app *application) getHealthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("get healthcheck")
 
@@ -41,15 +60,10 @@ func (app *application) getHealthcheckHandler(w http.ResponseWriter, r *http.Req
 		"version":     version,
 	}
 
-	dataJSON, err := json.Marshal(data)
+	err := sendJsonResponse(w, http.StatusOK, data)
 	if err != nil {
-		app.logger.Println("get healthcheck: internal server error")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		app.logger.Printf("get healthcheck: internal server error: %v\n", err)
 	}
-
-	w.Header().Set(contentTypeHeader, jsonContentType)
-	w.Write(dataJSON)
 }
 
 func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) {
@@ -60,15 +74,10 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	booksJSON, err := json.Marshal(books)
+	err := sendJsonResponse(w, http.StatusOK, books)
 	if err != nil {
-		app.logger.Println("get all books: internal server error")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		app.logger.Printf("get all books: internal server error: %v\n", err)
 	}
-
-	w.Header().Set(contentTypeHeader, jsonContentType)
-	w.Write(booksJSON)
 }
 
 func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Request) {
@@ -95,16 +104,10 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 	book.Id = int64(len(books) + 1)
 	books = append(books, book)
 
-	bookJSON, err := json.Marshal(book)
+	err = sendJsonResponse(w, http.StatusCreated, book)
 	if err != nil {
-		app.logger.Println("create a new book: internal server error")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		app.logger.Printf("create a new book: internal server error: %v\n", err)
 	}
-
-	w.Header().Set(contentTypeHeader, jsonContentType)
-	w.WriteHeader(http.StatusCreated)
-	w.Write(bookJSON)
 }
 
 const booksPath = "/api/v1/books/"
@@ -134,15 +137,10 @@ func (app *application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	bookJSON, err := json.Marshal(book)
+	err = sendJsonResponse(w, http.StatusOK, book)
 	if err != nil {
-		app.logger.Println("get book by id: internal server error")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		app.logger.Printf("get book by id: internal server error: %v\n", err)
 	}
-
-	w.Header().Set(contentTypeHeader, jsonContentType)
-	w.Write(bookJSON)
 }
 
 func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +182,10 @@ func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	err = sendJsonResponse(w, http.StatusNoContent, nil)
+	if err != nil {
+		app.logger.Printf("update book by id: internal server error: %v\n", err)
+	}
 }
 
 func (app *application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Request) {
@@ -212,5 +213,8 @@ func (app *application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	err = sendJsonResponse(w, http.StatusNoContent, nil)
+	if err != nil {
+		app.logger.Printf("delete book by id: internal server error: %v\n", err)
+	}
 }
