@@ -12,6 +12,8 @@ The application is built using the following technologies, libraries, frameworks
 
 - [Go](https://golang.org/) - programming language,
 - [PostgreSQL](https://www.postgresql.org/) - database,
+- [Docker](https://www.docker.com/),
+- [Docker Compose](https://docs.docker.com/compose/),
 - [gorilla/mux](https://github.com/gorilla/mux),
 - [godotenv](https://github.com/joho/godotenv),
-- [Docker](https://www.docker.com/),
+- [pq](github.com/lib/pq).

@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-type DbConfig struct {
+type PostgreSQLConfig struct {
 	Host     string
 	Port     string
 	User     string
@@ -13,8 +13,8 @@ type DbConfig struct {
 	Database string
 }
 
-func NewConfig() DbConfig {
-	return DbConfig{
+func NewConfig() PostgreSQLConfig {
+	return PostgreSQLConfig{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
 		User:     os.Getenv("DB_USER"),
@@ -23,6 +23,6 @@ func NewConfig() DbConfig {
 	}
 }
 
-func (c DbConfig) ConnectionString() string {
+func (c PostgreSQLConfig) ConnectionString() string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", c.Host, c.Port, c.User, c.Password, c.Database)
 }

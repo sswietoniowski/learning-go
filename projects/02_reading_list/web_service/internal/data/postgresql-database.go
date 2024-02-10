@@ -1,34 +1,60 @@
 package data
 
-import "database/sql"
+import (
+	"database/sql"
+	"log"
 
+	_ "github.com/lib/pq" // PostgreSQL driver
+)
+
+/* To start the PostgreSQL database as a Docker container, run the following command:
+
+docker run --name readinglist -e POSTGRES_PASSWORD=PUT_REAL_PASSWORD_HERE -e POSTGRES_DB=readinglist -p 5433:5432 -d postgres
+
+To setup the database, run the following commands in the terminal to copy the setup.sql file to the container and execute it with psql:
+
+docker cp ./scripts/setup.sql readinglist:/setup.sql
+docker exec -it readinglist psql -U postgres -d readinglist -f /setup.sql
+
+*/
+
+// PostgreSQLDatabase is a database that uses PostgreSQL
 type PostgreSQLDatabase struct {
-	DbConfig DbConfig
+	connectionString string
+	logger           *log.Logger
 }
 
-func NewPostgreSQLDatabase(config DbConfig) *PostgreSQLDatabase {
+// NewPostgreSQLDatabase creates a new PostgreSQLDatabase
+func NewPostgreSQLDatabase(config PostgreSQLConfig, logger *log.Logger) *PostgreSQLDatabase {
+	connectionString := config.ConnectionString()
+	logger.Printf("connection string: %s\n", connectionString)
+
 	return &PostgreSQLDatabase{
-		DbConfig: config,
+		connectionString: connectionString,
+		logger:           logger,
 	}
 }
 
 func (p *PostgreSQLDatabase) GetAll() []Book {
-	db, err := sql.Open("postgres", p.DbConfig.ConnectionString())
+	p.logger.Println("get all books")
+	db, err := sql.Open("postgres", p.connectionString)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
 	defer db.Close()
 
-	// select * from books
-	rows, err := db.Query(`
-SELECT id, title, author, published, pages, genres, rating, version, read, created_at 
+	selectAllQuery := `
+SELECT id, title, author, published, pages, genres, rating, version, read, created_at
 FROM books
-	`)
+`
+	p.logger.Println(selectAllQuery)
+
+	rows, err := db.Query(selectAllQuery)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
 
-	var books []Book
+	books := make([]Book, 0) // to return an empty JSON array instead of null
 
 	for rows.Next() {
 		var book Book
@@ -44,18 +70,24 @@ FROM books
 }
 
 func (p *PostgreSQLDatabase) Add(book Book) Book {
-	db, err := sql.Open("postgres", p.DbConfig.ConnectionString())
+	db, err := sql.Open("postgres", p.connectionString)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
 	defer db.Close()
 
-	_, err = db.Exec(`
+	insertQuery := `
 INSERT INTO books (title, author, published, pages, genres, rating, version, read, created_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		`, book.Title, book.Author, book.Published, book.Pages,
+RETURNING id
+`
+	p.logger.Println(insertQuery)
+
+	row := db.QueryRow(insertQuery,
+		book.Title, book.Author, book.Published, book.Pages,
 		book.Genres, book.Rating, book.Version, book.Read, book.CreatedAt)
 
+	err = row.Scan(&book.Id)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
@@ -64,17 +96,20 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 }
 
 func (p *PostgreSQLDatabase) GetById(id int64) (Book, bool) {
-	db, err := sql.Open("postgres", p.DbConfig.ConnectionString())
+	db, err := sql.Open("postgres", p.connectionString)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
 	defer db.Close()
 
-	row := db.QueryRow(`
+	selectByIdQuery := `
 SELECT id, title, author, published, pages, genres, rating, version, read, created_at
 FROM books
 WHERE id = $1
-		`, id)
+`
+	p.logger.Println(selectByIdQuery)
+
+	row := db.QueryRow(selectByIdQuery, id)
 
 	var book Book
 	err = row.Scan(&book.Id, &book.Title, &book.Author, &book.Published,
@@ -90,19 +125,21 @@ WHERE id = $1
 }
 
 func (p *PostgreSQLDatabase) ModifyById(id int64, book Book) (Book, bool) {
-	db, err := sql.Open("postgres", p.DbConfig.ConnectionString())
+	db, err := sql.Open("postgres", p.connectionString)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
 	defer db.Close()
 
-	_, err = db.Exec(`
+	updateQuery := `
 UPDATE books
-SET
-	title = $1, author = $2, published = $3, pages = $4, genres = $5, rating = $6,
+SET title = $1, author = $2, published = $3, pages = $4, genres = $5, rating = $6,
 	version = $7, read = $8, created_at = $9
 WHERE id = $10
-		`, book.Title, book.Author, book.Published, book.Pages,
+`
+	p.logger.Println(updateQuery)
+
+	_, err = db.Exec(updateQuery, book.Title, book.Author, book.Published, book.Pages,
 		book.Genres, book.Rating, book.Version, book.Read, book.CreatedAt, id)
 
 	if err != nil {
@@ -116,17 +153,20 @@ WHERE id = $10
 }
 
 func (p *PostgreSQLDatabase) RemoveById(id int64) (Book, bool) {
-	db, err := sql.Open("postgres", p.DbConfig.ConnectionString())
+	db, err := sql.Open("postgres", p.connectionString)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
 	defer db.Close()
 
-	row := db.QueryRow(`
+	deleteQuery := `
 DELETE FROM books
 WHERE id = $1
 RETURNING id, title, author, published, pages, genres, rating, version, read, created_at
-	`, id)
+`
+	p.logger.Println(deleteQuery)
+
+	row := db.QueryRow(deleteQuery, id)
 
 	var book Book
 	err = row.Scan(&book.Id, &book.Title, &book.Author, &book.Published,

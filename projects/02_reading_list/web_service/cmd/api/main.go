@@ -10,8 +10,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/data"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/helper"
 )
 
 const version = "1.0.0"
@@ -19,7 +19,7 @@ const version = "1.0.0"
 type config struct {
 	port     int
 	env      string
-	dbConfig data.DbConfig
+	dbConfig data.PostgreSQLConfig
 }
 
 type application struct {
@@ -37,7 +37,7 @@ func main() {
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	loadEnv(logger)
+	helper.DotEnvLoad(logger)
 
 	cfg.dbConfig = data.NewConfig()
 
@@ -89,15 +89,4 @@ func main() {
 	} else {
 		os.Exit(0)
 	}
-}
-
-func loadEnv(logger *log.Logger) error {
-	if err := godotenv.Load(); err != nil {
-		logger.Printf("could not load .env file: %v\n", err)
-		return err
-	}
-
-	_ = godotenv.Load(".env.local")
-
-	return nil
 }
