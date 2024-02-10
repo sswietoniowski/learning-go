@@ -28,6 +28,29 @@ func isValidContentType(w http.ResponseWriter, r *http.Request, expectedContentT
 	return true
 }
 
+func parseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
+	err := json.NewDecoder(r.Body).Decode(data)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return errors.New("could not decode request data from JSON")
+	}
+
+	return nil
+}
+
+const booksPath = "/api/v1/books/"
+
+func extractBookId(w http.ResponseWriter, r *http.Request) (int64, error) {
+	id := r.URL.Path[len(booksPath):]
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return 0, errors.New("bad request, invalid book id")
+	}
+
+	return idInt, nil
+}
+
 func sendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) error {
 	dataJSON, err := json.Marshal(data)
 	if err != nil {
@@ -94,10 +117,9 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	var book Book
-	err := json.NewDecoder(r.Body).Decode(&book)
+	err := parseJsonRequest(w, r, &book)
 	if err != nil {
-		app.logger.Println("create a new book: bad request")
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		app.logger.Printf("create a new book: bad request: %v\n", err)
 		return
 	}
 
@@ -110,8 +132,6 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-const booksPath = "/api/v1/books/"
-
 func (app *application) getBookByIdHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("get book by id")
 
@@ -120,19 +140,17 @@ func (app *application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	id := r.URL.Path[len(booksPath):]
-	idInt, err := strconv.ParseInt(id, 10, 64)
+	id, err := extractBookId(w, r)
 	if err != nil {
-		app.logger.Println("get book by id: bad request")
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		app.logger.Printf("get book by id: bad request: %v\n", err)
 		return
 	}
 
-	app.logger.Printf("get book by id: %d\n", idInt)
+	app.logger.Printf("get book by id: %d\n", id)
 
 	var book Book
 	for _, book = range books {
-		if book.Id == idInt {
+		if book.Id == id {
 			break
 		}
 	}
@@ -156,27 +174,24 @@ func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	id := r.URL.Path[len(booksPath):]
-	idInt, err := strconv.ParseInt(id, 10, 64)
+	id, err := extractBookId(w, r)
 	if err != nil {
-		app.logger.Println("update book by id: bad request")
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		app.logger.Printf("update book by id: bad request: %v\n", err)
 		return
 	}
 
-	app.logger.Printf("update book by id: %d\n", idInt)
+	app.logger.Printf("update book by id: %d\n", id)
 
 	var book Book
-	err = json.NewDecoder(r.Body).Decode(&book)
+	err = parseJsonRequest(w, r, &book)
 	if err != nil {
-		app.logger.Println("update book by id: bad request")
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		app.logger.Printf("update book by id: bad request: %v\n", err)
 		return
 	}
 
-	book.Id = idInt
+	book.Id = id
 	for i, b := range books {
-		if b.Id == idInt {
+		if b.Id == id {
 			books[i] = book
 			break
 		}
@@ -196,18 +211,16 @@ func (app *application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	id := r.URL.Path[len(booksPath):]
-	idInt, err := strconv.ParseInt(id, 10, 64)
+	id, err := extractBookId(w, r)
 	if err != nil {
-		app.logger.Println("delete book by id: bad request")
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		app.logger.Printf("delete book by id: bad request: %v\n", err)
 		return
 	}
 
-	app.logger.Printf("delete book by id: %d\n", idInt)
+	app.logger.Printf("delete book by id: %d\n", id)
 
 	for i, book := range books {
-		if book.Id == idInt {
+		if book.Id == id {
 			books = append(books[:i], books[i+1:]...)
 			break
 		}
