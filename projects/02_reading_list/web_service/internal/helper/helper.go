@@ -11,6 +11,7 @@ import (
 const ContentTypeHeader = "Content-Type"
 const JsonContentType = "application/json"
 
+// IsValidMethod checks if the request method is the expected one and returns a boolean.
 func IsValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string) bool {
 	if r.Method != expectedMethod {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
@@ -20,6 +21,7 @@ func IsValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string
 	return true
 }
 
+// IsValidContentType checks if the request content type is the expected one and returns a boolean.
 func IsValidContentType(w http.ResponseWriter, r *http.Request, expectedContentType string) bool {
 	if r.Header.Get(ContentTypeHeader) != expectedContentType {
 		http.Error(w, "Invalid Content-Type, expected 'application/json'", http.StatusUnsupportedMediaType)
@@ -29,6 +31,7 @@ func IsValidContentType(w http.ResponseWriter, r *http.Request, expectedContentT
 	return true
 }
 
+// ParseJsonRequest reads the request body and decodes the JSON data into the provided interface.
 func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -45,6 +48,7 @@ func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) 
 	return nil
 }
 
+// ExtractIdFromRoute extracts the id from the request path and returns it as an int64.
 func ExtractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (int64, error) {
 	id := r.URL.Path[len(path):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
@@ -56,6 +60,7 @@ func ExtractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (in
 	return idInt, nil
 }
 
+// SendJsonResponse encodes the provided data to JSON and sends it as the response.
 func SendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) error {
 	dataJSON, err := json.Marshal(data)
 	if err != nil {
