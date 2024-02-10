@@ -40,6 +40,7 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	books := database.GetAll()
+	
 	err := SendJsonResponse(w, http.StatusOK, books)
 	if err != nil {
 		app.logger.Printf("get all books: internal server error: %v\n", err)

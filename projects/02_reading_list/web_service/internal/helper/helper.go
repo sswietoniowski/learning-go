@@ -31,7 +31,7 @@ func IsValidContentType(w http.ResponseWriter, r *http.Request, expectedContentT
 	return true
 }
 
-// ParseJsonRequest reads the request body and decodes the JSON data into the provided interface.
+// ParseJsonRequest reads the request body and decodes the JSON data into the provided interface data and returns an error if any.
 func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -48,7 +48,7 @@ func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) 
 	return nil
 }
 
-// ExtractIdFromRoute extracts the id from the request path and returns it as an int64.
+// ExtractIdFromRoute extracts the id from the request path and returns it as an int64 or an error if any.
 func ExtractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (int64, error) {
 	id := r.URL.Path[len(path):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
@@ -60,7 +60,7 @@ func ExtractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (in
 	return idInt, nil
 }
 
-// SendJsonResponse encodes the provided data to JSON and sends it as the response.
+// SendJsonResponse encodes the provided data to JSON and sends it as the response with the provided status code and returns an error if any.
 func SendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) error {
 	dataJSON, err := json.Marshal(data)
 	if err != nil {
