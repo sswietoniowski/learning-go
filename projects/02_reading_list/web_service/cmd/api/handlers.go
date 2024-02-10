@@ -7,9 +7,6 @@ import (
 	. "github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/helper"
 )
 
-const contentTypeHeader = "Content-Type"
-const jsonContentType = "application/json"
-
 var database = NewDatabase()
 
 const booksPath = "/api/v1/books/"
@@ -57,7 +54,7 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !IsValidContentType(w, r, jsonContentType) {
+	if !IsValidContentType(w, r, JsonContentType) {
 		app.logger.Println("create a new book: unsupported media type")
 		return
 	}
@@ -113,7 +110,7 @@ func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !IsValidContentType(w, r, jsonContentType) {
+	if !IsValidContentType(w, r, JsonContentType) {
 		app.logger.Println("update book by id: unsupported media type")
 		return
 	}
