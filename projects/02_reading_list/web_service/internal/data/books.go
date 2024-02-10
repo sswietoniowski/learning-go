@@ -6,13 +6,13 @@ type Book struct {
 	Id        int64     `json:"id"`
 	Title     string    `json:"title"`
 	Author    string    `json:"author"`
-	Published int       `json:"published"`
-	Pages     int       `json:"pages"`
-	Genres    []string  `json:"genres"`
-	Rating    float32   `json:"rating"`
-	Version   int       `json:"version"`
+	Published int       `json:"year,omitempty"`
+	Pages     int       `json:"pages,omitempty"`
+	Genres    []string  `json:"genres,omitempty"`
+	Rating    float32   `json:"rating,omitempty"`
+	Version   int       `json:"version,omitempty"`
 	Read      bool      `json:"read"`
-	CreatedAt time.Time `json:"_"`
+	CreatedAt time.Time `json:"-"`
 }
 
 type Database struct {
