@@ -9,8 +9,8 @@ import (
 const contentTypeHeader = "Content-Type"
 const jsonContentType = "application/json"
 
-func isValidMethod(w http.ResponseWriter, r *http.Request, method string) bool {
-	if r.Method != method {
+func isValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string) bool {
+	if r.Method != expectedMethod {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return false
 	}
@@ -18,8 +18,8 @@ func isValidMethod(w http.ResponseWriter, r *http.Request, method string) bool {
 	return true
 }
 
-func isValidContentType(w http.ResponseWriter, r *http.Request, contentType string) bool {
-	if r.Header.Get(contentTypeHeader) != contentType {
+func isValidContentType(w http.ResponseWriter, r *http.Request, expectedContentType string) bool {
+	if r.Header.Get(contentTypeHeader) != expectedContentType {
 		http.Error(w, "Invalid Content-Type, expected 'application/json'", http.StatusUnsupportedMediaType)
 		return false
 	}
