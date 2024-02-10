@@ -3,6 +3,7 @@ package helper
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -29,7 +30,13 @@ func IsValidContentType(w http.ResponseWriter, r *http.Request, expectedContentT
 }
 
 func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
-	err := json.NewDecoder(r.Body).Decode(data)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return errors.New("could not read request body")
+	}
+
+	err = json.Unmarshal(body, data)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return errors.New("could not decode request data from JSON")
