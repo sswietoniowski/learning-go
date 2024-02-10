@@ -17,22 +17,32 @@ GET {{baseUrl}}/books/{{bookId}}
 
 ### Create a new book
 POST {{baseUrl}}/books
+Content-Type: application/json
 
 {
     "title": "The Lord of the Rings",
     "author": "J.R.R. Tolkien",
-    "genre": "Fantasy",
+    "year": 1954,
+    "pages": 1178,
+    "genres": ["Fantasy", "Adventure"],
+    "rating": 5,
+    "version": 1,
     "read": true
 }
 
 ### Update a book by id
 PUT {{baseUrl}}/books/{{bookId}}
+Content-Type: application/json
 
 {
-    "title": "Hobbit",
-    "author": "J.R.R. Tolkien",
-    "genre": "Fantasy",
-    "read": false
+    "title": "The Hitchhiker's Guide to the Galaxy",
+    "author": "Douglas Adams",
+    "year": 1979,
+    "pages": 224,
+    "genres": ["comedy", "science fiction"],
+    "rating": 3.5,
+    "version": 1,
+    "read": true
 }
 
 ### Delete a book by id

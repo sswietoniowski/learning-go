@@ -14,9 +14,9 @@ func (app *application) routes() *mux.Router {
 	r.HandleFunc("/api/v1/healthcheck", app.getHealthcheckHandler)
 	r.HandleFunc("/api/v1/books", app.getBooksHandler).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/books", app.createBooksHandler).Methods(http.MethodPost)
-	r.HandleFunc(bookIDPath, app.getBookHandler).Methods(http.MethodGet)
-	r.HandleFunc(bookIDPath, app.updateBookHandler).Methods(http.MethodPut)
-	r.HandleFunc(bookIDPath, app.deleteBookHandler).Methods(http.MethodDelete)
+	r.HandleFunc(bookIDPath, app.getBookByIdHandler).Methods(http.MethodGet)
+	r.HandleFunc(bookIDPath, app.updateBookByIdHandler).Methods(http.MethodPut)
+	r.HandleFunc(bookIDPath, app.deleteBookByIdHandler).Methods(http.MethodDelete)
 
 	return r
 }
