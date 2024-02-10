@@ -31,6 +31,9 @@ type application struct {
 func main() {
 	var cfg config
 
+	// Part of the configuration is defined as flags, the rest is loaded from the environment.
+	// Note, that it is not a good practice to mix flags and environment variables in a single application,
+	// but it is done here for the sake of the example (to show how to use both).
 	flag.IntVar(&cfg.port, "port", 4000, "set port to run the server on")
 	flag.StringVar(&cfg.env, "env", "development", "set environment for the server (development, staging, production)")
 	flag.Parse()
