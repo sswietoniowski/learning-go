@@ -12,7 +12,7 @@ import (
 const contentTypeHeader = "Content-Type"
 const jsonContentType = "application/json"
 
-var books = NewBooks()
+var database = NewDatabase()
 
 func isValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string) bool {
 	if r.Method != expectedMethod {
@@ -101,7 +101,7 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := sendJsonResponse(w, http.StatusOK, books.All())
+	err := sendJsonResponse(w, http.StatusOK, database.GetAll())
 	if err != nil {
 		app.logger.Printf("get all books: internal server error: %v\n", err)
 	}
@@ -127,7 +127,7 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	book = books.Add(book)
+	book = database.Add(book)
 
 	err = sendJsonResponse(w, http.StatusCreated, book)
 	if err != nil {
@@ -151,7 +151,7 @@ func (app *application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 
 	app.logger.Printf("get book by id: %d\n", id)
 
-	book, found := books.FindById(id)
+	book, found := database.GetById(id)
 	if !found {
 		sendJsonResponse(w, http.StatusNotFound, nil)
 		return
@@ -191,7 +191,7 @@ func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	updated := books.UpdateById(id, book)
+	_, updated := database.ModifyById(id, book)
 	if !updated {
 		sendJsonResponse(w, http.StatusNotFound, nil)
 		return
@@ -219,7 +219,7 @@ func (app *application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Req
 
 	app.logger.Printf("delete book by id: %d\n", id)
 
-	deleted := books.DeleteById(id)
+	_, deleted := database.RemoveById(id)
 	if !deleted {
 		sendJsonResponse(w, http.StatusNotFound, nil)
 		return

@@ -12,15 +12,15 @@ type Book struct {
 	Rating    float32   `json:"rating"`
 	Version   int       `json:"version"`
 	Read      bool      `json:"read"`
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"_"`
 }
 
-type Books struct {
+type Database struct {
 	books []Book
 }
 
-func NewBooks() *Books {
-	return &Books{
+func NewDatabase() *Database {
+	return &Database{
 		books: []Book{
 			{
 				Id:        1,
@@ -50,18 +50,18 @@ func NewBooks() *Books {
 	}
 }
 
-func (b *Books) All() []Book {
+func (b *Database) GetAll() []Book {
 	return b.books
 }
 
-func (b *Books) Add(book Book) Book {
+func (b *Database) Add(book Book) Book {
 	book.Id = int64(len(b.books) + 1)
 	book.CreatedAt = time.Now()
 	b.books = append(b.books, book)
 	return book
 }
 
-func (b *Books) FindById(id int64) (Book, bool) {
+func (b *Database) GetById(id int64) (Book, bool) {
 	for _, book := range b.books {
 		if book.Id == id {
 			return book, true
@@ -70,24 +70,24 @@ func (b *Books) FindById(id int64) (Book, bool) {
 	return Book{}, false
 }
 
-func (b *Books) UpdateById(id int64, book Book) bool {
+func (b *Database) ModifyById(id int64, book Book) (Book, bool) {
 	for i, oldBook := range b.books {
 		if oldBook.Id == id {
 			book.Id = oldBook.Id
 			book.CreatedAt = oldBook.CreatedAt
 			b.books[i] = book
-			return true
+			return book, true
 		}
 	}
-	return false
+	return Book{}, false
 }
 
-func (b *Books) DeleteById(id int64) bool {
+func (b *Database) RemoveById(id int64) (Book, bool) {
 	for i, book := range b.books {
 		if book.Id == id {
 			b.books = append(b.books[:i], b.books[i+1:]...)
-			return true
+			return book, true
 		}
 	}
-	return false
+	return Book{}, false
 }
