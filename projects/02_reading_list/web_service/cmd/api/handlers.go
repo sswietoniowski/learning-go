@@ -5,10 +5,14 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+
+	. "github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/data"
 )
 
 const contentTypeHeader = "Content-Type"
 const jsonContentType = "application/json"
+
+var books = NewBooks()
 
 func isValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string) bool {
 	if r.Method != expectedMethod {
@@ -97,7 +101,7 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := sendJsonResponse(w, http.StatusOK, books)
+	err := sendJsonResponse(w, http.StatusOK, books.All())
 	if err != nil {
 		app.logger.Printf("get all books: internal server error: %v\n", err)
 	}
@@ -123,8 +127,7 @@ func (app *application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	book.Id = int64(len(books) + 1)
-	books = append(books, book)
+	book = books.Add(book)
 
 	err = sendJsonResponse(w, http.StatusCreated, book)
 	if err != nil {
@@ -148,11 +151,10 @@ func (app *application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 
 	app.logger.Printf("get book by id: %d\n", id)
 
-	var book Book
-	for _, book = range books {
-		if book.Id == id {
-			break
-		}
+	book, found := books.FindById(id)
+	if !found {
+		sendJsonResponse(w, http.StatusNotFound, nil)
+		return
 	}
 
 	err = sendJsonResponse(w, http.StatusOK, book)
@@ -189,12 +191,10 @@ func (app *application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	book.Id = id
-	for i, b := range books {
-		if b.Id == id {
-			books[i] = book
-			break
-		}
+	updated := books.UpdateById(id, book)
+	if !updated {
+		sendJsonResponse(w, http.StatusNotFound, nil)
+		return
 	}
 
 	err = sendJsonResponse(w, http.StatusNoContent, nil)
@@ -219,11 +219,10 @@ func (app *application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Req
 
 	app.logger.Printf("delete book by id: %d\n", id)
 
-	for i, book := range books {
-		if book.Id == id {
-			books = append(books[:i], books[i+1:]...)
-			break
-		}
+	deleted := books.DeleteById(id)
+	if !deleted {
+		sendJsonResponse(w, http.StatusNotFound, nil)
+		return
 	}
 
 	err = sendJsonResponse(w, http.StatusNoContent, nil)
