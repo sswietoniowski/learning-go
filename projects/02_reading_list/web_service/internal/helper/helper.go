@@ -33,16 +33,21 @@ func IsValidContentType(w http.ResponseWriter, r *http.Request, expectedContentT
 
 // ParseJsonRequest reads the request body and decodes the JSON data into the provided interface data and returns an error if any.
 func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return errors.New("could not read request body")
-	}
+	const maxBodySize = 1_048_576 // 1MB
+	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 
-	err = json.Unmarshal(body, data)
-	if err != nil {
+	// we must use a JSON decoder to enforce strict JSON parsing
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	if err := dec.Decode(data); err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return errors.New("could not decode request data from JSON")
+	}
+
+	if err := dec.Decode(&struct{}{}); err != io.EOF {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return errors.New("request body must only contain a single JSON object")
 	}
 
 	return nil
