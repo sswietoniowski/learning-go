@@ -24,7 +24,7 @@ import (
 
 	"github.com/rs/cors"
 	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/api"
-	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/api/utils"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/utils"
 )
 
 func main() {
