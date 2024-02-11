@@ -1,4 +1,4 @@
-package helper
+package api
 
 import (
 	"encoding/json"
@@ -8,11 +8,11 @@ import (
 	"strconv"
 )
 
-const ContentTypeHeader = "Content-Type"
-const JsonContentType = "application/json"
+const contentTypeHeader = "Content-Type"
+const jsonContentType = "application/json"
 
-// IsValidMethod checks if the request method is the expected one and returns a boolean.
-func IsValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string) bool {
+// isValidMethod checks if the request method is the expected one and returns a boolean.
+func isValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string) bool {
 	if r.Method != expectedMethod {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return false
@@ -21,9 +21,9 @@ func IsValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string
 	return true
 }
 
-// IsValidContentType checks if the request content type is the expected one and returns a boolean.
-func IsValidContentType(w http.ResponseWriter, r *http.Request, expectedContentType string) bool {
-	if r.Header.Get(ContentTypeHeader) != expectedContentType {
+// isValidContentType checks if the request content type is the expected one and returns a boolean.
+func isValidContentType(w http.ResponseWriter, r *http.Request, expectedContentType string) bool {
+	if r.Header.Get(contentTypeHeader) != expectedContentType {
 		http.Error(w, "Invalid Content-Type, expected 'application/json'", http.StatusUnsupportedMediaType)
 		return false
 	}
@@ -31,8 +31,8 @@ func IsValidContentType(w http.ResponseWriter, r *http.Request, expectedContentT
 	return true
 }
 
-// ParseJsonRequest reads the request body and decodes the JSON data into the provided interface data and returns an error if any.
-func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
+// parseJsonRequest reads the request body and decodes the JSON data into the provided interface data and returns an error if any.
+func parseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	const maxBodySize = 1_048_576 // 1MB
 	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 
@@ -53,8 +53,8 @@ func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) 
 	return nil
 }
 
-// ExtractIdFromRoute extracts the id from the request path and returns it as an int64 or an error if any.
-func ExtractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (int64, error) {
+// extractIdFromRoute extracts the id from the request path and returns it as an int64 or an error if any.
+func extractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (int64, error) {
 	id := r.URL.Path[len(path):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
@@ -65,15 +65,15 @@ func ExtractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (in
 	return idInt, nil
 }
 
-// SendJsonResponse encodes the provided data to JSON and sends it as the response with the provided status code and returns an error if any.
-func SendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) error {
+// sendJsonResponse encodes the provided data to JSON and sends it as the response with the provided status code and returns an error if any.
+func sendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) error {
 	dataJSON, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return errors.New("could not encode response data to JSON")
 	}
 
-	w.Header().Set(ContentTypeHeader, JsonContentType)
+	w.Header().Set(contentTypeHeader, jsonContentType)
 	if statusCode > 0 {
 		w.WriteHeader(statusCode)
 	}

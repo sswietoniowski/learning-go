@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"net/http"
@@ -8,7 +8,8 @@ import (
 
 const bookIDPath = "/api/v1/books/{id:[0-9]+}"
 
-func (app *application) routes() *mux.Router {
+// Routes returns the router with all the routes defined.
+func (app *Application) Routes() *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/api/v1/healthcheck", app.getHealthcheckHandler)

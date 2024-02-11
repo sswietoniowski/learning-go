@@ -22,48 +22,34 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/data"
-	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/helper"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/api"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/utils"
 )
 
-const version = "1.0.0"
-
-type config struct {
-	port int
-	env  string
-	db   string
-}
-
-type application struct {
-	config   config
-	logger   *log.Logger
-	database data.Databaser
-}
-
 func main() {
-	var cfg config
+	var config api.Config
 
 	// Part of the configuration is defined as flags, the rest (for the database) is loaded from the environment.
 	// Note, that it is not a good practice to mix flags and environment variables in a single application,
 	// but it is done here for the sake of the example (to show how to use both).
-	flag.IntVar(&cfg.port, "port", 4000, "set port to run the server on")
-	flag.StringVar(&cfg.env, "env", "development", "set environment for the server (development, staging, production)")
-	flag.StringVar(&cfg.db, "db", "in-memory", "set database to use (in-memory, postgresql)")
+	flag.IntVar(&config.ServerPort, "port", 4000, "set port to run the server on")
+	flag.StringVar(&config.EnvironmentName, "env", "development", "set environment for the server (development, staging, production)")
+	flag.StringVar(&config.DatabaseType, "db", "in-memory", "set database to use (in-memory, postgresql)")
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	helper.DotEnvLoad(logger)
+	utils.DotEnvLoad(logger)
 
-	app := newApplication(cfg, logger)
+	app := api.NewApplication(config, logger)
 
-	addr := fmt.Sprintf(":%d", cfg.port)
+	addr := fmt.Sprintf(":%d", config.ServerPort)
 
-	logger.Printf("starting \"%s\" server on %s\n", cfg.env, addr)
+	logger.Printf("starting \"%s\" server on %s\n", config.EnvironmentName, addr)
 
 	srv := &http.Server{
 		Addr:         addr,
-		Handler:      app.routes(),
+		Handler:      app.Routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
