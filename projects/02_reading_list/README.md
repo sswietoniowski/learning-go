@@ -1,10 +1,10 @@
 # Reading List
 
-This is a sample application, that demonstrates how to use web services (REST API) and web applications (HTML, CSS, JS) in Go.
+This sample application demonstrates how to use web services (REST API) and web applications (HTML, CSS, JS) in Go.
 
 ## Features
 
-There is only one feature in this application, which is to manage a list of books you want to read.
+There is only one feature in this application: managing a list of books you want to read.
 
 ## Technologies
 
@@ -20,7 +20,7 @@ The application is built using the following technologies, libraries, frameworks
 
 ## Setup
 
-To run this application, you need to have Docker and Docker Compose installed on your machine.
+To run this application, you must install Docker and Docker Compose on your machine.
 
 Then, you can run the following command from the root directory of the project:
 
@@ -28,7 +28,7 @@ Then, you can run the following command from the root directory of the project:
 docker compose up
 ```
 
-This command will start the web service, web application and the database.
+This command will start the web service, web application, and the database.
 
 The database is running on `localhost:5433`.
 
@@ -40,11 +40,11 @@ You can access it using the following credentials:
 
 You can access the web service (REST API) at `http://localhost:4000`.
 
-The web application is served by the web service.
+The web service serves the web application.
 
-You can access the application at `http://localhost:8080`.
+You can access the application (HTML, CSS, JS) at `http://localhost:8080`.
 
-To stop the application (HTML, CSS, JS), you can run the following command:
+To stop the application, you can run the following command:
 
 ```bash
 docker compose down
