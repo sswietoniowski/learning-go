@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/data"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/data"
 )
 
 // Application is the main application struct.

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/data"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/data"
 )
 
 const booksPath = "/api/v1/books/"

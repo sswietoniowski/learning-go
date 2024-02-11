@@ -22,8 +22,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/api"
-	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/utils"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/api"
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/utils"
 )
 
 func main() {
