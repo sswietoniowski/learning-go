@@ -1,14 +1,14 @@
 CREATE TABLE books (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     author TEXT NOT NULL,
     published INT,
-    pages INT,
+    pages INTEGER,
     genres TEXT[],
     rating REAL,
-    version INT,
-    read BOOLEAN NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    version INTEGER NOT NULL DEFAULT 1,
+    read BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP(0) WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 -- Initial books

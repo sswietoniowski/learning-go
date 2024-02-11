@@ -11,7 +11,7 @@ type InMemoryDatabase struct {
 	logger *log.Logger
 }
 
-// NewInMemoryDatabase creates a new Database with some initial data.
+// NewInMemoryDatabase creates a new in-memory database with some initial data.
 func NewInMemoryDatabase(logger *log.Logger) *InMemoryDatabase {
 	logger.Println("using in-memory database")
 
@@ -48,54 +48,71 @@ func NewInMemoryDatabase(logger *log.Logger) *InMemoryDatabase {
 	}
 }
 
-// GetAll returns all books from the database.
-func (b *InMemoryDatabase) GetAll() []Book {
+// GetAll returns all books from the database or an error if something went wrong.
+func (b *InMemoryDatabase) GetAll() ([]Book, error) {
 	b.logger.Println("get all books")
-	return b.books
+
+	return b.books, nil
 }
 
-// Add adds a new book to the database.
-func (b *InMemoryDatabase) Add(book Book) Book {
+// Add adds a new book to the database and returns the added book or an error if something went wrong.
+func (b *InMemoryDatabase) Add(book Book) (*Book, error) {
 	b.logger.Println("add book")
+
 	book.Id = int64(len(b.books) + 1)
 	book.CreatedAt = time.Now()
 	b.books = append(b.books, book)
-	return book
+
+	return &book, nil
 }
 
-// GetById returns a book from the database by its id or false if not found.
-func (b *InMemoryDatabase) GetById(id int64) (Book, bool) {
+// GetById returns a book from the database by its id or an error if something went wrong.
+// If the book is not found, it returns NotFoundError as the error, for other errors it returns DatabaseError.
+func (b *InMemoryDatabase) GetById(id int64) (*Book, error) {
 	b.logger.Println("get book by id")
+
 	for _, book := range b.books {
 		if book.Id == id {
-			return book, true
+			return &book, nil
 		}
 	}
-	return Book{}, false
+
+	// book not found
+	return nil, &NotFoundError{Id: id}
 }
 
-// ModifyById modifies a book in the database by its id or false if not found.
-func (b *InMemoryDatabase) ModifyById(id int64, book Book) (Book, bool) {
+// ModifyById modifies a book in the database by its id and returns the modified book or an error if something went wrong.
+// If the book is not found, it returns NotFoundError as the error, for other errors it returns DatabaseError.
+func (b *InMemoryDatabase) ModifyById(id int64, book Book) (*Book, error) {
 	b.logger.Println("modify book by id")
+
 	for i, oldBook := range b.books {
 		if oldBook.Id == id {
 			book.Id = oldBook.Id
 			book.CreatedAt = oldBook.CreatedAt
 			b.books[i] = book
-			return book, true
+
+			return &book, nil
 		}
 	}
-	return Book{}, false
+
+	// book not found
+	return nil, &NotFoundError{Id: id}
 }
 
-// RemoveById removes a book from the database by its id or false if not found.
-func (b *InMemoryDatabase) RemoveById(id int64) (Book, bool) {
+// RemoveById removes a book from the database by its id and returns the removed book or an error if something went wrong.
+// If the book is not found, it returns NotFoundError as the error, for other errors it returns DatabaseError.
+func (b *InMemoryDatabase) RemoveById(id int64) (*Book, error) {
 	b.logger.Println("remove book by id")
+
 	for i, book := range b.books {
 		if book.Id == id {
 			b.books = append(b.books[:i], b.books[i+1:]...)
-			return book, true
+
+			return &book, nil
 		}
 	}
-	return Book{}, false
+
+	// book not found
+	return nil, &NotFoundError{Id: id}
 }

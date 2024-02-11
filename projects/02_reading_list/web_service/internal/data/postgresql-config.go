@@ -33,7 +33,7 @@ type PostgreSQLConfig struct {
 //	DB_USER
 //	DB_PASSWORD
 //	DB_NAME
-func NewPostgreSQLConfig() PostgreSQLConfig {
+func NewPostgreSQLConfig() *PostgreSQLConfig {
 	host := os.Getenv("DB_HOST")
 	if host == "" {
 		host = "localhost"
@@ -55,7 +55,7 @@ func NewPostgreSQLConfig() PostgreSQLConfig {
 		database = "postgres"
 	}
 
-	return PostgreSQLConfig{
+	return &PostgreSQLConfig{
 		Host:     host,
 		Port:     port,
 		User:     user,
@@ -65,7 +65,7 @@ func NewPostgreSQLConfig() PostgreSQLConfig {
 }
 
 // Dsn returns the data source name (DSN) for the PostgreSQL database.
-func (c PostgreSQLConfig) Dsn() string {
+func (c *PostgreSQLConfig) Dsn() string {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		c.Host, c.Port, c.User, c.Password, c.Database)
 
