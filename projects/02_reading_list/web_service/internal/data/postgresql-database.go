@@ -25,25 +25,28 @@ docker exec -it readinglist psql -U postgres -d readinglist -f /teardown.sql
 
 */
 
-// PostgreSQLDatabase is a database that uses PostgreSQL
+// PostgreSQLDatabase is a PostgreSQL database of books.
 type PostgreSQLDatabase struct {
 	dsn    string
 	logger *log.Logger
 }
 
-// NewPostgreSQLDatabase creates a new PostgreSQLDatabase
-func NewPostgreSQLDatabase(config PostgreSQLConfig, logger *log.Logger) *PostgreSQLDatabase {
-	connectionString := config.Dsn()
-	logger.Printf("connection string: %s\n", connectionString)
+// NewPostgreSQLDatabase creates a new PostgreSQLDatabase with the given DSN and logger.
+func NewPostgreSQLDatabase(dsn string, logger *log.Logger) *PostgreSQLDatabase {
+	// This is not a secure way to log the connection string, but it's useful for debugging and learning.
+	// Don't do this in a production environment and for the real connection string.
+	logger.Printf("dsn: %s\n", dsn)
 
 	return &PostgreSQLDatabase{
-		dsn:    connectionString,
+		dsn:    dsn,
 		logger: logger,
 	}
 }
 
+// GetAll returns all books from the database.
 func (p *PostgreSQLDatabase) GetAll() []Book {
 	p.logger.Println("get all books")
+
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
 		panic(err) // TODO: handle error
@@ -78,6 +81,7 @@ FROM books
 	return books
 }
 
+// Add adds a new book to the database.
 func (p *PostgreSQLDatabase) Add(book Book) Book {
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
@@ -106,6 +110,7 @@ RETURNING id
 	return book
 }
 
+// GetById returns a book from the database by its id or false if not found.
 func (p *PostgreSQLDatabase) GetById(id int64) (Book, bool) {
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
@@ -137,6 +142,7 @@ WHERE id = $1
 	return book, true
 }
 
+// ModifyById modifies a book in the database by its id or false if not found.
 func (p *PostgreSQLDatabase) ModifyById(id int64, book Book) (Book, bool) {
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
@@ -167,6 +173,7 @@ WHERE id = $10
 	return book, true
 }
 
+// RemoveById removes a book from the database by its id or false if not found.
 func (p *PostgreSQLDatabase) RemoveById(id int64) (Book, bool) {
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
