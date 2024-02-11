@@ -9,7 +9,8 @@ import (
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
-/* To start the PostgreSQL database as a Docker container, run the following command:
+/*
+To start the PostgreSQL database as a Docker container, run the following command:
 
 docker run --name readinglist -e POSTGRES_PASSWORD=PUT_REAL_PASSWORD_HERE -e POSTGRES_DB=readinglist -p 5433:5432 -d postgres
 
@@ -22,7 +23,6 @@ To tear down the database, run the following commands in the terminal to copy th
 
 docker cp ./scripts/teardown.sql readinglist:/teardown.sql
 docker exec -it readinglist psql -U postgres -d readinglist -f /teardown.sql
-
 */
 
 // PostgreSQLDatabase is a PostgreSQL database of books.
