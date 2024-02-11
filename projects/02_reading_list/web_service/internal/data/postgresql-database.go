@@ -18,28 +18,33 @@ To setup the database, run the following commands in the terminal to copy the se
 docker cp ./scripts/setup.sql readinglist:/setup.sql
 docker exec -it readinglist psql -U postgres -d readinglist -f /setup.sql
 
+To tear down the database, run the following commands in the terminal to copy the teardown.sql file to the container and execute it with psql:
+
+docker cp ./scripts/teardown.sql readinglist:/teardown.sql
+docker exec -it readinglist psql -U postgres -d readinglist -f /teardown.sql
+
 */
 
 // PostgreSQLDatabase is a database that uses PostgreSQL
 type PostgreSQLDatabase struct {
-	connectionString string
-	logger           *log.Logger
+	dsn    string
+	logger *log.Logger
 }
 
 // NewPostgreSQLDatabase creates a new PostgreSQLDatabase
 func NewPostgreSQLDatabase(config PostgreSQLConfig, logger *log.Logger) *PostgreSQLDatabase {
-	connectionString := config.ConnectionString()
+	connectionString := config.Dsn()
 	logger.Printf("connection string: %s\n", connectionString)
 
 	return &PostgreSQLDatabase{
-		connectionString: connectionString,
-		logger:           logger,
+		dsn:    connectionString,
+		logger: logger,
 	}
 }
 
 func (p *PostgreSQLDatabase) GetAll() []Book {
 	p.logger.Println("get all books")
-	db, err := sql.Open("postgres", p.connectionString)
+	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
@@ -74,7 +79,7 @@ FROM books
 }
 
 func (p *PostgreSQLDatabase) Add(book Book) Book {
-	db, err := sql.Open("postgres", p.connectionString)
+	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
@@ -102,7 +107,7 @@ RETURNING id
 }
 
 func (p *PostgreSQLDatabase) GetById(id int64) (Book, bool) {
-	db, err := sql.Open("postgres", p.connectionString)
+	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
@@ -133,7 +138,7 @@ WHERE id = $1
 }
 
 func (p *PostgreSQLDatabase) ModifyById(id int64, book Book) (Book, bool) {
-	db, err := sql.Open("postgres", p.connectionString)
+	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}
@@ -163,7 +168,7 @@ WHERE id = $10
 }
 
 func (p *PostgreSQLDatabase) RemoveById(id int64) (Book, bool) {
-	db, err := sql.Open("postgres", p.connectionString)
+	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
 		panic(err) // TODO: handle error
 	}

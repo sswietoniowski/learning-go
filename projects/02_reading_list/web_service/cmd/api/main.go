@@ -42,7 +42,7 @@ func main() {
 
 	helper.DotEnvLoad(logger)
 
-	cfg.dbConfig = data.NewConfig()
+	cfg.dbConfig = data.NewPostgreSQLConfig()
 
 	app := newApplication(cfg, logger)
 

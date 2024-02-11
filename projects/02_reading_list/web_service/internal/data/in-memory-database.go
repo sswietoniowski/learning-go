@@ -13,33 +13,35 @@ type InMemoryDatabase struct {
 
 // NewInMemoryDatabase creates a new Database with some initial data.
 func NewInMemoryDatabase(logger *log.Logger) *InMemoryDatabase {
-	return &InMemoryDatabase{
-		books: []Book{
-			{
-				Id:        1,
-				Title:     "The Hitchhiker's Guide to the Galaxy",
-				Author:    "Douglas Adams",
-				Published: 1979,
-				Pages:     224,
-				Genres:    []string{"comedy", "science fiction"},
-				Rating:    5.0,
-				Version:   1,
-				Read:      false,
-				CreatedAt: time.Now(),
-			},
-			{
-				Id:        2,
-				Title:     "The Hobbit",
-				Author:    "J.R.R. Tolkien",
-				Published: 1937,
-				Pages:     310,
-				Genres:    []string{"adventure", "fantasy"},
-				Rating:    4.5,
-				Version:   1,
-				Read:      true,
-				CreatedAt: time.Now(),
-			},
+	var initialBooks = []Book{
+		{
+			Id:        1,
+			Title:     "The Hitchhiker's Guide to the Galaxy",
+			Author:    "Douglas Adams",
+			Published: 1979,
+			Pages:     224,
+			Genres:    []string{"comedy", "science fiction"},
+			Rating:    5.0,
+			Version:   1,
+			Read:      false,
+			CreatedAt: time.Now(),
 		},
+		{
+			Id:        2,
+			Title:     "The Hobbit",
+			Author:    "J.R.R. Tolkien",
+			Published: 1937,
+			Pages:     310,
+			Genres:    []string{"adventure", "fantasy"},
+			Rating:    4.5,
+			Version:   1,
+			Read:      true,
+			CreatedAt: time.Now(),
+		},
+	}
+
+	return &InMemoryDatabase{
+		books:  initialBooks,
 		logger: logger,
 	}
 }
