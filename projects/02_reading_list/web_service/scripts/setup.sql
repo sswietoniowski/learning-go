@@ -11,6 +11,7 @@ CREATE TABLE books (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Initial books
 INSERT INTO books
 (id, title, author, published, pages, genres, rating, version, "read", created_at)
 VALUES
