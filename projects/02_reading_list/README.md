@@ -44,7 +44,7 @@ The web application is served by the web service.
 
 You can access the application at `http://localhost:8080`.
 
-To stop the application, you can run the following command:
+To stop the application (HTML, CSS, JS), you can run the following command:
 
 ```bash
 docker compose down

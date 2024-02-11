@@ -2,11 +2,11 @@
 
 To start the application, run the following command in the terminal:
 
-go run ./cmd/api/ --port 4000 --env development --db in-memory
+go run ./cmd/api/ --port 4000 --env development --db in-memory --frontend http://localhost:8080
 
 or
 
-go run ./cmd/api/ --port 4000 --env production --db postgresql
+go run ./cmd/api/ --port 4000 --env production --db postgresql --frontend http://localhost:8080
 
 */
 
@@ -22,6 +22,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/rs/cors"
 	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/api"
 	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/utils"
 )
@@ -35,6 +36,7 @@ func main() {
 	flag.IntVar(&config.ServerPort, "port", 4000, "set port to run the server on")
 	flag.StringVar(&config.EnvironmentName, "env", "development", "set environment for the server (development, staging, production)")
 	flag.StringVar(&config.DatabaseType, "db", "in-memory", "set database to use (in-memory, postgresql)")
+	flag.StringVar(&config.FrontendOrigin, "frontend", "http://localhost:8080", "set frontend origin for CORS")
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
@@ -48,9 +50,20 @@ func main() {
 
 	logger.Printf("starting \"%s\" server on %s\n", config.EnvironmentName, addr)
 
+	// Register CORS middleware.
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{config.FrontendOrigin},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"*"},
+	})
+
+	handler := c.Handler(app.Routes())
+
+	// Create a new HTTP server.
 	srv := &http.Server{
 		Addr:         addr,
-		Handler:      app.Routes(),
+		Handler:      cors.Default().Handler(handler),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,

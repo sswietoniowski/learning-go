@@ -8,4 +8,5 @@ type Config struct {
 	ServerPort      int
 	EnvironmentName string
 	DatabaseType    string
+	FrontendOrigin  string
 }
