@@ -80,36 +80,44 @@ func sendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}, h
 	return nil
 }
 
+// SendOk sends a 200 OK response with the provided data as JSON.
 func SendOk(w http.ResponseWriter, data interface{}) error {
 	return sendJsonResponse(w, http.StatusOK, data, nil)
 }
 
+// SendCreated sends a 201 Created response with the provided data as JSON and the location header.
 func SendCreated(w http.ResponseWriter, data interface{}, location string) error {
 	headers := make(http.Header)
 	headers.Set("Location", location)
 	return sendJsonResponse(w, http.StatusCreated, data, headers)
 }
 
+// SendNoContent sends a 204 No Content response.
 func SendNoContent(w http.ResponseWriter) error {
 	return sendJsonResponse(w, http.StatusNoContent, nil, nil)
 }
 
+// SendNotFound sends a 404 Not Found response.
 func SendNotFound(w http.ResponseWriter) error {
 	return sendJsonResponse(w, http.StatusNotFound, nil, nil)
 }
 
+// SendBadRequest sends a 400 Bad Request response.
 func SendBadRequest(w http.ResponseWriter) error {
 	return sendJsonResponse(w, http.StatusBadRequest, nil, nil)
 }
 
+// SendMethodNotAllowed sends a 405 Method Not Allowed response.
 func SendMethodNotAllowed(w http.ResponseWriter) error {
 	return sendJsonResponse(w, http.StatusMethodNotAllowed, nil, nil)
 }
 
+// SendUnsupportedMediaType sends a 415 Unsupported Media Type response.
 func SendUnsupportedMediaType(w http.ResponseWriter) error {
 	return sendJsonResponse(w, http.StatusUnsupportedMediaType, nil, nil)
 }
 
+// SendInternalServerError sends a 500 Internal Server Error response.
 func SendInternalServerError(w http.ResponseWriter) error {
 	return sendJsonResponse(w, http.StatusInternalServerError, nil, nil)
 }
