@@ -1,1 +1,1 @@
-DROP TABLE books;
+DROP TABLE IF EXISTS books;

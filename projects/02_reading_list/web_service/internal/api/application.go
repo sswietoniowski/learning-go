@@ -16,6 +16,8 @@ type Application struct {
 // NewApplication creates a new Application instance with the given configuration and logger.
 func NewApplication(config Config, logger *log.Logger) *Application {
 	var database data.Databaser
+	// Create a new database based on the configuration.
+	// If the database type is not supported, use the in-memory database.
 	if config.DatabaseType == "postgresql" {
 		dbConfig := data.NewPostgreSQLConfig()
 		database = data.NewPostgreSQLDatabase(dbConfig.Dsn(), logger)
