@@ -11,7 +11,7 @@ type Book struct {
 	Pages     int       `json:"pages,omitempty"`
 	Genres    []string  `json:"genres,omitempty"`
 	Rating    float32   `json:"rating,omitempty"`
-	Version   int       `json:"-"`
+	Version   int       `json:"version,omitempty"`
 	Read      bool      `json:"read"`
 	CreatedAt time.Time `json:"-"`
 }

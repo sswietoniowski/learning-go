@@ -2,10 +2,9 @@ package data
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
-	"strings"
 
+	"github.com/lib/pq"
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
@@ -55,13 +54,11 @@ func (p *PostgreSQLDatabase) GetAll() ([]Book, error) {
 	}
 	defer db.Close()
 
-	selectAllQuery := `
+	query := `
 SELECT id, title, author, published, pages, genres, rating, version, read, created_at
 FROM books
 `
-	p.logger.Println(selectAllQuery)
-
-	rows, err := db.Query(selectAllQuery)
+	rows, err := db.Query(query)
 	if err != nil {
 		return nil, &DatabaseError{"GetAll", err}
 	}
@@ -70,14 +67,28 @@ FROM books
 
 	for rows.Next() {
 		var book Book
-		var genres string
-		err := rows.Scan(&book.Id, &book.Title, &book.Author, &book.Published,
-			&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
+
+		err := rows.Scan(
+			&book.Id,
+			&book.Title,
+			&book.Author,
+			&book.Published,
+			&book.Pages,
+			pq.Array(&book.Genres),
+			&book.Rating,
+			&book.Version,
+			&book.Read,
+			&book.CreatedAt,
+		)
 		if err != nil {
 			return nil, &DatabaseError{"GetAll", err}
 		}
-		book.Genres = convertPostgreSQLArrayToSlice(genres)
+
 		books = append(books, book)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, &DatabaseError{"GetAll", err}
 	}
 
 	return books, nil
@@ -91,20 +102,26 @@ func (p *PostgreSQLDatabase) Add(book Book) (*Book, error) {
 	}
 	defer db.Close()
 
-	insertQuery := `
-INSERT INTO books (title, author, published, pages, genres, rating, version, read, created_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id
+	query := `
+INSERT INTO books (title, author, published, pages, genres, rating, read)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, created_at, version
 `
-	p.logger.Println(insertQuery)
+	args := []interface{}{
+		book.Title,
+		book.Author,
+		book.Published,
+		book.Pages,
+		pq.Array(book.Genres),
+		book.Rating,
+		book.Read,
+	}
 
-	genres := convertSliceToPostgreSQLArray(book.Genres)
-
-	row := db.QueryRow(insertQuery,
-		book.Title, book.Author, book.Published, book.Pages,
-		genres, book.Rating, book.Version, book.Read, book.CreatedAt)
-
-	err = row.Scan(&book.Id)
+	err = db.QueryRow(query, args...).Scan(
+		&book.Id,
+		&book.CreatedAt,
+		&book.Version,
+	)
 	if err != nil {
 		return nil, &DatabaseError{"Add", err}
 	}
@@ -121,26 +138,32 @@ func (p *PostgreSQLDatabase) GetById(id int64) (*Book, error) {
 	}
 	defer db.Close()
 
-	selectByIdQuery := `
+	query := `
 SELECT id, title, author, published, pages, genres, rating, version, read, created_at
 FROM books
 WHERE id = $1
 `
-	p.logger.Println(selectByIdQuery)
-
-	row := db.QueryRow(selectByIdQuery, id)
-
 	var book Book
-	var genres string
-	err = row.Scan(&book.Id, &book.Title, &book.Author, &book.Published,
-		&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
+	err = db.QueryRow(query, id).Scan(
+		&book.Id,
+		&book.Title,
+		&book.Author,
+		&book.Published,
+		&book.Pages,
+		pq.Array(&book.Genres),
+		&book.Rating,
+		&book.Version,
+		&book.Read,
+		&book.CreatedAt,
+	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		switch {
+		case err == sql.ErrNoRows:
 			return nil, &NotFoundError{Id: id}
+		default:
+			return nil, &DatabaseError{"GetById", err}
 		}
-		return nil, &DatabaseError{"GetById", err}
 	}
-	book.Genres = convertPostgreSQLArrayToSlice(genres)
 
 	return &book, nil
 }
@@ -154,24 +177,31 @@ func (p *PostgreSQLDatabase) ModifyById(id int64, book Book) (*Book, error) {
 	}
 	defer db.Close()
 
-	updateQuery := `
+	query := `
 UPDATE books
-SET title = $1, author = $2, published = $3, pages = $4, genres = $5, rating = $6,
-	version = $7, read = $8, created_at = $9
-WHERE id = $10
+SET title = $1, author = $2, published = $3, pages = $4, genres = $5, rating = $6, version = version + 1, read = $7
+WHERE id = $8
+RETURNING version
 `
-	p.logger.Println(updateQuery)
+	args := []interface{}{
+		book.Title,
+		book.Author,
+		book.Published,
+		book.Pages,
+		pq.Array(book.Genres),
+		book.Rating,
+		book.Read,
+		id,
+	}
 
-	genres := convertSliceToPostgreSQLArray(book.Genres)
-
-	_, err = db.Exec(updateQuery, book.Title, book.Author, book.Published, book.Pages,
-		genres, book.Rating, book.Version, book.Read, book.CreatedAt, id)
-
+	err = db.QueryRow(query, args...).Scan(&book.Version)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		switch {
+		case err == sql.ErrNoRows:
 			return nil, &NotFoundError{Id: id}
+		default:
+			return nil, &DatabaseError{"ModifyById", err}
 		}
-		return nil, &DatabaseError{"ModifyById", err}
 	}
 
 	return &book, nil
@@ -186,35 +216,32 @@ func (p *PostgreSQLDatabase) RemoveById(id int64) (*Book, error) {
 	}
 	defer db.Close()
 
-	deleteQuery := `
+	query := `
 DELETE FROM books
 WHERE id = $1
 RETURNING id, title, author, published, pages, genres, rating, version, read, created_at
 `
-	p.logger.Println(deleteQuery)
-
-	row := db.QueryRow(deleteQuery, id)
-
 	var book Book
-	var genres string
-	err = row.Scan(&book.Id, &book.Title, &book.Author, &book.Published,
-		&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
+	err = db.QueryRow(query, id).Scan(
+		&book.Id,
+		&book.Title,
+		&book.Author,
+		&book.Published,
+		&book.Pages,
+		pq.Array(&book.Genres),
+		&book.Rating,
+		&book.Version,
+		&book.Read,
+		&book.CreatedAt,
+	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		switch {
+		case err == sql.ErrNoRows:
 			return nil, &NotFoundError{Id: id}
+		default:
+			return nil, &DatabaseError{"RemoveById", err}
 		}
-		return nil, &DatabaseError{"RemoveById", err}
 	}
-	book.Genres = convertPostgreSQLArrayToSlice(genres)
 
 	return &book, nil
-}
-
-func convertSliceToPostgreSQLArray(slice []string) string {
-	return fmt.Sprintf("{%s}", strings.Join(slice, ","))
-}
-
-func convertPostgreSQLArrayToSlice(postgreSQLArray string) []string {
-	postgreSQLArray = postgreSQLArray[1 : len(postgreSQLArray)-1]
-	return strings.Split(postgreSQLArray, ",")
 }
