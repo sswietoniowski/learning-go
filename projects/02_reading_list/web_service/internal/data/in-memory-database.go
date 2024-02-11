@@ -13,6 +13,8 @@ type InMemoryDatabase struct {
 
 // NewInMemoryDatabase creates a new Database with some initial data.
 func NewInMemoryDatabase(logger *log.Logger) *InMemoryDatabase {
+	logger.Println("using in-memory database")
+
 	var initialBooks = []Book{
 		{
 			Id:        1,

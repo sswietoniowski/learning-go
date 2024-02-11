@@ -1,3 +1,15 @@
+/*
+
+To start the application, run the following command in the terminal:
+
+go run ./cmd/api/ --port 4000 --env development --db in-memory
+
+or
+
+go run ./cmd/api/ --port 4000 --env production --db postgresql
+
+*/
+
 package main
 
 import (
@@ -17,9 +29,9 @@ import (
 const version = "1.0.0"
 
 type config struct {
-	port     int
-	env      string
-	dbConfig data.PostgreSQLConfig
+	port int
+	env  string
+	db   string
 }
 
 type application struct {
@@ -31,18 +43,17 @@ type application struct {
 func main() {
 	var cfg config
 
-	// Part of the configuration is defined as flags, the rest is loaded from the environment.
+	// Part of the configuration is defined as flags, the rest (for the database) is loaded from the environment.
 	// Note, that it is not a good practice to mix flags and environment variables in a single application,
 	// but it is done here for the sake of the example (to show how to use both).
 	flag.IntVar(&cfg.port, "port", 4000, "set port to run the server on")
 	flag.StringVar(&cfg.env, "env", "development", "set environment for the server (development, staging, production)")
+	flag.StringVar(&cfg.db, "db", "in-memory", "set database to use (in-memory, postgresql)")
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
 	helper.DotEnvLoad(logger)
-
-	cfg.dbConfig = data.NewPostgreSQLConfig()
 
 	app := newApplication(cfg, logger)
 

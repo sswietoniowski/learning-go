@@ -10,12 +10,11 @@ import (
 
 func newApplication(config config, logger *log.Logger) *application {
 	var database Databaser
-	if config.dbConfig.Host != "" {
-		database = NewPostgreSQLDatabase(config.dbConfig.Dsn(), logger)
-		logger.Println("using postgresql database")
+	if config.db == "postgresql" {
+		dbConfig := NewPostgreSQLConfig()
+		database = NewPostgreSQLDatabase(dbConfig.Dsn(), logger)
 	} else {
 		database = NewInMemoryDatabase(logger)
-		logger.Println("using in-memory database")
 	}
 
 	return &application{

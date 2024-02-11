@@ -1,5 +1,3 @@
-Use DSN
-
 Models
 
 pq.Array

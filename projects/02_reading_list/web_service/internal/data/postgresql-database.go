@@ -33,6 +33,8 @@ type PostgreSQLDatabase struct {
 
 // NewPostgreSQLDatabase creates a new PostgreSQLDatabase with the given DSN and logger.
 func NewPostgreSQLDatabase(dsn string, logger *log.Logger) *PostgreSQLDatabase {
+	logger.Println("using postgresql database")
+
 	// This is not a secure way to log the connection string, but it's useful for debugging and learning.
 	// Don't do this in a production environment and for the real connection string.
 	logger.Printf("dsn: %s\n", dsn)
