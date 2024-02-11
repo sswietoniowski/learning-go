@@ -45,13 +45,13 @@ func NewPostgreSQLDatabase(dsn string, logger *log.Logger) *PostgreSQLDatabase {
 	}
 }
 
-// GetAll returns all books from the database.
-func (p *PostgreSQLDatabase) GetAll() []Book {
+// GetAll returns all books from the database or an error if something went wrong.
+func (p *PostgreSQLDatabase) GetAll() ([]Book, error) {
 	p.logger.Println("get all books")
 
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"GetAll", err}
 	}
 	defer db.Close()
 
@@ -63,10 +63,10 @@ FROM books
 
 	rows, err := db.Query(selectAllQuery)
 	if err != nil {
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"GetAll", err}
 	}
 
-	books := make([]Book, 0) // to return an empty JSON array instead of null
+	books := make([]Book, 0) // to return an empty array instead of nil when there are no books
 
 	for rows.Next() {
 		var book Book
@@ -74,20 +74,20 @@ FROM books
 		err := rows.Scan(&book.Id, &book.Title, &book.Author, &book.Published,
 			&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
 		if err != nil {
-			panic(err) // TODO: handle error
+			return nil, &DatabaseError{"GetAll", err}
 		}
 		book.Genres = convertPostgreSQLArrayToSlice(genres)
 		books = append(books, book)
 	}
 
-	return books
+	return books, nil
 }
 
-// Add adds a new book to the database.
-func (p *PostgreSQLDatabase) Add(book Book) Book {
+// Add adds a new book to the database and returns the added book or an error if something went wrong.
+func (p *PostgreSQLDatabase) Add(book Book) (*Book, error) {
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"Add", err}
 	}
 	defer db.Close()
 
@@ -106,17 +106,18 @@ RETURNING id
 
 	err = row.Scan(&book.Id)
 	if err != nil {
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"Add", err}
 	}
 
-	return book
+	return &book, nil
 }
 
-// GetById returns a book from the database by its id or false if not found.
-func (p *PostgreSQLDatabase) GetById(id int64) (Book, bool) {
+// GetById returns a book from the database by its id or an error if something went wrong.
+// If the book is not found, it returns NotFoundError as the error, for other errors it returns DatabaseError.
+func (p *PostgreSQLDatabase) GetById(id int64) (*Book, error) {
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"GetById", err}
 	}
 	defer db.Close()
 
@@ -135,20 +136,21 @@ WHERE id = $1
 		&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Book{}, false
+			return nil, &NotFoundError{Id: id}
 		}
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"GetById", err}
 	}
 	book.Genres = convertPostgreSQLArrayToSlice(genres)
 
-	return book, true
+	return &book, nil
 }
 
-// ModifyById modifies a book in the database by its id or false if not found.
-func (p *PostgreSQLDatabase) ModifyById(id int64, book Book) (Book, bool) {
+// ModifyById modifies a book in the database by its id and returns the modified book or an error if something went wrong.
+// If the book is not found, it returns NotFoundError as the error, for other errors it returns DatabaseError.
+func (p *PostgreSQLDatabase) ModifyById(id int64, book Book) (*Book, error) {
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"ModifyById", err}
 	}
 	defer db.Close()
 
@@ -167,19 +169,20 @@ WHERE id = $10
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Book{}, false
+			return nil, &NotFoundError{Id: id}
 		}
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"ModifyById", err}
 	}
 
-	return book, true
+	return &book, nil
 }
 
-// RemoveById removes a book from the database by its id or false if not found.
-func (p *PostgreSQLDatabase) RemoveById(id int64) (Book, bool) {
+// RemoveById removes a book from the database by its id and returns the removed book or an error if something went wrong.
+// If the book is not found, it returns NotFoundError as the error, for other errors it returns DatabaseError.
+func (p *PostgreSQLDatabase) RemoveById(id int64) (*Book, error) {
 	db, err := sql.Open("postgres", p.dsn)
 	if err != nil {
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"RemoveById", err}
 	}
 	defer db.Close()
 
@@ -198,13 +201,13 @@ RETURNING id, title, author, published, pages, genres, rating, version, read, cr
 		&book.Pages, &genres, &book.Rating, &book.Version, &book.Read, &book.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Book{}, false
+			return nil, &NotFoundError{Id: id}
 		}
-		panic(err) // TODO: handle error
+		return nil, &DatabaseError{"RemoveById", err}
 	}
 	book.Genres = convertPostgreSQLArrayToSlice(genres)
 
-	return book, true
+	return &book, nil
 }
 
 func convertSliceToPostgreSQLArray(slice []string) string {

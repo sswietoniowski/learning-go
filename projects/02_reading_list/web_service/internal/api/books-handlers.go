@@ -12,7 +12,7 @@ func (app *Application) getHealthcheckHandler(w http.ResponseWriter, r *http.Req
 	app.logger.Println("get healthcheck")
 
 	if !isValidMethod(w, r, http.MethodGet) {
-		app.logger.Println("get healthcheck: method not allowed")
+		app.logger.Println("method not allowed")
 		return
 	}
 
@@ -24,7 +24,7 @@ func (app *Application) getHealthcheckHandler(w http.ResponseWriter, r *http.Req
 
 	err := sendJsonResponse(w, http.StatusOK, data)
 	if err != nil {
-		app.logger.Printf("get healthcheck: internal server error: %v\n", err)
+		app.logger.Printf("internal server error: %v\n", err)
 	}
 }
 
@@ -32,15 +32,20 @@ func (app *Application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 	app.logger.Println("get all books")
 
 	if !isValidMethod(w, r, http.MethodGet) {
-		app.logger.Println("get all books: method not allowed")
+		app.logger.Println("method not allowed")
 		return
 	}
 
-	books := app.database.GetAll()
-
-	err := sendJsonResponse(w, http.StatusOK, books)
+	books, err := app.database.GetAll()
 	if err != nil {
-		app.logger.Printf("get all books: internal server error: %v\n", err)
+		app.logger.Printf("internal server error: %v\n", err)
+		sendJsonResponse(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	err = sendJsonResponse(w, http.StatusOK, books)
+	if err != nil {
+		app.logger.Printf("internal server error: %v\n", err)
 	}
 }
 
@@ -48,27 +53,32 @@ func (app *Application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 	app.logger.Println("create a new book")
 
 	if !isValidMethod(w, r, http.MethodPost) {
-		app.logger.Println("create a new book: method not allowed")
+		app.logger.Println("method not allowed")
 		return
 	}
 
 	if !isValidContentType(w, r, jsonContentType) {
-		app.logger.Println("create a new book: unsupported media type")
+		app.logger.Println("unsupported media type")
 		return
 	}
 
 	var book data.Book
 	err := parseJsonRequest(w, r, &book)
 	if err != nil {
-		app.logger.Printf("create a new book: bad request: %v\n", err)
+		app.logger.Printf("bad request: %v\n", err)
 		return
 	}
 
-	book = app.database.Add(book)
-
-	err = sendJsonResponse(w, http.StatusCreated, book)
+	createdBook, err := app.database.Add(book)
 	if err != nil {
-		app.logger.Printf("create a new book: internal server error: %v\n", err)
+		app.logger.Printf("internal server error: %v\n", err)
+		sendJsonResponse(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	err = sendJsonResponse(w, http.StatusCreated, createdBook)
+	if err != nil {
+		app.logger.Printf("internal server error: %v\n", err)
 	}
 }
 
@@ -76,27 +86,32 @@ func (app *Application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 	app.logger.Println("get book by id")
 
 	if !isValidMethod(w, r, http.MethodGet) {
-		app.logger.Println("get book by id: method not allowed")
+		app.logger.Println("method not allowed")
 		return
 	}
 
 	id, err := extractIdFromRoute(w, r, booksPath)
 	if err != nil {
-		app.logger.Printf("get book by id: bad request: %v\n", err)
+		app.logger.Printf("bad request: %v\n", err)
 		return
 	}
 
-	app.logger.Printf("get book by id: %d\n", id)
-
-	book, found := app.database.GetById(id)
-	if !found {
-		sendJsonResponse(w, http.StatusNotFound, nil)
+	book, err := app.database.GetById(id)
+	if err != nil {
+		switch err.(type) {
+		case *data.NotFoundError:
+			app.logger.Printf("not found: %v\n", err)
+			sendJsonResponse(w, http.StatusNotFound, nil)
+		default:
+			app.logger.Printf("internal server error: %v\n", err)
+			sendJsonResponse(w, http.StatusInternalServerError, nil)
+		}
 		return
 	}
 
 	err = sendJsonResponse(w, http.StatusOK, book)
 	if err != nil {
-		app.logger.Printf("get book by id: internal server error: %v\n", err)
+		app.logger.Printf("internal server error: %v\n", err)
 	}
 }
 
@@ -104,39 +119,44 @@ func (app *Application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 	app.logger.Println("update book by id")
 
 	if !isValidMethod(w, r, http.MethodPut) {
-		app.logger.Println("update book by id: method not allowed")
+		app.logger.Println("method not allowed")
 		return
 	}
 
 	if !isValidContentType(w, r, jsonContentType) {
-		app.logger.Println("update book by id: unsupported media type")
+		app.logger.Println("unsupported media type")
 		return
 	}
 
 	id, err := extractIdFromRoute(w, r, booksPath)
 	if err != nil {
-		app.logger.Printf("update book by id: bad request: %v\n", err)
+		app.logger.Printf("bad request: %v\n", err)
 		return
 	}
-
-	app.logger.Printf("update book by id: %d\n", id)
 
 	var book data.Book
 	err = parseJsonRequest(w, r, &book)
 	if err != nil {
-		app.logger.Printf("update book by id: bad request: %v\n", err)
+		app.logger.Printf("bad request: %v\n", err)
 		return
 	}
 
-	_, updated := app.database.ModifyById(id, book)
-	if !updated {
-		sendJsonResponse(w, http.StatusNotFound, nil)
+	_, err = app.database.ModifyById(id, book)
+	if err != nil {
+		switch err.(type) {
+		case *data.NotFoundError:
+			app.logger.Printf("not found: %v\n", err)
+			sendJsonResponse(w, http.StatusNotFound, nil)
+		default:
+			app.logger.Printf("internal server error: %v\n", err)
+			sendJsonResponse(w, http.StatusInternalServerError, nil)
+		}
 		return
 	}
 
 	err = sendJsonResponse(w, http.StatusNoContent, nil)
 	if err != nil {
-		app.logger.Printf("update book by id: internal server error: %v\n", err)
+		app.logger.Printf("internal server error: %v\n", err)
 	}
 }
 
@@ -144,26 +164,31 @@ func (app *Application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Req
 	app.logger.Println("delete book by id")
 
 	if !isValidMethod(w, r, http.MethodDelete) {
-		app.logger.Println("delete book by id: method not allowed")
+		app.logger.Println("method not allowed")
 		return
 	}
 
 	id, err := extractIdFromRoute(w, r, booksPath)
 	if err != nil {
-		app.logger.Printf("delete book by id: bad request: %v\n", err)
+		app.logger.Printf("bad request: %v\n", err)
 		return
 	}
 
-	app.logger.Printf("delete book by id: %d\n", id)
-
-	_, deleted := app.database.RemoveById(id)
-	if !deleted {
-		sendJsonResponse(w, http.StatusNotFound, nil)
+	_, err = app.database.RemoveById(id)
+	if err != nil {
+		switch err.(type) {
+		case *data.NotFoundError:
+			app.logger.Printf("not found: %v\n", err)
+			sendJsonResponse(w, http.StatusNotFound, nil)
+		default:
+			app.logger.Printf("internal server error: %v\n", err)
+			sendJsonResponse(w, http.StatusInternalServerError, nil)
+		}
 		return
 	}
 
 	err = sendJsonResponse(w, http.StatusNoContent, nil)
 	if err != nil {
-		app.logger.Printf("delete book by id: internal server error: %v\n", err)
+		app.logger.Printf("internal server error: %v\n", err)
 	}
 }
