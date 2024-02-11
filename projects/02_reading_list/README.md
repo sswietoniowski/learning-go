@@ -17,3 +17,35 @@ The application is built using the following technologies, libraries, frameworks
 - [gorilla/mux](https://github.com/gorilla/mux),
 - [godotenv](https://github.com/joho/godotenv),
 - [pq](github.com/lib/pq).
+
+## Setup
+
+To run this application, you need to have Docker and Docker Compose installed on your machine.
+
+Then, you can run the following command from the root directory of the project:
+
+```bash
+docker compose up
+```
+
+This command will start the web service, web application and the database.
+
+The database is running on `localhost:5433`.
+
+You can access it using the following credentials:
+
+- username: `postgres`,
+- password: `P@ssw0rd`,
+- database: `readinglist`.
+
+You can access the web service (REST API) at `http://localhost:4000`.
+
+The web application is served by the web service.
+
+You can access the application at `http://localhost:8080`.
+
+To stop the application, you can run the following command:
+
+```bash
+docker compose down
+```

@@ -1,3 +1,9 @@
 {
-  "cSpell.words": ["Databaser", "dbname", "godotenv", "healthcheck"]
+  "cSpell.words": [
+    "Databaser",
+    "dbname",
+    "godotenv",
+    "healthcheck",
+    "readinglist"
+  ]
 }
