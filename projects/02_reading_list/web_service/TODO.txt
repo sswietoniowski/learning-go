@@ -1,7 +1,5 @@
-Models
-
 pq.Array
 
 args 
 
-oprzeć się na kodzie z przykładu
+handlers + headers

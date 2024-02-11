@@ -39,6 +39,7 @@ func main() {
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
+	// Load the rest of the configuration from the environment.
 	utils.DotEnvLoad(logger)
 
 	app := api.NewApplication(config, logger)
