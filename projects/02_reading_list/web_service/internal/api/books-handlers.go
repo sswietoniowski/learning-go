@@ -2,48 +2,30 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/sswietoniowski/learning-go/projects/02_reading_list/web_service/internal/data"
 )
 
 const booksPath = "/api/v1/books/"
 
-func (app *Application) getHealthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	app.logger.Println("get healthcheck")
-
-	if !isValidMethod(w, r, http.MethodGet) {
-		app.logger.Println("method not allowed")
-		return
-	}
-
-	data := map[string]string{
-		"status":      "available",
-		"environment": app.config.EnvironmentName,
-		"version":     Version,
-	}
-
-	err := sendJsonResponse(w, http.StatusOK, data)
-	if err != nil {
-		app.logger.Printf("internal server error: %v\n", err)
-	}
-}
-
 func (app *Application) getBooksHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("get all books")
 
-	if !isValidMethod(w, r, http.MethodGet) {
+	if !IsValidMethod(w, r, http.MethodGet) {
 		app.logger.Println("method not allowed")
+		SendMethodNotAllowed(w)
 		return
 	}
 
 	books, err := app.database.GetAll()
 	if err != nil {
 		app.logger.Printf("internal server error: %v\n", err)
-		sendJsonResponse(w, http.StatusInternalServerError, nil)
+		SendInternalServerError(w)
 		return
 	}
 
-	err = sendJsonResponse(w, http.StatusOK, books)
+	err = SendOk(w, books)
 	if err != nil {
 		app.logger.Printf("internal server error: %v\n", err)
 	}
@@ -52,31 +34,36 @@ func (app *Application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 func (app *Application) createBooksHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("create a new book")
 
-	if !isValidMethod(w, r, http.MethodPost) {
+	if !IsValidMethod(w, r, http.MethodPost) {
 		app.logger.Println("method not allowed")
+		SendMethodNotAllowed(w)
 		return
 	}
 
-	if !isValidContentType(w, r, jsonContentType) {
+	if !IsValidContentType(w, r, jsonContentType) {
 		app.logger.Println("unsupported media type")
+		SendUnsupportedMediaType(w)
 		return
 	}
 
 	var book data.Book
-	err := parseJsonRequest(w, r, &book)
+	err := ParseJsonRequest(w, r, &book)
 	if err != nil {
 		app.logger.Printf("bad request: %v\n", err)
+		SendBadRequest(w)
 		return
 	}
 
 	createdBook, err := app.database.Add(book)
 	if err != nil {
 		app.logger.Printf("internal server error: %v\n", err)
-		sendJsonResponse(w, http.StatusInternalServerError, nil)
+		SendInternalServerError(w)
 		return
 	}
 
-	err = sendJsonResponse(w, http.StatusCreated, createdBook)
+	location := booksPath + strconv.FormatInt(createdBook.Id, 10)
+
+	err = SendCreated(w, createdBook, location)
 	if err != nil {
 		app.logger.Printf("internal server error: %v\n", err)
 	}
@@ -85,14 +72,16 @@ func (app *Application) createBooksHandler(w http.ResponseWriter, r *http.Reques
 func (app *Application) getBookByIdHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("get book by id")
 
-	if !isValidMethod(w, r, http.MethodGet) {
+	if !IsValidMethod(w, r, http.MethodGet) {
 		app.logger.Println("method not allowed")
+		SendMethodNotAllowed(w)
 		return
 	}
 
-	id, err := extractIdFromRoute(w, r, booksPath)
+	id, err := ExtractIdFromRoute(w, r, booksPath)
 	if err != nil {
 		app.logger.Printf("bad request: %v\n", err)
+		SendBadRequest(w)
 		return
 	}
 
@@ -101,15 +90,15 @@ func (app *Application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 		switch err.(type) {
 		case *data.NotFoundError:
 			app.logger.Printf("not found: %v\n", err)
-			sendJsonResponse(w, http.StatusNotFound, nil)
+			SendNotFound(w)
 		default:
 			app.logger.Printf("internal server error: %v\n", err)
-			sendJsonResponse(w, http.StatusInternalServerError, nil)
+			SendInternalServerError(w)
 		}
 		return
 	}
 
-	err = sendJsonResponse(w, http.StatusOK, book)
+	err = SendOk(w, book)
 	if err != nil {
 		app.logger.Printf("internal server error: %v\n", err)
 	}
@@ -118,26 +107,30 @@ func (app *Application) getBookByIdHandler(w http.ResponseWriter, r *http.Reques
 func (app *Application) updateBookByIdHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("update book by id")
 
-	if !isValidMethod(w, r, http.MethodPut) {
+	if !IsValidMethod(w, r, http.MethodPut) {
 		app.logger.Println("method not allowed")
+		SendMethodNotAllowed(w)
 		return
 	}
 
-	if !isValidContentType(w, r, jsonContentType) {
+	if !IsValidContentType(w, r, jsonContentType) {
 		app.logger.Println("unsupported media type")
+		SendUnsupportedMediaType(w)
 		return
 	}
 
-	id, err := extractIdFromRoute(w, r, booksPath)
+	id, err := ExtractIdFromRoute(w, r, booksPath)
 	if err != nil {
 		app.logger.Printf("bad request: %v\n", err)
+		SendBadRequest(w)
 		return
 	}
 
 	var book data.Book
-	err = parseJsonRequest(w, r, &book)
+	err = ParseJsonRequest(w, r, &book)
 	if err != nil {
 		app.logger.Printf("bad request: %v\n", err)
+		SendBadRequest(w)
 		return
 	}
 
@@ -146,15 +139,15 @@ func (app *Application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 		switch err.(type) {
 		case *data.NotFoundError:
 			app.logger.Printf("not found: %v\n", err)
-			sendJsonResponse(w, http.StatusNotFound, nil)
+			SendNotFound(w)
 		default:
 			app.logger.Printf("internal server error: %v\n", err)
-			sendJsonResponse(w, http.StatusInternalServerError, nil)
+			SendInternalServerError(w)
 		}
 		return
 	}
 
-	err = sendJsonResponse(w, http.StatusNoContent, nil)
+	err = SendNoContent(w)
 	if err != nil {
 		app.logger.Printf("internal server error: %v\n", err)
 	}
@@ -163,14 +156,16 @@ func (app *Application) updateBookByIdHandler(w http.ResponseWriter, r *http.Req
 func (app *Application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("delete book by id")
 
-	if !isValidMethod(w, r, http.MethodDelete) {
+	if !IsValidMethod(w, r, http.MethodDelete) {
 		app.logger.Println("method not allowed")
+		SendMethodNotAllowed(w)
 		return
 	}
 
-	id, err := extractIdFromRoute(w, r, booksPath)
+	id, err := ExtractIdFromRoute(w, r, booksPath)
 	if err != nil {
 		app.logger.Printf("bad request: %v\n", err)
+		SendBadRequest(w)
 		return
 	}
 
@@ -179,15 +174,15 @@ func (app *Application) deleteBookByIdHandler(w http.ResponseWriter, r *http.Req
 		switch err.(type) {
 		case *data.NotFoundError:
 			app.logger.Printf("not found: %v\n", err)
-			sendJsonResponse(w, http.StatusNotFound, nil)
+			SendNotFound(w)
 		default:
 			app.logger.Printf("internal server error: %v\n", err)
-			sendJsonResponse(w, http.StatusInternalServerError, nil)
+			SendInternalServerError(w)
 		}
 		return
 	}
 
-	err = sendJsonResponse(w, http.StatusNoContent, nil)
+	err = SendNoContent(w)
 	if err != nil {
 		app.logger.Printf("internal server error: %v\n", err)
 	}

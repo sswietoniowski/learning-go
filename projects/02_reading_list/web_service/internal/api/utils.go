@@ -11,28 +11,21 @@ import (
 const contentTypeHeader = "Content-Type"
 const jsonContentType = "application/json"
 
-// isValidMethod checks if the request method is the expected one and returns a boolean.
-func isValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string) bool {
-	if r.Method != expectedMethod {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return false
-	}
-
-	return true
+// IsValidMethod checks if the request method is the expected one
+// and returns a boolean.
+func IsValidMethod(w http.ResponseWriter, r *http.Request, expectedMethod string) bool {
+	return r.Method == expectedMethod
 }
 
-// isValidContentType checks if the request content type is the expected one and returns a boolean.
-func isValidContentType(w http.ResponseWriter, r *http.Request, expectedContentType string) bool {
-	if r.Header.Get(contentTypeHeader) != expectedContentType {
-		http.Error(w, "Invalid Content-Type, expected 'application/json'", http.StatusUnsupportedMediaType)
-		return false
-	}
-
-	return true
+// IsValidContentType checks if the request content type is the expected one
+// and returns a boolean.
+func IsValidContentType(w http.ResponseWriter, r *http.Request, expectedContentType string) bool {
+	return r.Header.Get(contentTypeHeader) == expectedContentType
 }
 
-// parseJsonRequest reads the request body and decodes the JSON data into the provided interface data and returns an error if any.
-func parseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
+// ParseJsonRequest reads the request body and decodes the JSON data into the
+// provided interface data and returns an error if any.
+func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	const maxBodySize = 1_048_576 // 1MB
 	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 
@@ -41,36 +34,39 @@ func parseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) 
 	dec.DisallowUnknownFields()
 
 	if err := dec.Decode(data); err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return errors.New("could not decode request data from JSON")
 	}
 
 	if err := dec.Decode(&struct{}{}); err != io.EOF {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return errors.New("request body must only contain a single JSON object")
 	}
 
 	return nil
 }
 
-// extractIdFromRoute extracts the id from the request path and returns it as an int64 or an error if any.
-func extractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (int64, error) {
+// ExtractIdFromRoute extracts the id from the request path and returns
+// it as an int64 or an error if any.
+func ExtractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (int64, error) {
 	id := r.URL.Path[len(path):]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return 0, errors.New("bad request, unable to extract id from path")
 	}
 
 	return idInt, nil
 }
 
-// sendJsonResponse encodes the provided data to JSON and sends it as the response with the provided status code and returns an error if any.
-func sendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) error {
+// sendJsonResponse encodes the provided data to JSON and sends it as the
+// response with the provided status code and returns an error if any.
+func sendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}, headers http.Header) error {
 	dataJSON, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return errors.New("could not encode response data to JSON")
+	}
+
+	for key, value := range headers {
+		w.Header()[key] = value
 	}
 
 	w.Header().Set(contentTypeHeader, jsonContentType)
@@ -82,4 +78,38 @@ func sendJsonResponse(w http.ResponseWriter, statusCode int, data interface{}) e
 	}
 
 	return nil
+}
+
+func SendOk(w http.ResponseWriter, data interface{}) error {
+	return sendJsonResponse(w, http.StatusOK, data, nil)
+}
+
+func SendCreated(w http.ResponseWriter, data interface{}, location string) error {
+	headers := make(http.Header)
+	headers.Set("Location", location)
+	return sendJsonResponse(w, http.StatusCreated, data, headers)
+}
+
+func SendNoContent(w http.ResponseWriter) error {
+	return sendJsonResponse(w, http.StatusNoContent, nil, nil)
+}
+
+func SendNotFound(w http.ResponseWriter) error {
+	return sendJsonResponse(w, http.StatusNotFound, nil, nil)
+}
+
+func SendBadRequest(w http.ResponseWriter) error {
+	return sendJsonResponse(w, http.StatusBadRequest, nil, nil)
+}
+
+func SendMethodNotAllowed(w http.ResponseWriter) error {
+	return sendJsonResponse(w, http.StatusMethodNotAllowed, nil, nil)
+}
+
+func SendUnsupportedMediaType(w http.ResponseWriter) error {
+	return sendJsonResponse(w, http.StatusUnsupportedMediaType, nil, nil)
+}
+
+func SendInternalServerError(w http.ResponseWriter) error {
+	return sendJsonResponse(w, http.StatusInternalServerError, nil, nil)
 }
