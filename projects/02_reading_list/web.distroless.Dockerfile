@@ -29,7 +29,7 @@ COPY --from=build --chown=web:web /src/ui /ui
 
 ENV APP_PORT=4000
 ENV APP_ENV=production
-ENV APP_BACKEND=http://localhost:8080
+ENV APP_BACKEND=http://localhost:4000/api/v1
 
 # TODO: fix the user
 #RUN addgroup -S web && adduser -S web -G web
