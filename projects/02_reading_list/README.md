@@ -13,13 +13,21 @@ The application is built using the following technologies, libraries, frameworks
 - [Go](https://golang.org/),
 - [PostgreSQL](https://www.postgresql.org/),
 - [Docker](https://www.docker.com/),
+- [Docker Compose](https://docs.docker.com/compose/),
 - [gorilla/mux](https://github.com/gorilla/mux),
 - [godotenv](https://github.com/joho/godotenv),
 - [pq](github.com/lib/pq).
 
 ## Setup
 
-To run this application, you must install Docker on your machine or have the PostgreSQL database already installed.
+There are two ways to run this application:
+
+- running the API and web application separately as standalone services,
+- using Docker Compose (preferred).
+
+## Standalone Setup
+
+To run this application, you might install Docker on your machine or have the PostgreSQL database already installed.
 
 To start the PostgreSQL database as a Docker container, run the following command:
 
@@ -43,17 +51,19 @@ docker exec -it readinglist psql -U postgres -d readinglist -f /teardown.sql
 
 You need to edit the .env file (or use .env.local) and add an actual password for the PostgreSQL user.
 
-Having the database started, we can run our web service (REST API):
+To start the API, run the following command in the terminal:
+
+```bash
+go run ./cmd/api/ --port 4000 --env production --db postgresql --frontend http://localhost:8080
+```
+
+If you don't have the PostgreSQL database installed, you can use the in-memory database by running the following command:
 
 ```bash
 go run ./cmd/api/ --port 4000 --env development --db in-memory --frontend http://localhost:8080
 ```
 
-Our API will be accessible at:
-
-```text
-http://localhost:4000/api/v1/books
-```
+Our API will be accessible at `http://localhost:4000/api/v1/books`.
 
 With the API running, we can finally start (in a separate terminal) our web application (HTML, CSS, JS):
 
@@ -61,10 +71,40 @@ With the API running, we can finally start (in a separate terminal) our web appl
 go run ./cmd/web/ --port 8080 --env development --backend "http://localhost:4000/api/v1"
 ```
 
-Our web application will be accessible at:
+Our web application will be accessible at `http://localhost:8080`.
 
-```text
-http://localhost:8080
+Voila! Job done; of course, we could use Docker Compose and simplify the whole process ...
+
+## Docker Compose Setup
+
+To run this application, you must install Docker and Docker Compose on your machine.
+
+Then, you can run the following command from the root directory of the project:
+
+```bash
+docker compose up
 ```
 
-Voila! Job done; of course, we could use Docker Compose and simplify the whole process ... do so if you like :-).
+This command will start the web service, web application, and the database.
+
+The database is running on `localhost:5433`.
+
+You can access it using the following credentials:
+
+- username: `postgres`,
+- password: `P@ssw0rd`,
+- database: `readinglist`.
+
+You can access the web service (REST API) at `http://localhost:4000`.
+
+The web service serves the web application.
+
+You can access the application (HTML, CSS, JS) at `http://localhost:8080`.
+
+To stop the application, you can run the following command:
+
+```bash
+docker compose down
+```
+
+A lot simpler, right :-)?
