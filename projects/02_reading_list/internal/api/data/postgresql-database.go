@@ -57,6 +57,7 @@ func (p *PostgreSQLDatabase) GetAll() ([]Book, error) {
 	query := `
 SELECT id, title, author, published, pages, genres, rating, version, read, created_at
 FROM books
+ORDER BY id ASC
 `
 	rows, err := db.Query(query)
 	if err != nil {
