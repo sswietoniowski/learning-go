@@ -22,7 +22,6 @@ FROM gcr.io/distroless/static AS final
 
 LABEL maintainer="sswietoniowski"
 
-
 # copy compiled app
 COPY --from=build --chown=web:web /web /web
 COPY --from=build --chown=web:web /src/ui /ui
