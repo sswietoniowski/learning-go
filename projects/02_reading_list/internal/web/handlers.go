@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+
+	"github.com/sswietoniowski/learning-go/projects/02_reading_list/internal/web/service"
 )
 
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
@@ -43,9 +46,72 @@ func (app *Application) books(w http.ResponseWriter, r *http.Request) {
 `)
 }
 
+func (app *Application) addBookForm(w http.ResponseWriter, r *http.Request) {
+	app.logger.Println("add book form")
+
+	fmt.Fprintf(w, `
+	<html>
+	<head>
+		<title>Add Book</title>
+	</head>
+	<body>
+		<h1>Add Book</h1>
+		<form action="/books/add" method="post">
+			<label for="title">Title</label>
+			<input type="text" name="title" id="title">
+			<label for="author">Author</label>
+			<input type="text" name="author" id="author">
+			<button type="submit">Add</button>
+		</form>
+	</body>
+</html>	
+`)
+}
+
+func (app *Application) addBookProcess(w http.ResponseWriter, r *http.Request) {
+	app.logger.Println("add book process")
+
+	title := strings.TrimSpace(r.PostFormValue("title"))
+	if title == "" {
+		app.logger.Println("bad request")
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	author := strings.TrimSpace(r.PostFormValue("author"))
+	if author == "" {
+		app.logger.Println("bad request")
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	book := service.Book{
+		Title:  title,
+		Author: author,
+	}
+
+	err := app.service.Add(book)
+	if err != nil {
+		app.logger.Println("internal server error")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	http.Redirect(w, r, "/books", http.StatusSeeOther)
+}
+
 func (app *Application) addBook(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("add book page")
-	fmt.Fprintln(w, "The add book page")
+
+	switch r.Method {
+	case http.MethodGet:
+		app.addBookForm(w, r)
+	case http.MethodPost:
+		app.addBookProcess(w, r)
+	default:
+		app.logger.Println("internal server error")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (app *Application) showBook(w http.ResponseWriter, r *http.Request) {

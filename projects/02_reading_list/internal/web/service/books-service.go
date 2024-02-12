@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -83,4 +84,32 @@ func (s *BooksService) Get(id int64) (*Book, error) {
 	}
 
 	return book, nil
+}
+
+func (s *BooksService) Add(book Book) error {
+	url := fmt.Sprintf("%s/books", s.backendEndpoint)
+
+	data, err := json.Marshal(book)
+	if err != nil {
+		s.logger.Printf("error: %v\n", err)
+		return err
+	}
+
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(data))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		s.logger.Printf("error: %v\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		s.logger.Printf("unexpected status: %s", resp.Status)
+		return fmt.Errorf("unexpected status: %s", resp.Status)
+	}
+
+	return nil
 }
