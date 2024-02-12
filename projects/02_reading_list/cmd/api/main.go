@@ -1,5 +1,4 @@
 /*
-
 To start the application, run the following command in the terminal:
 
 go run ./cmd/api/ --port 4000 --env development --db in-memory --frontend http://localhost:8080
@@ -7,7 +6,6 @@ go run ./cmd/api/ --port 4000 --env development --db in-memory --frontend http:/
 or
 
 go run ./cmd/api/ --port 4000 --env production --db postgresql --frontend http://localhost:8080
-
 */
 
 package main

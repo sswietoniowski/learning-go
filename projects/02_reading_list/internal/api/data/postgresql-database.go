@@ -1,13 +1,3 @@
-package data
-
-import (
-	"database/sql"
-	"log"
-
-	"github.com/lib/pq"
-	_ "github.com/lib/pq" // PostgreSQL driver
-)
-
 /*
 To start the PostgreSQL database as a Docker container, run the following command:
 
@@ -23,6 +13,16 @@ To tear down the database, run the following commands in the terminal to copy th
 docker cp ./scripts/teardown.sql readinglist:/teardown.sql
 docker exec -it readinglist psql -U postgres -d readinglist -f /teardown.sql
 */
+
+package data
+
+import (
+	"database/sql"
+	"log"
+
+	"github.com/lib/pq"
+	_ "github.com/lib/pq" // PostgreSQL driver
+)
 
 // PostgreSQLDatabase is a PostgreSQL database of books.
 type PostgreSQLDatabase struct {

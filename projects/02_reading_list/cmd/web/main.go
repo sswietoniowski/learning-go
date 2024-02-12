@@ -1,9 +1,7 @@
 /*
-
 To start the application, run the following command in the terminal:
 
 go run ./cmd/web/ --port 8080 --env development
-
 */
 
 package main
