@@ -1,23 +1,35 @@
 version: '3'
 services:
   db:
+    container_name: db
     image: postgres:latest
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: P@ssw0rd
       POSTGRES_DB: readinglist
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./scripts/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+      - db-data:/var/lib/postgresql/data
     ports:
       - '5433:5432'
     networks:
       - readinglist
 
   api:
-    image: ./cmd/api/Dockerfile
-    build: ./
-    volumes:
-      - ./api:/go/src/api
+    container_name: api
+    image: sswietoniowski/readinglist-api:latest
+    build:
+      context: ./
+      dockerfile: api.scratch.Dockerfile
+    environment:
+      APP_PORT: 4000
+      APP_ENV: development
+      APP_FRONTEND: http://web:8080
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: P@ssw0rd
+      DB_NAME: readinglist
     ports:
       - '4000:4000'
     depends_on:
@@ -26,12 +38,25 @@ services:
       - readinglist
 
   web:
-    build: ./web
-    volumes:
-      - ./web:/go/src/web
+    container_name: web
+    image: sswietoniowski/readinglist-web:latest
+    build:
+      context: ./
+      dockerfile: web.distroless.Dockerfile
+    environment:
+      APP_PORT: 8080
+      APP_ENV: development
+      APP_BACKEND: http://api:4000/api/v1
     ports:
       - '8080:8080'
     depends_on:
       - api
     networks:
       - readinglist
+
+networks:
+  readinglist:
+    driver: bridge
+
+volumes:
+  db-data:
