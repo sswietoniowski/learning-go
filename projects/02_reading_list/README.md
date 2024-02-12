@@ -77,6 +77,8 @@ Voila! Job done; of course, we could use Docker Compose and simplify the whole p
 
 ## Docker Compose Setup
 
+TODO: Add the `docker-compose.yml` and the `Dockerfile` files.
+
 To run this application, you must install Docker and Docker Compose on your machine.
 
 Then, you can run the following command from the root directory of the project:
