@@ -1,0 +1,37 @@
+version: '3'
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: P@ssw0rd
+      POSTGRES_DB: readinglist
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    networks:
+      - readinglist
+
+  api:
+    image: ./cmd/api/Dockerfile
+    build: ./
+    volumes:
+      - ./api:/go/src/api
+    ports:
+      - '4000:4000'
+    depends_on:
+      - db
+    networks:
+      - readinglist
+
+  web:
+    build: ./web
+    volumes:
+      - ./web:/go/src/web
+    ports:
+      - '8080:8080'
+    depends_on:
+      - api
+    networks:
+      - readinglist

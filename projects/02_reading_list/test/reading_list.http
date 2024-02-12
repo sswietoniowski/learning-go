@@ -1,0 +1,56 @@
+# Reading List API
+
+@baseUrl = http://localhost:4000/api/v1
+@bookId = 1
+
+### Get health check status
+GET {{baseUrl}}/healthcheck
+
+### An error if use POST method to get health check status
+POST {{baseUrl}}/healthcheck
+
+### Get all books
+GET {{baseUrl}}/books
+
+### Get a book by id
+GET {{baseUrl}}/books/{{bookId}}
+
+### Create a new book
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+    "title": "The Lord of the Rings",
+    "author": "J.R.R. Tolkien",
+    "year": 1954,
+    "pages": 1178,
+    "genres": ["fantasy", "adventure"],
+    "rating": 5,
+    "read": true
+}
+
+### Create a new book but with unsupported fields
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+    "company": "Subaru",
+    "model": "XV",
+}
+
+### Update a book by id
+PUT {{baseUrl}}/books/{{bookId}}
+Content-Type: application/json
+
+{
+    "title": "The Hitchhiker's Guide to the Galaxy",
+    "author": "Douglas Adams",
+    "year": 1979,
+    "pages": 224,
+    "genres": ["comedy", "science fiction"],
+    "rating": 3.5,
+    "read": true
+}
+
+### Delete a book by id
+DELETE {{baseUrl}}/books/{{bookId}}

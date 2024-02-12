@@ -1,0 +1,17 @@
+{{define "title"}}Add Book{{end}} {{define "main"}}
+<form action="/book/add" method="post">
+  <label>Title:</label>
+  <input type="text" name="title" /><br />
+  <label>Pages:</label>
+  <input type="number" name="pages" /><br />
+  <label>Published:</label>
+  <input type="number" name="published" /><br />
+  <label>Genres:</label>
+  <input type="text" name="genres" /><br />
+  <label>Rating:</label>
+  <input type="number" step="0.1" name="rating" /><br />
+  <div class="button-center">
+    <button type="submit">Submit</button>
+  </div>
+</form>
+{{end}}

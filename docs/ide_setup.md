@@ -1,4 +1,4 @@
-# IDE Setup 2024-01-29
+# IDE Setup 2024-02-09
 
 As far as I know, the best IDE (as of now) for Go is **[GoLand](https://www.jetbrains.com/go/)**. It's a paid IDE, but you can get a free license if you're a student or a teacher.
 
@@ -8,11 +8,12 @@ Here I will describe how to set up VS Code for Go development, as a start read [
 
 ## Table of Contents
 
-- [IDE Setup 2024-01-29](#ide-setup-2024-01-29)
+- [IDE Setup 2024-02-09](#ide-setup-2024-02-09)
   - [Table of Contents](#table-of-contents)
   - [Install SDK](#install-sdk)
   - [Install Extensions](#install-extensions)
   - [More customizations](#more-customizations)
+    - [Code formatting](#code-formatting)
 
 ## Install SDK
 
@@ -39,3 +40,16 @@ I've chosen the following ones:
 ## More customizations
 
 You'll find more customizations I've made to my VS Code setup here.
+
+### Code formatting
+
+To format your code automatically (on save) you should perform the following steps.
+
+Add the following settings to your `settings.json`:
+
+```json
+"[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true
+}
+```

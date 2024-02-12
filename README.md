@@ -82,7 +82,7 @@ I also used these (paid) courses & books:
   - 🎥 [Accessing Non-relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/exercise-files),
   - 🎥 [Testing in Go](https://app.pluralsight.com/library/courses/go-testing/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-testing/exercise-files),
   - 🎥 [Go CLI Playbook](https://app.pluralsight.com/library/courses/go-playbook-cli/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-playbook-cli/exercise-files),
-  - 🎥 [Building Go Web Services and Applications](https://app.pluralsight.com/library/courses/go-building-web-services-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-building-web-services-applications/exercise-files),
+  - ✅ 🎥 [Building Go Web Services and Applications](https://app.pluralsight.com/library/courses/go-building-web-services-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-building-web-services-applications/exercise-files),
   - 🎥 [Secure Coding in Go](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/exercise-files),
   - ✅ 🎥 [Managing Errors in Go](https://app.pluralsight.com/library/courses/go-managing-errors/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-errors/exercise-files),
   - 🎥 [Profiling Go Applications](https://app.pluralsight.com/library/courses/go-profiling-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-profiling-applications/exercise-files).
@@ -119,10 +119,6 @@ Some useful tools & other resources:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
     - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
     - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
-  - testing:
-    - TODO:
-  - logging:
-    - TODO:
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
