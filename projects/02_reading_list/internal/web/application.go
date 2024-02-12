@@ -15,7 +15,7 @@ type Application struct {
 
 // NewApplication creates a new Application instance with the given configuration and logger.
 func NewApplication(config Config, logger *log.Logger) *Application {
-	service := service.NewBookService(logger)
+	service := service.NewBookService(config.BackendEndpoint, logger)
 
 	return &Application{
 		config:  config,

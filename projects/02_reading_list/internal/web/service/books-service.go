@@ -9,21 +9,24 @@ import (
 )
 
 type BooksService struct {
-	logger *log.Logger
+	backendEndpoint string
+	logger          *log.Logger
 }
 
 const baseUrl = "http://localhost:4000/api/v1"
 
 var booksApiUrl = fmt.Sprintf("%s/books", baseUrl)
 
-func NewBookService(logger *log.Logger) *BooksService {
+func NewBookService(backendEndpoint string, logger *log.Logger) *BooksService {
 	return &BooksService{
-		logger: logger,
+		backendEndpoint: backendEndpoint,
+		logger:          logger,
 	}
 }
 
 func (s *BooksService) GetAll() (*[]Book, error) {
-	resp, err := http.Get(booksApiUrl)
+	url := fmt.Sprintf("%s/books", s.backendEndpoint)
+	resp, err := http.Get(url)
 	if err != nil {
 		s.logger.Printf("error: %v\n", err)
 		return nil, err
@@ -52,7 +55,7 @@ func (s *BooksService) GetAll() (*[]Book, error) {
 }
 
 func (s *BooksService) Get(id int64) (*Book, error) {
-	url := fmt.Sprintf("%s/%d", booksApiUrl, id)
+	url := fmt.Sprintf("%s/books/%d", s.backendEndpoint, id)
 
 	resp, err := http.Get(url)
 	if err != nil {

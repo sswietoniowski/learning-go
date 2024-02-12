@@ -7,4 +7,5 @@ const Version = "1.0.0"
 type Config struct {
 	ServerPort      int
 	EnvironmentName string
+	BackendEndpoint string
 }

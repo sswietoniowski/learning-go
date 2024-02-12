@@ -1,7 +1,7 @@
 /*
 To start the application, run the following command in the terminal:
 
-go run ./cmd/web/ --port 8080 --env development
+go run ./cmd/web/ --port 8080 --env development --backend "http://localhost:4000/api/v1"
 */
 
 package main
@@ -24,6 +24,7 @@ func main() {
 
 	flag.IntVar(&config.ServerPort, "port", 8080, "set port to run the server on")
 	flag.StringVar(&config.EnvironmentName, "env", "development", "set environment for the server (development, staging, production)")
+	flag.StringVar(&config.BackendEndpoint, "backend", "http://localhost:4000/api/v1", "endpoint for the readinglist web service API")
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
