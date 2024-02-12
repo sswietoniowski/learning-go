@@ -14,10 +14,6 @@ type BooksService struct {
 	logger          *log.Logger
 }
 
-const baseUrl = "http://localhost:4000/api/v1"
-
-var booksApiUrl = fmt.Sprintf("%s/books", baseUrl)
-
 func NewBookService(backendEndpoint string, logger *log.Logger) *BooksService {
 	return &BooksService{
 		backendEndpoint: backendEndpoint,

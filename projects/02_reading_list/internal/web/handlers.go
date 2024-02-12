@@ -85,6 +85,9 @@ func (app *Application) addBookProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// We could add more fields to the form & then process them, but it is just an
+	// example of how to handle form submissions so I see no point to do that.
+
 	book := service.Book{
 		Title:  title,
 		Author: author,
