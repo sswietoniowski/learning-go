@@ -1,0 +1,24 @@
+{{define "title"}}Home{{end}} {{define "main"}}
+<article>
+  {{if .}}
+  <table>
+    <tr>
+      <th>Title</th>
+      <th>Pages</th>
+      <th>Published</th>
+      <th>Rating</th>
+    </tr>
+    {{range .}}
+    <tr>
+      <td><a href="/books/show?id={{.Id}}">{{.Title}}</a></td>
+      <td>{{.Pages}}</td>
+      <td>{{.Published}}</td>
+      <td>{{.Rating}}</td>
+    </tr>
+    {{end}}
+  </table>
+  {{else}}
+  <p>There's nothing to see here yet!</p>
+  {{end}}
+</article>
+{{end}}

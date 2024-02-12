@@ -1,0 +1,12 @@
+{{define "title"}}Book #{{.Title}}{{end}} {{define "main"}}
+<div class="book-details">
+  <ul>
+    <li><strong>ID:</strong> {{.Id}}</li>
+    <li><strong>Title:</strong> {{.Title}}</li>
+    <li><strong>Published:</strong> {{.Published}}</li>
+    <li><strong>Pages:</strong> {{.Pages}}</li>
+    <li><strong>Genres:</strong> {{join .Genres ", "}}</li>
+    <li><strong>Rating:</strong> {{.Rating}}</li>
+  </ul>
+</div>
+{{end}}

@@ -1,0 +1,21 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/static/css/site.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700"
+    />
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Reading List</a></h1>
+    </header>
+    {{template "nav" .}}
+    <main>{{template "main" .}}</main>
+    <footer>Powered by <a href="https://golang.org/">Go</a></footer>
+  </body>
+</html>
+{{end}}
