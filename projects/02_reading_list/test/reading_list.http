@@ -24,7 +24,7 @@ Content-Type: application/json
     "author": "J.R.R. Tolkien",
     "year": 1954,
     "pages": 1178,
-    "genres": ["Fantasy", "Adventure"],
+    "genres": ["fantasy", "adventure"],
     "rating": 5,
     "read": true
 }
