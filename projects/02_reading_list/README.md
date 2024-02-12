@@ -35,21 +35,21 @@ To start the PostgreSQL database as a Docker container, run the following comman
 docker run --name readinglist -e POSTGRES_PASSWORD=PUT_REAL_PASSWORD_HERE -e POSTGRES_DB=readinglist -p 5433:5432 -d postgres
 ```
 
-To setup the database, run the following commands in the terminal to copy the setup.sql file to the container and execute it with psql:
+To setup the database, run the following commands in the terminal to copy the `setup.sql` file to the container and execute it with `psql`:
 
 ```bash
 docker cp ./scripts/setup.sql readinglist:/setup.sql
 docker exec -it readinglist psql -U postgres -d readinglist -f /setup.sql
 ```
 
-To tear down the database, run the following commands in the terminal to copy the teardown.sql file to the container and execute it with psql:
+To tear down the database, run the following commands in the terminal to copy the `teardown.sql` file to the container and execute it with `psql`:
 
 ```bash
 docker cp ./scripts/teardown.sql readinglist:/teardown.sql
 docker exec -it readinglist psql -U postgres -d readinglist -f /teardown.sql
 ```
 
-You need to edit the .env file (or use .env.local) and add an actual password for the PostgreSQL user.
+You need to edit the `.env` file (or use `.env.local`) and add an actual password for the PostgreSQL user.
 
 To start the API, run the following command in the terminal:
 
