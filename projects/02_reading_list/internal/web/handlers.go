@@ -107,6 +107,13 @@ func (app *Application) addBookForm(w http.ResponseWriter, r *http.Request) {
 func (app *Application) addBookProcess(w http.ResponseWriter, r *http.Request) {
 	app.logger.Println("add book process")
 
+	err := r.ParseForm()
+	if err != nil {
+		app.logger.Println("bad request")
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
 	title := strings.TrimSpace(r.PostFormValue("title"))
 	if title == "" {
 		app.logger.Println("bad request")
