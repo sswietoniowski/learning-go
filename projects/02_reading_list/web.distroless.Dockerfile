@@ -37,5 +37,5 @@ ENV APP_BACKEND=http://localhost:8080
 
 # TODO: fix the entrypoint
 #ENTRYPOINT ["/web", "--port", "$APP_PORT", "--env", "$APP_ENV", "--backend", "$APP_BACKEND"]
-ENTRYPOINT ["/web", "--port", "8080", "--env", "development", "--backend", "http://api:4000"]
+ENTRYPOINT ["/web", "--port", "8080", "--env", "development", "--backend", "http://api:4000/api/v1"]
 
