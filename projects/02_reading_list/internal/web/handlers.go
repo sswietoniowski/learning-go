@@ -114,35 +114,35 @@ func (app *Application) addBookProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := strings.TrimSpace(r.PostFormValue("title"))
+	title := strings.TrimSpace(r.PostForm.Get("title"))
 	if title == "" {
 		app.logger.Println("bad request")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
-	author := strings.TrimSpace(r.PostFormValue("author"))
+	author := strings.TrimSpace(r.PostForm.Get("author"))
 	if author == "" {
 		app.logger.Println("bad request")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
-	published, err := strconv.Atoi(r.PostFormValue("published"))
+	published, err := strconv.Atoi(r.PostForm.Get("published"))
 	if err != nil || published < 0 {
 		app.logger.Println("bad request")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
-	pages, err := strconv.Atoi(r.PostFormValue("pages"))
+	pages, err := strconv.Atoi(r.PostForm.Get("pages"))
 	if err != nil || pages < 0 {
 		app.logger.Println("bad request")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
-	genres := strings.Split(r.PostFormValue("genres"), ",")
+	genres := strings.Split(r.PostForm.Get("genres"), ",")
 
 	rating, err := strconv.ParseFloat(r.PostFormValue("rating"), 32)
 	if err != nil || rating < 0 {
