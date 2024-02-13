@@ -75,7 +75,7 @@ go run ./cmd/web/ --port 8080 --env development --backend "http://localhost:4000
 
 Our web application will be accessible at `http://localhost:8080`.
 
-Voila! Job done; of course, we could use Docker Compose and simplify the whole process ...
+_Voila! Job done; of course, we could use Docker Compose and simplify the whole process ..._
 
 The API can use MySQL database and **GORM** (Golang ORM) library instead of PostgreSQL and `database/sql` package.
 
@@ -125,4 +125,4 @@ To stop the application, you can run the following command:
 docker compose down
 ```
 
-A lot simpler, right :-)?
+_A lot simpler, right :-)?_
