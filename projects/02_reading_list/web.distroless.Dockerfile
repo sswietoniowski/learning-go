@@ -30,15 +30,8 @@ COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build --chown=web:web /app/web /web
 COPY --from=build --chown=web:web /src/ui /ui
 
-# environment variables
-ENV APP_PORT=4000
-ENV APP_ENV=production
-ENV APP_BACKEND=http://localhost:4000/api/v1
-
 # use the user we created in the first stage
 USER web
 
-# TODO: fix the entrypoint
-#ENTRYPOINT ["/web", "--port", "$APP_PORT", "--env", "$APP_ENV", "--backend", "$APP_BACKEND"]
 ENTRYPOINT ["/web", "--port", "8080", "--env", "development", "--backend", "http://api:4000/api/v1"]
 

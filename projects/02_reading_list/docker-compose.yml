@@ -22,9 +22,6 @@ services:
       context: ./
       dockerfile: api.scratch.Dockerfile
     environment:
-      APP_PORT: 4000
-      APP_ENV: development
-      APP_FRONTEND: http://web:8080
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: postgres
@@ -43,10 +40,6 @@ services:
     build:
       context: ./
       dockerfile: web.distroless.Dockerfile
-    environment:
-      APP_PORT: 8080
-      APP_ENV: development
-      APP_BACKEND: http://api:4000/api/v1
     ports:
       - '8080:8080'
     depends_on:

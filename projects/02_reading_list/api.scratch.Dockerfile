@@ -31,10 +31,6 @@ COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build --chown=api:api /app/api /api
 
 # environment variables
-ENV APP_PORT=4000
-ENV APP_ENV=production
-ENV APP_DB=postgresql
-ENV APP_FRONTEND=http://localhost:8080
 ENV DB_HOST=localhost
 ENV DB_PORT=5432
 ENV DB_USER=postgres
@@ -44,6 +40,4 @@ ENV DB_NAME=readinglist
 # use the user we created in the first stage
 USER api
 
-# TODO: fix the entrypoint
-#ENTRYPOINT ["/api", "--port", "$APP_PORT", "--env", "$APP_ENV", "--db", "$APP_DB", "--frontend", "$APP_FRONTEND"]
 ENTRYPOINT ["/api", "--port", "4000", "--env", "development", "--db", "postgresql", "--frontend", "http://web:8080"]
