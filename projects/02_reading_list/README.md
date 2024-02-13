@@ -16,7 +16,9 @@ The application is built using the following technologies, libraries, frameworks
 - [Docker Compose](https://docs.docker.com/compose/),
 - [gorilla/mux](https://github.com/gorilla/mux),
 - [godotenv](https://github.com/joho/godotenv),
-- [pq](github.com/lib/pq).
+- [pq](github.com/lib/pq),
+- [GORM](https://gorm.io/) [:file_folder:](gorm.io/gorm).
+- [GORM MySQL Driver](https://gorm.io/docs/connecting_to_the_database.html#MySQL) [:file_folder:](gorm.io/driver/mysql).
 
 ## Setup
 
@@ -74,6 +76,22 @@ go run ./cmd/web/ --port 8080 --env development --backend "http://localhost:4000
 Our web application will be accessible at `http://localhost:8080`.
 
 Voila! Job done; of course, we could use Docker Compose and simplify the whole process ...
+
+The API can use MySQL database and **GORM** (Golang ORM) library instead of PostgreSQL and `database/sql` package.
+
+To do so you need to have MySQL database installed and running on your machine. The easiest way to do so is to use Docker:
+
+```bash
+docker run --name readinglist -e MYSQL_ROOT_PASSWORD=PUT_REAL_PASSWORD_HERE -e MYSQL_DATABASE=readinglist -p 3307:3306 -d mysql
+```
+
+Then, you need to edit the `.env` file (or use `.env.local`) and add an actual database port, user, and password.
+
+To start the API, run the following command in the terminal:
+
+```bash
+go run ./cmd/api/ --port 4000 --env production --db gorm-mysql --frontend http://localhost:8080
+```
 
 ## Docker Compose Setup
 

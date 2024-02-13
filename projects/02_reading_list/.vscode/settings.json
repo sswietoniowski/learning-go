@@ -3,7 +3,9 @@
     "Databaser",
     "dbname",
     "godotenv",
+    "gorm",
     "healthcheck",
+    "psql",
     "readinglist"
   ]
 }

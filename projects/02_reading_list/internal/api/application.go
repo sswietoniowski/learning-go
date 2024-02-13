@@ -22,6 +22,9 @@ func NewApplication(config Config, logger *log.Logger) *Application {
 	if config.DatabaseType == "postgresql" {
 		dbConfig := data.NewPostgreSQLConfig()
 		database = data.NewPostgreSQLDatabase(dbConfig.Dsn(), logger)
+	} else if config.DatabaseType == "gorm-mysql" {
+		dbConfig := data.NewGormMySQLConfig()
+		database = data.NewGormMySQLDatabase(dbConfig.Dsn(), logger)
 	} else {
 		database = data.NewInMemoryDatabase(logger)
 	}
