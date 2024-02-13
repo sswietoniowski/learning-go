@@ -90,7 +90,7 @@ Then, you need to edit the `.env` file (or use `.env.local`) and add an actual d
 To start the API, run the following command in the terminal:
 
 ```bash
-go run ./cmd/api/ --port 4000 --env production --db gorm-mysql --frontend http://localhost:8080
+go run ./cmd/api/ --port 4000 --env mysql --db gorm-mysql --frontend http://localhost:8080
 ```
 
 ## Docker Compose Setup

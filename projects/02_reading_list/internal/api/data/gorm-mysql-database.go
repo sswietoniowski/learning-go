@@ -9,13 +9,16 @@ package data
 import (
 	"log"
 
+	"gorm.io/driver/mysql"
 	_ "gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	_ "gorm.io/gorm"
 )
 
 type GormMySQLDatabase struct {
 	dsn    string
 	logger *log.Logger
+	db     *gorm.DB
 }
 
 // NewGormMySQLDatabase creates a new GormMySQLDatabase and returns it with the given DSN and logger.
@@ -26,9 +29,49 @@ func NewGormMySQLDatabase(dsn string, logger *log.Logger) *GormMySQLDatabase {
 	// Don't do this in a production environment and for the real connection string.
 	logger.Printf("dsn: %s\n", dsn)
 
-	return &GormMySQLDatabase{
+	var g = &GormMySQLDatabase{
 		dsn:    dsn,
 		logger: logger,
+	}
+
+	err := g.open()
+	if err != nil {
+		logger.Printf("error: %s\n", err)
+	}
+
+	g.db.AutoMigrate(&GormBook{})
+
+	return g
+}
+
+func (g *GormMySQLDatabase) open() error {
+	g.logger.Println("open the database")
+
+	d, err := gorm.Open(mysql.Open(g.dsn), &gorm.Config{})
+	if err != nil {
+		return &DatabaseError{"open", err}
+	}
+
+	g.db = d
+
+	return nil
+}
+
+func (g *GormMySQLDatabase) close() {
+	g.logger.Println("close the database")
+
+	if g.db == nil {
+		return
+	}
+
+	sqlDB, err := g.db.DB()
+	if err != nil {
+		g.logger.Printf("error: %s\n", err)
+	}
+
+	err = sqlDB.Close()
+	if err != nil {
+		g.logger.Printf("error: %s\n", err)
 	}
 }
 
@@ -36,18 +79,31 @@ func NewGormMySQLDatabase(dsn string, logger *log.Logger) *GormMySQLDatabase {
 func (g *GormMySQLDatabase) GetAll() ([]Book, error) {
 	g.logger.Println("get all books")
 
-	// TODO: Implement this method
+	var books []GormBook
+	result := g.db.Find(&books)
+	if result.Error != nil {
+		return nil, &DatabaseError{"GetAll", result.Error}
+	}
 
-	return nil, nil
+	bks := GormBooksToBooks(books)
+
+	return bks, nil
 }
 
 // Add adds a new book to the database and returns the added book or an error if something went wrong.
 func (g *GormMySQLDatabase) Add(book Book) (*Book, error) {
 	g.logger.Println("add a new book")
 
-	// TODO: Implement this method
+	gb := BookToGormBook(&book)
 
-	return nil, nil
+	result := g.db.Create(gb)
+	if result.Error != nil {
+		return nil, &DatabaseError{"Add", result.Error}
+	}
+
+	bk := GormBookToBook(gb)
+
+	return bk, nil
 }
 
 // GetById returns a book from the database by its id or an error if something went wrong.
@@ -55,9 +111,20 @@ func (g *GormMySQLDatabase) Add(book Book) (*Book, error) {
 func (g *GormMySQLDatabase) GetById(id int64) (*Book, error) {
 	g.logger.Println("get a book by id")
 
-	// TODO: Implement this method
+	var book GormBook
+	result := g.db.First(&book, id)
+	if result.Error != nil {
+		switch result.Error {
+		case gorm.ErrRecordNotFound:
+			return nil, &NotFoundError{Id: id}
+		default:
+			return nil, &DatabaseError{"GetById", result.Error}
+		}
+	}
 
-	return nil, nil
+	bk := GormBookToBook(&book)
+
+	return bk, nil
 }
 
 // ModifyById modifies a book in the database by its id and returns the modified book or an error if something went wrong.
@@ -65,9 +132,23 @@ func (g *GormMySQLDatabase) GetById(id int64) (*Book, error) {
 func (g *GormMySQLDatabase) ModifyById(id int64, book Book) (*Book, error) {
 	g.logger.Println("modify a book by id")
 
-	// TODO: Implement this method
+	gb := BookToGormBook(&book)
 
-	return nil, nil
+	gb.Id = id
+	gb.Version = gb.Version + 1
+	result := g.db.Save(gb)
+	if result.Error != nil {
+		switch result.Error {
+		case gorm.ErrRecordNotFound:
+			return nil, &NotFoundError{Id: id}
+		default:
+			return nil, &DatabaseError{"ModifyById", result.Error}
+		}
+	}
+
+	bk := GormBookToBook(gb)
+
+	return bk, nil
 }
 
 // RemoveById removes a book from the database by its id and returns the removed book or an error if something went wrong.
@@ -75,7 +156,23 @@ func (g *GormMySQLDatabase) ModifyById(id int64, book Book) (*Book, error) {
 func (g *GormMySQLDatabase) RemoveById(id int64) (*Book, error) {
 	g.logger.Println("remove a book by id")
 
-	// TODO: Implement this method
+	var book GormBook
+	result := g.db.First(&book, id)
+	if result.Error != nil {
+		switch result.Error {
+		case gorm.ErrRecordNotFound:
+			return nil, &NotFoundError{Id: id}
+		default:
+			return nil, &DatabaseError{"RemoveById", result.Error}
+		}
+	}
 
-	return nil, nil
+	result = g.db.Delete(&book, id)
+	if result.Error != nil {
+		return nil, &DatabaseError{"RemoveById", result.Error}
+	}
+
+	bk := GormBookToBook(&book)
+
+	return bk, nil
 }
