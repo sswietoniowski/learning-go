@@ -14,7 +14,9 @@ It is based on [this](https://github.com/bootdotdev/fcc-learn-golang-assets/tree
 
 ## Technologies
 
-The application is built using the following technologies:
+The application is built using the following technologies, libraries, frameworks, and tools:
 
-- [Go](https://golang.org/) - programming language,
-- [PostgreSQL](https://www.postgresql.org/) - database.
+- [Go](https://golang.org/),
+- [PostgreSQL](https://www.postgresql.org/),
+- [Docker](https://www.docker.com/),
+- [Docker Compose](https://docs.docker.com/compose/).
