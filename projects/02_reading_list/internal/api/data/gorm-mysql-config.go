@@ -64,7 +64,7 @@ func NewGormMySQLConfig() *GormMySQLConfig {
 	}
 }
 
-// Dsn returns the data source name (DSN) for the PostgreSQL database.
+// Dsn returns the data source name (DSN) for the MySQL database.
 func (c *GormMySQLConfig) Dsn() string {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		c.User, c.Password, c.Host, c.Port, c.Database)
