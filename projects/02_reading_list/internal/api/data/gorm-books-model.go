@@ -51,6 +51,7 @@ func BookToGormBook(b *Book) *GormBook {
 	}
 }
 
+// GormBooksToBooks converts a slice of GormBooks to a slice of Books.
 func GormBooksToBooks(gb []GormBook) []Book {
 	var books []Book
 	for _, b := range gb {
@@ -59,6 +60,7 @@ func GormBooksToBooks(gb []GormBook) []Book {
 	return books
 }
 
+// BooksToGormBooks converts a slice of Books to a slice of GormBooks.
 func BooksToGormBooks(b []Book) []GormBook {
 	var books []GormBook
 	for _, b := range b {
