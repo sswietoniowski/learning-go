@@ -30,9 +30,9 @@ Based on these (free) courses & articles:
   - ✅ 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
   - 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets) :+1:,
   - 🎥 [Learn Go Programming by Building 11 Projects – Full Course](https://youtu.be/jFfo23yIWac?si=G5IuLzxacB2ycRkO):
-    - Simple Web Server [:file_folder:](https://github.com/AkhilSharma90/simple-http-server-GO),
-    - CRUD API [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
-    - Book Management System [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
+    - ✅ Simple Web Server [:file_folder:](https://github.com/AkhilSharma90/simple-http-server-GO),
+    - ✅ CRUD API [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
+    - ✅ Book Management System [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
     - SlackBot To Calculate Age [:file_folder:](https://github.com/AkhilSharma90/GO-Slackbot-Calculates-Age),
     - SlackBot for File Uploading [:file_folder:](https://github.com/AkhilSharma90/GO-SlackBot-Uploads-File),
     - Email Verifier Tool [:file_folder:](https://github.com/AkhilSharma90/GO-Email-Checking-Tool),
