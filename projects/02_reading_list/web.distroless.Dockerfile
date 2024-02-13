@@ -30,6 +30,7 @@ COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build --chown=web:web /app/web /web
 COPY --from=build --chown=web:web /src/ui /ui
 
+# environment variables
 ENV APP_PORT=4000
 ENV APP_ENV=production
 ENV APP_BACKEND=http://localhost:4000/api/v1

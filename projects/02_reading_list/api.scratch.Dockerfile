@@ -30,6 +30,7 @@ COPY --from=build /etc/passwd /etc/passwd
 # copy compiled app
 COPY --from=build --chown=api:api /app/api /api
 
+# environment variables
 ENV APP_PORT=4000
 ENV APP_ENV=production
 ENV APP_DB=postgresql
@@ -40,6 +41,7 @@ ENV DB_USER=postgres
 ENV DB_PASSWORD=PUT_REAL_PASSWORD_HERE
 ENV DB_NAME=readinglist
 
+# use the user we created in the first stage
 USER api
 
 # TODO: fix the entrypoint
