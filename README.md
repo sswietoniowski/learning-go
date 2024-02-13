@@ -120,6 +120,8 @@ Some useful tools & other resources:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
     - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
     - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
+    - [chi](https://github.com/go-chi/chi) - a lightweight, idiomatic and composable router for building Go HTTP services,
+    - [cors](https://github.com/go-chi/cors) - a CORS middleware for Go,
   - databases:
     - [pq](github.com/lib/pq) - a pure Go Postgres driver for Go's database/sql package,
     - [GORM](https://gorm.io/) [:file_folder:](gorm.io/gorm) - a fantastic ORM library for Golang,
