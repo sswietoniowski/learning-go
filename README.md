@@ -115,10 +115,15 @@ Some useful tools & other resources:
   - general:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
     - [Cobra](https://github.com/spf13/cobra) - a library for creating powerful modern CLI applications,
+    - [godotenv](https://github.com/joho/godotenv) - a Go port of the Ruby dotenv library,
   - network services:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
     - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
     - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
+  - databases:
+    - [pq](github.com/lib/pq) - a pure Go Postgres driver for Go's database/sql package,
+    - [GORM](https://gorm.io/) [:file_folder:](gorm.io/gorm) - a fantastic ORM library for Golang,
+    - [GORM MySQL Driver](https://gorm.io/docs/connecting_to_the_database.html#MySQL) [:file_folder:](gorm.io/driver/mysql) - a MySQL driver for GORM,
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
