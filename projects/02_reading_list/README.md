@@ -65,7 +65,23 @@ If you don't have the PostgreSQL database installed, you can use the in-memory d
 go run ./cmd/api/ --port 4000 --env development --db in-memory --frontend http://localhost:8080
 ```
 
-Our API will be accessible at `http://localhost:4000/api/v1/books`.
+The API can use MySQL database and **GORM** (Golang ORM) library instead of PostgreSQL and `database/sql` package.
+
+To do so, you must have the MySQL database installed and running on your machine. The easiest way to do so is to use Docker:
+
+```bash
+docker run --name readinglist -e MYSQL_ROOT_PASSWORD=PUT_REAL_PASSWORD_HERE -e MYSQL_DATABASE=readinglist -p 3307:3306 -d mysql
+```
+
+Then, you need to edit the `.env` file (or use `.env.local`) and add an actual database port, user, and password pointing to your MySQL database.
+
+To start the API, run the following command in the terminal:
+
+```bash
+go run ./cmd/api/ --port 4000 --env mysql --db gorm-mysql --frontend http://localhost:8080
+```
+
+Regardless of our database of choice, our API will be accessible at `http://localhost:4000/api/v1/books`.
 
 With the API running, we can finally start (in a separate terminal) our web application (HTML, CSS, JS):
 
@@ -76,22 +92,6 @@ go run ./cmd/web/ --port 8080 --env development --backend "http://localhost:4000
 Our web application will be accessible at `http://localhost:8080`.
 
 _Voila! Job done; of course, we could use Docker Compose and simplify the whole process ..._
-
-The API can use MySQL database and **GORM** (Golang ORM) library instead of PostgreSQL and `database/sql` package.
-
-To do so you need to have MySQL database installed and running on your machine. The easiest way to do so is to use Docker:
-
-```bash
-docker run --name readinglist -e MYSQL_ROOT_PASSWORD=PUT_REAL_PASSWORD_HERE -e MYSQL_DATABASE=readinglist -p 3307:3306 -d mysql
-```
-
-Then, you need to edit the `.env` file (or use `.env.local`) and add an actual database port, user, and password.
-
-To start the API, run the following command in the terminal:
-
-```bash
-go run ./cmd/api/ --port 4000 --env mysql --db gorm-mysql --frontend http://localhost:8080
-```
 
 ## Docker Compose Setup
 
