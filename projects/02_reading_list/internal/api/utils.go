@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 const contentTypeHeader = "Content-Type"
@@ -47,7 +49,8 @@ func ParseJsonRequest(w http.ResponseWriter, r *http.Request, data interface{}) 
 // ExtractIdFromRoute extracts the id from the request path and returns
 // it as an int64 or an error if any.
 func ExtractIdFromRoute(w http.ResponseWriter, r *http.Request, path string) (int64, error) {
-	id := r.URL.Path[len(path):]
+	vars := mux.Vars(r)
+	id := vars["id"]
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		return 0, errors.New("bad request, unable to extract id from path")

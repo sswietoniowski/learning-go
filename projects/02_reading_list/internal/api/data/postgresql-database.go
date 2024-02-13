@@ -20,8 +20,7 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/lib/pq"
-	_ "github.com/lib/pq" // PostgreSQL driver
+	"github.com/lib/pq" // PostgreSQL driver
 )
 
 // PostgreSQLDatabase is a PostgreSQL database of books.

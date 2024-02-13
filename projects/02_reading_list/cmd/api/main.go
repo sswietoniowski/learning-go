@@ -33,7 +33,7 @@ func main() {
 	// but it is done here for the sake of the example (to show how to use both).
 	flag.IntVar(&config.ServerPort, "port", 4000, "set port to run the server on")
 	flag.StringVar(&config.EnvironmentName, "env", "development", "set environment for the server (development, staging, production)")
-	flag.StringVar(&config.DatabaseType, "db", "in-memory", "set database to use (in-memory, postgresql)")
+	flag.StringVar(&config.DatabaseType, "db", "in-memory", "set database to use (in-memory, postgresql, gorm-mysql)")
 	flag.StringVar(&config.FrontendOrigin, "frontend", "http://localhost:8080", "set frontend origin for CORS")
 	flag.Parse()
 
