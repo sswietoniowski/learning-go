@@ -8,6 +8,7 @@ package data
 
 import (
 	"log"
+	"time"
 
 	"gorm.io/driver/mysql"
 	_ "gorm.io/driver/mysql"
@@ -39,7 +40,36 @@ func NewGormMySQLDatabase(dsn string, logger *log.Logger) *GormMySQLDatabase {
 		logger.Printf("error: %s\n", err)
 	}
 
-	g.db.AutoMigrate(&GormBook{})
+	var initialBooks = []Book{
+		{
+			Id:        1,
+			Title:     "The Hitchhiker's Guide to the Galaxy",
+			Author:    "Douglas Adams",
+			Published: 1979,
+			Pages:     224,
+			Genres:    []string{"comedy", "science fiction"},
+			Rating:    5.0,
+			Version:   1,
+			Read:      false,
+			CreatedAt: time.Now(),
+		},
+		{
+			Id:        2,
+			Title:     "The Hobbit",
+			Author:    "J.R.R. Tolkien",
+			Published: 1937,
+			Pages:     310,
+			Genres:    []string{"adventure", "fantasy"},
+			Rating:    4.5,
+			Version:   1,
+			Read:      true,
+			CreatedAt: time.Now(),
+		},
+	}
+
+	gormBooks := BooksToGormBooks(initialBooks)
+
+	g.db.AutoMigrate(&gormBooks)
 
 	return g
 }
@@ -132,10 +162,16 @@ func (g *GormMySQLDatabase) GetById(id int64) (*Book, error) {
 func (g *GormMySQLDatabase) ModifyById(id int64, book Book) (*Book, error) {
 	g.logger.Println("modify a book by id")
 
+	bookFromDb, err := g.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+
 	gb := BookToGormBook(&book)
 
 	gb.Id = id
-	gb.Version = gb.Version + 1
+	gb.Version = bookFromDb.Version + 1
+	gb.CreatedAt = bookFromDb.CreatedAt
 	result := g.db.Save(gb)
 	if result.Error != nil {
 		switch result.Error {
