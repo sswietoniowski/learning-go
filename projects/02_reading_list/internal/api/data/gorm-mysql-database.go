@@ -11,9 +11,7 @@ import (
 	"time"
 
 	"gorm.io/driver/mysql"
-	_ "gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	_ "gorm.io/gorm"
 )
 
 type GormMySQLDatabase struct {
