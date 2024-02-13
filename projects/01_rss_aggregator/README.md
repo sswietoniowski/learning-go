@@ -19,4 +19,7 @@ The application is built using the following technologies, libraries, frameworks
 - [Go](https://golang.org/),
 - [PostgreSQL](https://www.postgresql.org/),
 - [Docker](https://www.docker.com/),
-- [Docker Compose](https://docs.docker.com/compose/).
+- [Docker Compose](https://docs.docker.com/compose/),
+- [chi](https://github.com/go-chi/chi),
+- [cors](https://github.com/go-chi/cors),
+- [godotenv](https://github.com/joho/godotenv).
