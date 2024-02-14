@@ -2,6 +2,19 @@
 
 Useful commands for Go.
 
+## Table of Contents
+
+- [Basic Commands](#basic-commands)
+  - [Table of Contents](#table-of-contents)
+  - [General](#general)
+  - [Module Management](#module-management)
+    - [Versioning](#versioning)
+    - [Vendoring](#vendoring)
+  - [Build \& Run](#build--run)
+  - [Testing](#testing)
+  - [Documenting](#documenting)
+  - [Best Practices](#best-practices)
+
 ## General
 
 To check a Go version, run:
@@ -82,6 +95,55 @@ To clean module cache, run:
 
 ```bash
 go clean -modcache
+```
+
+### Versioning
+
+While working with Go, we should use semantic versioning.
+
+The version number should be in the form of `vMAJOR.MINOR.PATCH` (e.g. `v1.2.3`).
+
+[Modules versions](https://go.dev/doc/modules/version-numbers) 0 to 1 are using the following scheme:
+
+- `v0.x.x` - initial development,
+- `v1.x.x` - stable,
+- `v1.5.x` - minor changes,
+- `v1.5.1` - patch changes,
+- `v1.6.0-beta.1` - pre-release version.
+
+[Modules versions 2](https://go.dev/wiki/Modules#releasing-modules-v2-or-higher) and higher are using the following scheme:
+
+- `module/v2 v2.x.x` - a new version with breaking changes.
+- `module/v2 v2.0.0-beta.1` - pre-release version.
+- `module/v2 v2.0.0-rc.1` - release candidate.
+- `module/v2 v2.0.0` - stable.
+
+Modules can be versioned using tags.
+
+To create a tag, run:
+
+```bash
+git tag v1.2.3
+```
+
+[Here](https://blog.jetbrains.com/go/2020/03/25/working-with-go-modules-versioning/) we find great explanation how to work with Go modules and versioning in GoLand.
+
+### Vendoring
+
+[Modules vendoring](https://go.dev/ref/mod#vendoring) is a process of copying all dependencies to a vendor directory.
+
+> This is useful when we want to ensure that the dependencies are available even if the original source is not.
+
+To create a vendor directory with all dependencies, run:
+
+```bash
+go mod vendor
+```
+
+To use the vendor directory, run:
+
+```bash
+go build -mod=vendor
 ```
 
 ## Build & Run
@@ -173,53 +235,6 @@ To run all tests in a directory, run:
 
 ```bash
 go test ./...
-```
-
-## Modules Versioning
-
-While working with Go, we should use semantic versioning.
-
-The version number should be in the form of `vMAJOR.MINOR.PATCH` (e.g. `v1.2.3`).
-
-[Modules versions](https://go.dev/doc/modules/version-numbers) 0 to 1 are using the following scheme:
-
-- `v0.x.x` - initial development,
-- `v1.x.x` - stable,
-- `v1.5.x` - minor changes,
-- `v1.5.1` - patch changes,
-- `v1.6.0-beta.1` - pre-release version.
-
-[Modules versions 2](https://go.dev/wiki/Modules#releasing-modules-v2-or-higher) and higher are using the following scheme:
-
-- `module/v2 v2.x.x` - a new version with breaking changes.
-- `module/v2 v2.0.0-beta.1` - pre-release version.
-- `module/v2 v2.0.0-rc.1` - release candidate.
-- `module/v2 v2.0.0` - stable.
-
-Modules can be versioned using tags.
-
-To create a tag, run:
-
-```bash
-git tag v1.2.3
-```
-
-[Here](https://blog.jetbrains.com/go/2020/03/25/working-with-go-modules-versioning/) we find great explanation how to work with Go modules and versioning in GoLand.
-
-## Modules Vendoring
-
-[Modules vendoring](https://go.dev/ref/mod#vendoring) is a process of copying all dependencies to a vendor directory.
-
-To create a vendor directory with all dependencies, run:
-
-```bash
-go mod vendor
-```
-
-To use the vendor directory, run:
-
-```bash
-go build -mod=vendor
 ```
 
 ## Documenting
