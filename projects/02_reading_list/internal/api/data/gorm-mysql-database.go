@@ -1,7 +1,7 @@
 /*
 To start the MySQL database as a Docker container, run the following command:
 
-docker run --name readinglist -e MYSQL_ROOT_PASSWORD=PUT_REAL_PASSWORD_HERE -e MYSQL_DATABASE=readinglist -p 3306:3306 -d mysql
+docker run --name readinglist -e MYSQL_ROOT_PASSWORD=PUT_REAL_PASSWORD_HERE -e MYSQL_DATABASE=readinglist -p 3307:3306 -d mysql
 */
 
 package data
@@ -9,6 +9,8 @@ package data
 import (
 	"log"
 	"time"
+
+	"github.com/jaswdr/faker/v2"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -18,6 +20,29 @@ type GormMySQLDatabase struct {
 	dsn    string
 	logger *log.Logger
 	db     *gorm.DB
+}
+
+func generateBooks(count int) []Book {
+	var books []Book
+	fake := faker.New()
+	for i := 0; i < count; i++ {
+		book := Book{
+			Id:        int64(i + 3),
+			Title:     fake.Lorem().Sentence(3),
+			Author:    fake.Person().Name(),
+			Published: fake.IntBetween(1900, 2021),
+			Pages:     fake.IntBetween(100, 1000),
+			Genres: []string{
+				fake.Lorem().Word(),
+			},
+			Rating:    fake.Float32(1, 0, 5),
+			Version:   1,
+			Read:      false,
+			CreatedAt: time.Now(),
+		}
+		books = append(books, book)
+	}
+	return books
 }
 
 // NewGormMySQLDatabase creates a new GormMySQLDatabase and returns it with the given DSN and logger.
@@ -65,9 +90,36 @@ func NewGormMySQLDatabase(dsn string, logger *log.Logger) *GormMySQLDatabase {
 		},
 	}
 
+	// just for fun use faker to generate a lot of books
+	const booksQuantity = 100
+	fakeBooks := generateBooks(booksQuantity)
+	logger.Printf("generated %d books\n", booksQuantity)
+
+	initialBooks = append(initialBooks, fakeBooks...)
+
 	gormBooks := BooksToGormBooks(initialBooks)
 
-	g.db.AutoMigrate(&gormBooks)
+	logger.Println("migrate the schema")
+
+	err = g.db.AutoMigrate(&GormBook{})
+	if err != nil {
+		logger.Printf("error: %s\n", err)
+	}
+
+	logger.Println("insert initial books if the table is empty")
+
+	var count int64
+	g.db.Model(&GormBook{}).Count(&count)
+	if count == 0 {
+		logger.Println("insert initial books")
+
+		for _, book := range gormBooks {
+			result := g.db.Create(&book)
+			if result.Error != nil {
+				logger.Printf("error: %s\n", result.Error)
+			}
+		}
+	}
 
 	return g
 }
@@ -107,7 +159,7 @@ func (g *GormMySQLDatabase) close() {
 func (g *GormMySQLDatabase) GetAll() ([]Book, error) {
 	g.logger.Println("get all books")
 
-	var books []GormBook
+	books := make([]GormBook, 0) // empty slice to handle the case when there are no books in the database
 	result := g.db.Find(&books)
 	if result.Error != nil {
 		return nil, &DatabaseError{"GetAll", result.Error}

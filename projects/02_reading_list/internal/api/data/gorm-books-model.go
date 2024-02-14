@@ -53,7 +53,7 @@ func BookToGormBook(b *Book) *GormBook {
 
 // GormBooksToBooks converts a slice of GormBooks to a slice of Books.
 func GormBooksToBooks(gb []GormBook) []Book {
-	var books []Book
+	books := make([]Book, 0, len(gb)) // pre-allocate the slice to avoid resizing it
 	for _, b := range gb {
 		books = append(books, *GormBookToBook(&b))
 	}
@@ -62,7 +62,7 @@ func GormBooksToBooks(gb []GormBook) []Book {
 
 // BooksToGormBooks converts a slice of Books to a slice of GormBooks.
 func BooksToGormBooks(b []Book) []GormBook {
-	var books []GormBook
+	books := make([]GormBook, 0, len(b)) // pre-allocate the slice to avoid resizing it
 	for _, b := range b {
 		books = append(books, *BookToGormBook(&b))
 	}
