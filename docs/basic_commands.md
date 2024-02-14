@@ -78,6 +78,12 @@ To upgrade all dependencies (to the latest version), run:
 go get -u
 ```
 
+To clean module cache, run:
+
+```bash
+go clean -modcache
+```
+
 ## Build & Run
 
 To run a Go program, run:
