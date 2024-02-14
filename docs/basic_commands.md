@@ -169,7 +169,7 @@ To run all tests in a directory, run:
 go test ./...
 ```
 
-## Versioning
+## Modules Versioning
 
 While working with Go, we should use semantic versioning.
 
@@ -199,6 +199,22 @@ git tag v1.2.3
 ```
 
 [Here](https://blog.jetbrains.com/go/2020/03/25/working-with-go-modules-versioning/) we find great explanation how to work with Go modules and versioning in GoLand.
+
+## Modules Vendoring
+
+[Modules vendoring](https://go.dev/ref/mod#vendoring) is a process of copying all dependencies to a vendor directory.
+
+To create a vendor directory with all dependencies, run:
+
+```bash
+go mod vendor
+```
+
+To use the vendor directory, run:
+
+```bash
+go build -mod=vendor
+```
 
 ## Documenting
 
