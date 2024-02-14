@@ -66,6 +66,18 @@ To install a package (add a dependency to the module), run:
 go get <package_name>
 ```
 
+To install specific version of a package, run:
+
+```bash
+go get <package_name>@<version>
+```
+
+To upgrade all dependencies (to the latest version), run:
+
+```bash
+go get -u
+```
+
 ## Build & Run
 
 To run a Go program, run:
@@ -155,6 +167,33 @@ To run all tests in a directory, run:
 
 ```bash
 go test ./...
+```
+
+## Versioning
+
+While working with Go, we should use semantic versioning.
+
+The version number should be in the form of `vMAJOR.MINOR.PATCH` (e.g. `v1.2.3`).
+
+[Modules versions](https://go.dev/doc/modules/version-numbers) 0 to 1 used the following scheme:
+
+- `v0.x.x` - initial development,
+- `v1.x.x` - stable,
+- `v1.5.x` - minor changes,
+- `v1.5.1` - patch changes,
+- `v1.6.0-beta.1` - pre-release version.
+
+Modules versions 2 and higher are using the following scheme:
+
+- `module/v2 v2.x.x` - a new version with breaking changes.
+- `module/v2 v2.0.0-beta.1` - pre-release version.
+- `module/v2 v2.0.0-rc.1` - release candidate.
+- `module/v2 v2.0.0` - stable.
+
+Modules should be versioned using tags. To create a tag, run:
+
+```bash
+git tag v1.2.3
 ```
 
 ## Documenting
