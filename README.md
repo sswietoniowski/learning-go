@@ -77,7 +77,7 @@ I also used these (paid) courses & books:
 - 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
   - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
   - ✅ 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files) :+1:,
-  - 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
+  - ✅ 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
   - ✅ 🎥 [Managing Go Projects](https://app.pluralsight.com/library/courses/go-managing-projects/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-projects/exercise-files) 👎,
   - 🎥 [Concurrent Programming in Go](https://app.pluralsight.com/library/courses/go-programming-concurrent/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-programming-concurrent/exercise-files),
   - 🎥 [Accessing Relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/exercise-files),
