@@ -108,11 +108,13 @@ Some useful tools & other resources:
 - IDEs:
   - **[GoLand](https://www.jetbrains.com/go/)**,
   - **[Visual Studio Code](https://code.visualstudio.com/)**:
-    - **[Go](https://marketplace.visualstudio.com/items?itemName=golang.go)**,
+    - **[Go](https://marketplace.visualstudio.com/items?itemName=golang.go)** [:file_folder:](https://github.com/golang/vscode-go),
     - **[Go Test Explorer](https://marketplace.visualstudio.com/items?itemName=premparihar.gotestexplorer)**,
     - **[Go Auto Struct Tag](https://marketplace.visualstudio.com/items?itemName=vivaldy22.go-auto-struct-tag)**,
     - **[Go Outliner](https://marketplace.visualstudio.com/items?itemName=766b.go-outliner)**,
     - **[Go Doc](https://marketplace.visualstudio.com/items?itemName=msyrus.go-doc)**,
+- tools:
+  - [delve](https://github.com/go-delve/delve) [📖](https://github.com/golang/vscode-go/blob/master/docs/debugging.md),
 - frameworks & libraries:
   - general:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
