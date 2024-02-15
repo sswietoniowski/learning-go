@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -12,10 +13,18 @@ import (
 
 func main() {
 	godotenv.Load()
-	_, err := strconv.ParseInt(os.Getenv("PORT"), 10, 64)
+
+	portString := os.Getenv("PORT")
+	if portString == "" {
+		log.Fatal("PORT is not found in the environment")
+	}
+
+	_, err := strconv.ParseInt(portString, 10, 64)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf("Port: %s\n", portString)
 
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{}))
