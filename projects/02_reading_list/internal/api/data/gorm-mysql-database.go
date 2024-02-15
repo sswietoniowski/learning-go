@@ -106,12 +106,10 @@ func NewGormMySQLDatabase(dsn string, logger *log.Logger) *GormMySQLDatabase {
 		logger.Printf("error: %s\n", err)
 	}
 
-	logger.Println("insert initial books if the table is empty")
-
 	var count int64
 	g.db.Model(&GormBook{}).Count(&count)
 	if count == 0 {
-		logger.Println("insert initial books")
+		logger.Println("insert books if the table is empty")
 
 		for _, book := range gormBooks {
 			result := g.db.Create(&book)
