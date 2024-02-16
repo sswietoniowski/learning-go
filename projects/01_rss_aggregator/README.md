@@ -26,7 +26,15 @@ The application is built using the following technologies, libraries, frameworks
 
 ## Setup
 
-To run this project (at this stage), just run the following command:
+To run this application, you might install Docker on your machine or have the PostgreSQL database already installed.
+
+To start the PostgreSQL database as a Docker container, run the following command:
+
+```bash
+docker run --name readinglist -e POSTGRES_PASSWORD=PUT_REAL_PASSWORD_HERE -e POSTGRES_DB=readinglist -p 5433:5432 -d postgres
+```
+
+To run this the application (at this stage), just run the following command:
 
 ```bash
 go build . && ./01_rss_aggregator
