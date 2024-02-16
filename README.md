@@ -52,7 +52,8 @@ Based on these (free) courses & articles:
   - ✅ 📖 [How to Sort Strings With Go Alphabetically in Any Language](https://webdevstation.com/posts/how-to-sort-strings-with-go-alphabetically-in-any-language/),
   - ✅ 🎥 [Go vs Rust: Which To Learn In 2024?](https://youtu.be/LjIe4w_-vzk?si=RHX5mpoQQkcI2VNo) :+1:,
   - ✅ 📖 [Distroless or scratch for Go apps?](https://blog.baeke.info/2021/03/28/distroless-or-scratch-for-go-apps/),
-  - ✅ 📖 [The Go init Function](https://tutorialedge.net/golang/the-go-init-function/).
+  - ✅ 📖 [The Go init Function](https://tutorialedge.net/golang/the-go-init-function/),
+  - ✅ 📖 [How to Use go:embed in Go](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/).
 
 I also used these (paid) courses & books:
 
@@ -76,8 +77,8 @@ I also used these (paid) courses & books:
 - 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
   - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
   - ✅ 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files) :+1:,
-  - 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
-  - 🎥 [Managing Go Projects](https://app.pluralsight.com/library/courses/go-managing-projects/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-projects/exercise-files),
+  - ✅ 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
+  - ✅ 🎥 [Managing Go Projects](https://app.pluralsight.com/library/courses/go-managing-projects/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-projects/exercise-files) 👎,
   - 🎥 [Concurrent Programming in Go](https://app.pluralsight.com/library/courses/go-programming-concurrent/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-programming-concurrent/exercise-files),
   - 🎥 [Accessing Relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/exercise-files),
   - 🎥 [Accessing Non-relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/exercise-files),
@@ -107,11 +108,13 @@ Some useful tools & other resources:
 - IDEs:
   - **[GoLand](https://www.jetbrains.com/go/)**,
   - **[Visual Studio Code](https://code.visualstudio.com/)**:
-    - **[Go](https://marketplace.visualstudio.com/items?itemName=golang.go)**,
+    - **[Go](https://marketplace.visualstudio.com/items?itemName=golang.go)** [:file_folder:](https://github.com/golang/vscode-go),
     - **[Go Test Explorer](https://marketplace.visualstudio.com/items?itemName=premparihar.gotestexplorer)**,
     - **[Go Auto Struct Tag](https://marketplace.visualstudio.com/items?itemName=vivaldy22.go-auto-struct-tag)**,
     - **[Go Outliner](https://marketplace.visualstudio.com/items?itemName=766b.go-outliner)**,
     - **[Go Doc](https://marketplace.visualstudio.com/items?itemName=msyrus.go-doc)**,
+- tools:
+  - [delve](https://github.com/go-delve/delve) [📖](https://github.com/golang/vscode-go/blob/master/docs/debugging.md),
 - frameworks & libraries:
   - general:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
