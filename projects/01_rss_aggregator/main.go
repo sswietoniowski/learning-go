@@ -26,22 +26,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := chi.NewRouter()
+	router := chi.NewRouter()
 
 	corsOptions := cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
-		AllowedHeaders:   []string{"Accept", "Content-Type"},
+		AllowedOrigins:   []string{"http://*", "https://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}
-	r.Use(cors.Handler(corsOptions))
+	router.Use(cors.Handler(corsOptions))
 
-	r.Mount("/api/v1", v1Router())
+	v1Router := chi.NewRouter()
+	v1Router.Get("/readiness", readinessHandler)
+	v1Router.Get("/err", errHandler)
+
+	router.Mount("/api/v1", v1Router)
 
 	addr := fmt.Sprintf(":%s", portString)
 	srv := &http.Server{
 		Addr:         addr,
-		Handler:      r,
+		Handler:      router,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
