@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -24,8 +26,30 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Port: %s\n", portString)
+	r := chi.NewRouter()
 
-	router := chi.NewRouter()
-	router.Use(cors.Handler(cors.Options{}))
+	corsOptions := cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"Accept", "Content-Type"},
+		AllowCredentials: false,
+	}
+	r.Use(cors.Handler(corsOptions))
+
+	r.Mount("/api/v1", v1Router())
+
+	addr := fmt.Sprintf(":%s", portString)
+	srv := &http.Server{
+		Addr:         addr,
+		Handler:      r,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
+
+	fmt.Printf("Server is running on port %s\n", portString)
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
 }
