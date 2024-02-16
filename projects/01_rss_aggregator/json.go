@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func respondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 
 	data, err := json.Marshal(payload)
@@ -16,7 +16,7 @@ func respondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
 		return
 	}
 
-	w.WriteHeader(status)
+	w.WriteHeader(code)
 	w.Write(data)
 }
 
