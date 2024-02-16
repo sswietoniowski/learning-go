@@ -23,3 +23,11 @@ The application is built using the following technologies, libraries, frameworks
 - [chi](https://github.com/go-chi/chi),
 - [cors](https://github.com/go-chi/cors),
 - [godotenv](https://github.com/joho/godotenv).
+
+## Setup
+
+To run this project (at this stage), just run the following command:
+
+```bash
+go build . && ./01_rss_aggregator
+```
