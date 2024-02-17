@@ -127,6 +127,7 @@ Some useful tools & other resources:
     - [chi](https://github.com/go-chi/chi) - a lightweight, idiomatic and composable router for building Go HTTP services,
     - [cors](https://github.com/go-chi/cors) - a CORS middleware for Go,
   - databases:
+    - [database/sql](https://pkg.go.dev/database/sql) [:file_folder:](https://go.dev/wiki/SQLDrivers) [:file_folder:](https://go.dev/wiki/SQLInterface),
     - [pq](github.com/lib/pq) - a pure Go Postgres driver for Go's `database/sql` package,
     - [GORM](https://gorm.io/) [:file_folder:](gorm.io/gorm) - a fantastic ORM library for Golang,
     - [GORM MySQL Driver](https://gorm.io/docs/connecting_to_the_database.html#MySQL) [:file_folder:](gorm.io/driver/mysql) - a MySQL driver for GORM,
