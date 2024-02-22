@@ -120,10 +120,12 @@ Some useful tools & other resources:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
     - [Cobra](https://github.com/spf13/cobra) - a library for creating powerful modern CLI applications,
     - [godotenv](https://github.com/joho/godotenv) - a Go port of the Ruby dotenv library,
+    - [faker](https://github.com/jaswdr/faker) - a fake data generator for Go,
   - network services:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
     - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
     - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
+    - [gorilla/mux](https://github.com/gorilla/mux) - a powerful URL router and dispatcher for Go,
     - [chi](https://github.com/go-chi/chi) - a lightweight, idiomatic and composable router for building Go HTTP services,
     - [cors](https://github.com/go-chi/cors) - a CORS middleware for Go,
   - databases:
