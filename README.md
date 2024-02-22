@@ -127,10 +127,12 @@ Some useful tools & other resources:
     - [Cobra](https://github.com/spf13/cobra) - a library for creating powerful modern CLI applications,
     - [godotenv](https://github.com/joho/godotenv) - a Go port of the Ruby dotenv library,
     - [uuid](https://github.com/google/uuid) - a Go package for UUIDs based on _RFC 4122 and DCE 1.1: Authentication and Security Services_,
+    - [faker](https://github.com/jaswdr/faker) - a fake data generator for Go,
   - network services:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
     - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
     - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
+    - [gorilla/mux](https://github.com/gorilla/mux) - a powerful URL router and dispatcher for Go,
     - [chi](https://github.com/go-chi/chi) - a lightweight, idiomatic and composable router for building Go HTTP services,
     - [cors](https://github.com/go-chi/cors) - a CORS middleware for Go,
     - [oapi-codegen](https://github.com/deepmap/oapi-codegen) - a Go code generator for OpenAPI 3 specifications,
