@@ -14,7 +14,6 @@ services:
       - '5433:5432'
     networks:
       - readinglist
-
   api:
     container_name: api
     image: sswietoniowski/readinglist-api:latest
@@ -33,7 +32,6 @@ services:
       - db
     networks:
       - readinglist
-
   web:
     container_name: web
     image: sswietoniowski/readinglist-web:latest
@@ -46,10 +44,8 @@ services:
       - api
     networks:
       - readinglist
-
 networks:
   readinglist:
     driver: bridge
-
 volumes:
   db-data:
