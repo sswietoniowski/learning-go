@@ -109,35 +109,35 @@ func (app *Application) addBookProcess(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		app.logger.Println("bad request")
+		app.logger.Printf("bad request: %v\n", err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	title := strings.TrimSpace(r.PostForm.Get("title"))
 	if title == "" {
-		app.logger.Println("bad request")
+		app.logger.Printf("bad request: title is empty\n")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	author := strings.TrimSpace(r.PostForm.Get("author"))
 	if author == "" {
-		app.logger.Println("bad request")
+		app.logger.Printf("bad request: author is empty\n")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	published, err := strconv.Atoi(r.PostForm.Get("published"))
 	if err != nil || published < 0 {
-		app.logger.Println("bad request")
+		app.logger.Printf("bad request: %v\n or published < 0", err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	pages, err := strconv.Atoi(r.PostForm.Get("pages"))
 	if err != nil || pages < 0 {
-		app.logger.Println("bad request")
+		app.logger.Printf("bad request: %v\n or pages < 0", err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -146,7 +146,7 @@ func (app *Application) addBookProcess(w http.ResponseWriter, r *http.Request) {
 
 	rating, err := strconv.ParseFloat(r.PostFormValue("rating"), 32)
 	if err != nil || rating < 0 {
-		app.logger.Println("bad request")
+		app.logger.Printf("bad request: %v\n or rating < 0", err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
