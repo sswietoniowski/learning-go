@@ -80,8 +80,8 @@ I also used these (paid) courses & books:
   - ✅ 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
   - ✅ 🎥 [Managing Go Projects](https://app.pluralsight.com/library/courses/go-managing-projects/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-projects/exercise-files) 👎,
   - 🎥 [Concurrent Programming in Go](https://app.pluralsight.com/library/courses/go-programming-concurrent/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-programming-concurrent/exercise-files),
-  - 🎥 [Accessing Relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/exercise-files),
-  - 🎥 [Accessing Non-relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/exercise-files),
+  - ✅ 🎥 [Accessing Relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/exercise-files),
+  - ✅ 🎥 [Accessing Non-relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/exercise-files),
   - 🎥 [Testing in Go](https://app.pluralsight.com/library/courses/go-testing/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-testing/exercise-files),
   - 🎥 [Go CLI Playbook](https://app.pluralsight.com/library/courses/go-playbook-cli/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-playbook-cli/exercise-files),
   - ✅ 🎥 [Building Go Web Services and Applications](https://app.pluralsight.com/library/courses/go-building-web-services-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-building-web-services-applications/exercise-files),
@@ -116,6 +116,7 @@ Some useful tools & other resources:
 - tools:
   - [delve](https://github.com/go-delve/delve) [📖](https://github.com/golang/vscode-go/blob/master/docs/debugging.md),
 - frameworks & libraries:
+  - **[awesome-go](https://github.com/avelino/awesome-go)** - a curated list of awesome Go frameworks, libraries and software,
   - general:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
     - [Cobra](https://github.com/spf13/cobra) - a library for creating powerful modern CLI applications,
