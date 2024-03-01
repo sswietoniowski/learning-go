@@ -34,7 +34,14 @@ To start the PostgreSQL database as a Docker container, run the following comman
 docker run --name rssaggregator -e POSTGRES_PASSWORD=PUT_REAL_PASSWORD_HERE -e POSTGRES_DB=rssaggregator -p 5433:5432 -d postgres
 ```
 
-To run this the application (at this stage), just run the following command:
+Before running the application, you need to create a `.env` file in the root directory of the project with the following content:
+
+```env
+PORT=8080
+DATABASE_URL=postgres://user:password@host:port/database?sslmode=disable
+```
+
+To run this application (at this stage), just run the following command:
 
 ```bash
 go build . && ./01_rss_aggregator
