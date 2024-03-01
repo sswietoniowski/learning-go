@@ -49,7 +49,7 @@ go build . && ./01_rss_aggregator
 
 ### SQLC
 
-This project is using [`sqlc`](https://github.com/sqlc-dev/sqlc) to generate Go code from SQL.
+This project is also using [`sqlc`](https://github.com/sqlc-dev/sqlc) to generate Go code from SQL.
 
 To install `sqlc`, run the following command:
 
