@@ -51,6 +51,8 @@ go build . && ./01_rss_aggregator
 
 This project is also using [`sqlc`](https://github.com/sqlc-dev/sqlc) to generate Go code from SQL.
 
+> SQLC is an _amazing_ Go program that generates Go code from SQL queries. It's not exactly an ORM, but rather a tool that makes working with raw SQL almost as easy as using an ORM.
+
 To install `sqlc`, run the following command:
 
 ```bash
@@ -81,6 +83,8 @@ sqlc generate
 ### Goose
 
 This project is also using [`goose`](https://github.com/pressly/goose) to manage the database migrations.
+
+> Goose is a database migration tool written in Go. It runs migrations from the same SQL files that SQLC uses, making the pair of tools a perfect fit.
 
 To install `goose`, run the following command:
 
