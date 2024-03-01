@@ -39,3 +39,29 @@ To run this the application (at this stage), just run the following command:
 ```bash
 go build . && ./01_rss_aggregator
 ```
+
+### SQLC
+
+This project is using [`sqlc`](https://github.com/sqlc-dev/sqlc) to generate Go code from SQL.
+
+To install `sqlc`, run the following command:
+
+```bash
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+```
+
+### Goose
+
+This project is also using [`goose`](https://github.com/pressly/goose) to manage the database migrations.
+
+To install `goose`, run the following command:
+
+```bash
+go install github.com/pressly/goose/v3/cmd/goose@latest
+```
+
+To run the migrations, run the following command:
+
+```bash
+goose -dir sql/schema postgres "postgres://postgres:PUT_REAL_PASSWORD_HERE@localhost:5433/rssaggregator" up
+```
