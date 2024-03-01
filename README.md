@@ -120,6 +120,7 @@ Some useful tools & other resources:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
     - [Cobra](https://github.com/spf13/cobra) - a library for creating powerful modern CLI applications,
     - [godotenv](https://github.com/joho/godotenv) - a Go port of the Ruby dotenv library,
+    - [uuid](https://github.com/google/uuid) - a Go package for UUIDs based on _RFC 4122 and DCE 1.1: Authentication and Security Services_,
   - network services:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
     - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
