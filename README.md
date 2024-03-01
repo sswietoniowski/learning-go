@@ -95,10 +95,10 @@ Some useful tools & other resources:
 
 - documentation:
   - [Go Documentation](https://go.dev/doc/),
-  - [Effective Go](https://go.dev/doc/effective_go),
+  - [Effective Go](https://go.dev/doc/effective_go) - a guide to writing clear, idiomatic Go code,
   - [The Go Programming Language Specification](https://go.dev/ref/spec),
   - [Standard Go Project Layout](https://github.com/golang-standards/project-layout),
-  - [Go Proverbs](https://go-proverbs.github.io/),
+  - [Go Proverbs](https://go-proverbs.github.io/) - a collection of proverbs that represent the best practices of writing Go code,
 - playground online:
   - [Go Playground](https://go.dev/play/),
 - SDKs:
@@ -106,15 +106,15 @@ Some useful tools & other resources:
 - repositories:
   - [Go Packages](https://pkg.go.dev/),
 - IDEs:
-  - **[GoLand](https://www.jetbrains.com/go/)**,
-  - **[Visual Studio Code](https://code.visualstudio.com/)**:
+  - **[GoLand](https://www.jetbrains.com/go/)** - a commercial IDE for Go,
+  - **[Visual Studio Code](https://code.visualstudio.com/)** - a free IDE for Go with these extensions:
     - **[Go](https://marketplace.visualstudio.com/items?itemName=golang.go)** [:file_folder:](https://github.com/golang/vscode-go),
     - **[Go Test Explorer](https://marketplace.visualstudio.com/items?itemName=premparihar.gotestexplorer)**,
     - **[Go Auto Struct Tag](https://marketplace.visualstudio.com/items?itemName=vivaldy22.go-auto-struct-tag)**,
     - **[Go Outliner](https://marketplace.visualstudio.com/items?itemName=766b.go-outliner)**,
     - **[Go Doc](https://marketplace.visualstudio.com/items?itemName=msyrus.go-doc)**,
 - tools:
-  - [delve](https://github.com/go-delve/delve) [📖](https://github.com/golang/vscode-go/blob/master/docs/debugging.md),
+  - [delve](https://github.com/go-delve/delve) [📖](https://github.com/golang/vscode-go/blob/master/docs/debugging.md) - a debugger for Go,
 - frameworks & libraries:
   - general:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
@@ -129,8 +129,10 @@ Some useful tools & other resources:
   - databases:
     - [database/sql](https://pkg.go.dev/database/sql) [:file_folder:](https://go.dev/wiki/SQLDrivers) [:file_folder:](https://go.dev/wiki/SQLInterface),
     - [pq](github.com/lib/pq) - a pure Go Postgres driver for Go's `database/sql` package,
-    - [GORM](https://gorm.io/) [:file_folder:](gorm.io/gorm) - a fantastic ORM library for Golang,
+    - [GORM](https://gorm.io/) [:file_folder:](https://github.com/go-gorm/gorm) - a fantastic ORM library for Go,
     - [GORM MySQL Driver](https://gorm.io/docs/connecting_to_the_database.html#MySQL) [:file_folder:](gorm.io/driver/mysql) - a MySQL driver for GORM,
+    - [sqlc](https://sqlc.dev/) [:file_folder:](https://github.com/sqlc-dev/sqlc) - a compiler that generates Go code from SQL,
+    - [goose](https://pressly.github.io/goose/) [:file_folder:](https://github.com/pressly/goose) - a database migration tool for Go,
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
