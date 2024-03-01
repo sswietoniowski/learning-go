@@ -53,7 +53,8 @@ Based on these (free) courses & articles:
   - ✅ 🎥 [Go vs Rust: Which To Learn In 2024?](https://youtu.be/LjIe4w_-vzk?si=RHX5mpoQQkcI2VNo) :+1:,
   - ✅ 📖 [Distroless or scratch for Go apps?](https://blog.baeke.info/2021/03/28/distroless-or-scratch-for-go-apps/),
   - ✅ 📖 [The Go init Function](https://tutorialedge.net/golang/the-go-init-function/),
-  - ✅ 📖 [How to Use go:embed in Go](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/).
+  - ✅ 📖 [How to Use go:embed in Go](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/),
+  - ✅ 📖 [What are UUIDs, and are they better than regular IDs?](https://blog.boot.dev/clean-code/what-are-uuids-and-should-you-use-them/).
 
 I also used these (paid) courses & books:
 
