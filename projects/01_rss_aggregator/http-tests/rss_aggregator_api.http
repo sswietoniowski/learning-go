@@ -1,6 +1,7 @@
 # RSS Aggregator API
 
 @baseUrl = http://localhost:8080/api/v1
+@apiKey = PUT_REAL_API_KEY_HERE
 
 ### Check readiness
 GET {{baseUrl}}/healthz
@@ -13,5 +14,20 @@ POST {{baseUrl}}/users
 Content-Type: application/json
 
 {
-  "name": "Lane"
+  "name": "Bob"
 }
+
+### Get user by API key
+GET {{baseUrl}}/users
+Authorization: ApiKey {{apiKey}}
+
+### Get user by API key (no Authorization header)
+GET {{baseUrl}}/users
+
+### Get user by API key (no ApiKey in the Authorization header)
+GET {{baseUrl}}/users
+Authorization: WRONG_STRUCTURE
+
+### Get user by API key (wrong ApiKey in the Authorization header)
+GET {{baseUrl}}/users
+Authorization: ApiKey WRONG_API_KEY

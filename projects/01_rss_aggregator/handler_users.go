@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sswietoniowski/learning-go/projects/01_rss_aggregator/internal/auth"
 	"github.com/sswietoniowski/learning-go/projects/01_rss_aggregator/internal/database"
 )
 
@@ -34,4 +36,27 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 	}
 
 	respondWithJSON(w, http.StatusCreated, databaseUserToUser(user))
+}
+
+func (cfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request) {
+	apiKey, err := auth.GetApiKey(r.Header)
+	if err != nil {
+		switch err {
+		case auth.ErrNoAuthHeaderIncluded:
+			respondWithError(w, http.StatusUnauthorized, fmt.Sprintf("%v", err))
+		case auth.ErrMalformedAuthHeader:
+			respondWithError(w, http.StatusBadRequest, fmt.Sprintf("%v", err))
+		default:
+			respondWithError(w, http.StatusInternalServerError, "Internal server error")
+		}
+		return
+	}
+
+	user, err := cfg.DB.GetUserByApiKey(r.Context(), apiKey)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 }
