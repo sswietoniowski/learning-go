@@ -47,6 +47,12 @@ To run this application (at this stage), just run the following command:
 go build . && ./01_rss_aggregator
 ```
 
+If you want to add some extra dependencies to the project, you might need to run the following command (as we are using Go modules and vendoring) afterwards:
+
+```bash
+go mod tidy && go mod vendor
+```
+
 ### SQLC
 
 This project is also using [`sqlc`](https://github.com/sqlc-dev/sqlc) to generate Go code from SQL.

@@ -129,6 +129,7 @@ Some useful tools & other resources:
     - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
     - [chi](https://github.com/go-chi/chi) - a lightweight, idiomatic and composable router for building Go HTTP services,
     - [cors](https://github.com/go-chi/cors) - a CORS middleware for Go,
+    - [oapi-codegen](https://github.com/deepmap/oapi-codegen) - a Go code generator for OpenAPI 3 specifications,
   - databases:
     - [database/sql](https://pkg.go.dev/database/sql) [:file_folder:](https://go.dev/wiki/SQLDrivers) [:file_folder:](https://go.dev/wiki/SQLInterface),
     - [pq](github.com/lib/pq) - a pure Go Postgres driver for Go's `database/sql` package,
