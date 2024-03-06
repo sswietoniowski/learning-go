@@ -64,6 +64,7 @@ I also used these (paid) courses & books:
 - 📖 [Test-Driven Development in Go](https://learning.oreilly.com/library/view/test-driven-development-in/9781803247878/) [:file_folder:](https://github.com/PacktPublishing/Test-Driven-Development-in-Go),
 - 🎥 [Advanced Testing and Debugging in Go](https://learning.oreilly.com/course/advanced-testing-and/1100111TESTINGINGO/),
 - 📖 [Building Modern CLI Applications in Go](https://learning.oreilly.com/library/view/building-modern-cli/9781804611654/) [:file_folder:](https://github.com/PacktPublishing/Building-Modern-CLI-Applications-in-Go),
+- 📖 [Network Programming with Go Language: Essential Skills for Programming, Using and Securing Networks with Open Source Google Golang](https://learning.oreilly.com/library/view/network-programming-with/9781484280959/) [📁](https://github.com/Apress/network-prog-with-go-2e),
 - 📖 [Cloud Native Go, 2nd Edition](https://learning.oreilly.com/library/view/cloud-native-go/9781098156411/),
 - 📖 [Hands-On Software Engineering with Golang](https://learning.oreilly.com/library/view/hands-on-software-engineering/9781838554491/) [:file_folder:](https://github.com/PacktPublishing/Hands-On-Software-Engineering-with-Golang),
 - 📖 [Hands-On Software Architecture with Golang](https://learning.oreilly.com/library/view/hands-on-software-architecture/9781788622592/) [:file_folder:](https://github.com/packtpublishing/hands-on-software-architecture-with-golang),
@@ -74,6 +75,7 @@ I also used these (paid) courses & books:
 - 📖 [Pro Go: The Complete Guide to Programming Reliable and Efficient Software Using Golang](https://learning.oreilly.com/library/view/pro-go-the/9781484273555/) [:file_folder:](https://github.com/Apress/pro-go),
 - 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
 - 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
+- 📖 [Hands-On System Programming with Go](https://learning.oreilly.com/library/view/hands-on-system-programming/9781789804072/) [📁](https://github.com/packtpublishing/hands-on-system-programming-with-go),
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
 - 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
   - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
