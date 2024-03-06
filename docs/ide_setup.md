@@ -1,10 +1,12 @@
 # IDE Setup 2024-02-09
 
-As far as I know, the best IDE (as of now) for Go is **[GoLand](https://www.jetbrains.com/go/)**. It's a paid IDE, but you can get a free license if you're a student or a teacher.
+As far as I know, the best IDE (as of now) for Go is **[GoLand](https://www.jetbrains.com/go/)**. It's a paid IDE, but students and teachers can get a free license.
 
-Because I'm a big fan of Visual Studio Code, I will try to use it as much as I can (knowing that it's not the best choice for Go development).
+I'm a big fan of Visual Studio Code, I will use it as much as I can (knowing that it's not the best choice for Go development).
 
-Here I will describe how to set up VS Code for Go development, as a start read [this](https://code.visualstudio.com/docs/languages/go) tutorial and also [this](https://levene.me/boost-your-golang-development-with-these-top-vscode-extensions) one.
+Here, I will describe how to set up VS Code for Go development; as a start, read [this](https://code.visualstudio.com/docs/languages/go) tutorial and also [this](https://levene.me/boost-your-golang-development-with-these-top-vscode-extensions) one.
+
+To learn more about your options, read [this](https://go.dev/wiki/IDEsAndTextEditorPlugins) wiki.
 
 ## Table of Contents
 
@@ -19,7 +21,7 @@ Here I will describe how to set up VS Code for Go development, as a start read [
 
 To help you set up quickly, you can download and install a binary release from [here](https://go.dev/dl/).
 
-If you're using Windows, and using [Chocolatey](https://chocolatey.org/), you can install Go by running the following command:
+If you're using Windows and using [Chocolatey](https://chocolatey.org/), you can install Go by running the following command:
 
 ```powershell
 choco install golang
@@ -43,7 +45,7 @@ You'll find more customizations I've made to my VS Code setup here.
 
 ### Code formatting
 
-To format your code automatically (on save) you should perform the following steps.
+You should perform the following steps to format your code automatically (on save).
 
 Add the following settings to your `settings.json`:
 
