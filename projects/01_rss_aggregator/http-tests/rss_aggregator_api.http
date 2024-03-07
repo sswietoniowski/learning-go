@@ -39,7 +39,6 @@ Authorization: ApiKey {{apiKey}}
 Content-Type: application/json
 
 {
-  "url": "blog.jetbrains.com/dotnet/feed",
   "name": "JetBrains: Dotnet RSS Feed",
-  "user_id": {{userId}}
+  "url": "https://blog.jetbrains.com/dotnet/feed"
 }
