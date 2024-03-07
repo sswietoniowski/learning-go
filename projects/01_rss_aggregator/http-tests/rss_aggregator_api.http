@@ -2,7 +2,8 @@
 
 @baseUrl = http://localhost:8080/api/v1
 @apiKey = PUT_REAL_API_KEY_HERE
-@userId = PUT_REAL_USER_ID_HERE
+@feedId = PUT_REAL_FEED_ID_HERE
+@feedFollowId = PUT_REAL_FEED_FOLLOW_ID_HERE
 
 ### Check readiness
 GET {{baseUrl}}/healthz
@@ -40,8 +41,26 @@ Content-Type: application/json
 
 {
   "name": "JetBrains: Dotnet RSS Feed",
-  "url": "https://blog.jetbrains.com/dotnet/feed"
+  "url": "https://blog.jetbrains.com/dotnet/feed6"
 }
 
 ### Get all feeds
 GET {{baseUrl}}/feeds
+
+### Create a new feed follow
+POST {{baseUrl}}/feed_follows
+Authorization: ApiKey {{apiKey}}
+Content-Type: application/json
+
+{
+  "feed_id": "{{feedId}}"
+}
+
+### Get all feed follows for the user
+GET {{baseUrl}}/feed_follows
+Authorization: ApiKey {{apiKey}}
+
+### Delete a feed follow
+DELETE {{baseUrl}}/feed_follows/{{feedFollowId}}
+Authorization: ApiKey {{apiKey}}
+
