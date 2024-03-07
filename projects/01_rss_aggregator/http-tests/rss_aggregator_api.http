@@ -2,6 +2,7 @@
 
 @baseUrl = http://localhost:8080/api/v1
 @apiKey = PUT_REAL_API_KEY_HERE
+@userId = PUT_REAL_USER_ID_HERE
 
 ### Check readiness
 GET {{baseUrl}}/healthz
@@ -31,3 +32,14 @@ Authorization: WRONG_STRUCTURE
 ### Get user by API key (wrong ApiKey in the Authorization header)
 GET {{baseUrl}}/users
 Authorization: ApiKey WRONG_API_KEY
+
+### Create a new feed
+POST {{baseUrl}}/feeds
+Authorization: ApiKey {{apiKey}}
+Content-Type: application/json
+
+{
+  "url": "blog.jetbrains.com/dotnet/feed",
+  "name": "JetBrains: Dotnet RSS Feed",
+  "user_id": {{userId}}
+}
