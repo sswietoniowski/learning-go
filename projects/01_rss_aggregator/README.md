@@ -2,6 +2,14 @@
 
 This is a simple [RSS](https://en.wikipedia.org/wiki/RSS) aggregator.
 
+- [RSS Aggregator](#rss-aggregator)
+  - [Features](#features)
+  - [Technologies](#technologies)
+  - [Setup](#setup)
+    - [SQLC](#sqlc)
+    - [Goose](#goose)
+  - [Further Improvements](#further-improvements)
+
 ## Features
 
 It is a web server that allows clients to:
@@ -103,3 +111,17 @@ To run the migrations, run the following command:
 ```bash
 goose -dir sql/schema postgres "postgres://postgres:PUT_REAL_PASSWORD_HERE@localhost:5433/rssaggregator" up
 ```
+
+## Further Improvements
+
+The following are some ideas for further improvements:
+
+- support pagination of the endpoints that can return many items,
+- support different options for sorting and filtering posts using query parameters,
+- classify different types of feeds and posts (e.g. blog, podcast, video, etc.),
+- add a CLI client that uses the API to fetch and display posts, maybe it even allows you to read them in your terminal,
+- scrape lists of feeds themselves from a third-party site that aggregates feed URLs,
+- add support for other types of feeds (e.g. Atom, JSON, etc.),
+- add integration tests that use the API to create, read, update, and delete feeds and posts,
+- add bookmarking or "liking" to posts,
+- create a simple web UI that uses your backend API.
