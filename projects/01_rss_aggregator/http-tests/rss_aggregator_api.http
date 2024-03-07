@@ -42,3 +42,6 @@ Content-Type: application/json
   "name": "JetBrains: Dotnet RSS Feed",
   "url": "https://blog.jetbrains.com/dotnet/feed"
 }
+
+### Get all feeds
+GET {{baseUrl}}/feeds
