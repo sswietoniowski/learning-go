@@ -112,6 +112,12 @@ To run the migrations, run the following command:
 goose -dir sql/schema postgres "postgres://postgres:PUT_REAL_PASSWORD_HERE@localhost:5433/rssaggregator" up
 ```
 
+To revert the migrations, run the following command:
+
+```bash
+goose -dir sql/schema postgres "postgres://postgres:PUT_REAL_PASSWORD_HERE@localhost:5433/rssaggregator" down
+```
+
 ## Further Improvements
 
 The following are some ideas for further improvements:
