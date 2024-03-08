@@ -1,13 +1,59 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"sync"
 	"time"
+
+	"github.com/sswietoniowski/learning-go/projects/01_rss_aggregator/internal/database"
 )
+
+func startScrapping(db *database.Queries, concurrency int, timeBetweenRequests time.Duration) {
+	log.Printf("Collecting feeds every %s on %v goroutines...", timeBetweenRequests, concurrency)
+	ticker := time.NewTicker(timeBetweenRequests)
+
+	for ; ; <-ticker.C {
+		feeds, err := db.GetNextFeedsToFetch(context.Background(), int32(concurrency))
+		if err != nil {
+			log.Printf("Couldn't get next feeds to fetch: %v", err)
+			continue
+		}
+		log.Printf("Found %d feeds to fetch", len(feeds))
+
+		wg := &sync.WaitGroup{}
+		for _, feed := range feeds {
+			wg.Add(1)
+			go scrapeFeed(db, wg, feed)
+		}
+		wg.Wait()
+	}
+}
+
+func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
+	defer wg.Done()
+
+	_, err := db.MarkFeedAsFetched(context.Background(), feed.ID)
+	if err != nil {
+		log.Printf("Couldn't mark feed %s as fetched: %v", feed.Name, err)
+		return
+	}
+
+	rssFeed, err := fetchFeed(feed.Url)
+	if err != nil {
+		log.Printf("Couldn't collect feed %s: %v", feed.Url, err)
+		return
+	}
+
+	for _, item := range rssFeed.Channel.Items {
+		log.Printf("Found post: %s", item.Title)
+	}
+	log.Printf("Feed %s collected, %v posts found", feed.Name, len(rssFeed.Channel.Items))
+}
 
 type RssFeed struct {
 	Channel RssChannel `xml:"channel"`

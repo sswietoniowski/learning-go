@@ -78,6 +78,11 @@ func main() {
 
 	router.Mount("/api/v1", v1Router)
 
+	const collectionConcurrency = 10
+	const collectionInterval = 1 * time.Minute
+
+	go startScrapping(dbQueries, collectionConcurrency, collectionInterval)
+
 	addr := fmt.Sprintf(":%s", portString)
 	srv := &http.Server{
 		Addr:         addr,
