@@ -27,10 +27,12 @@ The application is built using the following technologies, libraries, frameworks
 - [Go](https://golang.org/),
 - [PostgreSQL](https://www.postgresql.org/),
 - [Docker](https://www.docker.com/),
-- [Docker Compose](https://docs.docker.com/compose/),
 - [chi](https://github.com/go-chi/chi),
 - [cors](https://github.com/go-chi/cors),
-- [godotenv](https://github.com/joho/godotenv).
+- [godotenv](https://github.com/joho/godotenv),
+- [pq](github.com/lib/pq),
+- [sqlc](https://sqlc.dev/),
+- [goose](https://pressly.github.io/goose/).
 
 ## Setup
 
