@@ -4,6 +4,7 @@
 @apiKey = PUT_REAL_API_KEY_HERE
 @feedId = PUT_REAL_FEED_ID_HERE
 @feedFollowId = PUT_REAL_FEED_FOLLOW_ID_HERE
+@limit = PUT_REAL_LIMIT_HERE
 
 ### Check readiness
 GET {{baseUrl}}/healthz
@@ -64,3 +65,6 @@ Authorization: ApiKey {{apiKey}}
 DELETE {{baseUrl}}/feed_follows/{{feedFollowId}}
 Authorization: ApiKey {{apiKey}}
 
+### Get posts for the user
+GET {{baseUrl}}/posts?limit={{limit}}
+Authorization: ApiKey {{apiKey}}
