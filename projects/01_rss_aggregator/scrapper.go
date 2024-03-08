@@ -52,7 +52,7 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 	for _, item := range rssFeed.Channel.Items {
 		log.Printf("Found post: %s", item.Title)
 	}
-	log.Printf("Feed %s collected, %v posts found", feed.Name, len(rssFeed.Channel.Items))
+	log.Printf("Feed: %s collected, %v posts found", feed.Name, len(rssFeed.Channel.Items))
 }
 
 type RssFeed struct {
