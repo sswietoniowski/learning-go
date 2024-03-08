@@ -62,6 +62,7 @@ ORDER BY id ASC
 	if err != nil {
 		return nil, &DatabaseError{"GetAll", err}
 	}
+	defer rows.Close()
 
 	books := make([]Book, 0) // to return an empty array instead of nil when there are no books
 

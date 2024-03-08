@@ -1,9 +1,70 @@
 # RSS Aggregator API
 
 @baseUrl = http://localhost:8080/api/v1
+@apiKey = PUT_REAL_API_KEY_HERE
+@feedId = PUT_REAL_FEED_ID_HERE
+@feedFollowId = PUT_REAL_FEED_FOLLOW_ID_HERE
+@limit = PUT_REAL_LIMIT_HERE
 
 ### Check readiness
-GET {{baseUrl}}/readiness
+GET {{baseUrl}}/healthz
 
 ### Check err
 GET {{baseUrl}}/err
+
+### Create a new user
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "Bob"
+}
+
+### Get user by API key
+GET {{baseUrl}}/users
+Authorization: ApiKey {{apiKey}}
+
+### Get user by API key (no Authorization header)
+GET {{baseUrl}}/users
+
+### Get user by API key (no ApiKey in the Authorization header)
+GET {{baseUrl}}/users
+Authorization: WRONG_STRUCTURE
+
+### Get user by API key (wrong ApiKey in the Authorization header)
+GET {{baseUrl}}/users
+Authorization: ApiKey WRONG_API_KEY
+
+### Create a new feed
+POST {{baseUrl}}/feeds
+Authorization: ApiKey {{apiKey}}
+Content-Type: application/json
+
+{
+  "name": "JetBrains: Dotnet RSS Feed",
+  "url": "https://blog.jetbrains.com/dotnet/feed6"
+}
+
+### Get all feeds
+GET {{baseUrl}}/feeds
+
+### Create a new feed follow
+POST {{baseUrl}}/feed_follows
+Authorization: ApiKey {{apiKey}}
+Content-Type: application/json
+
+{
+  "feed_id": "{{feedId}}"
+}
+
+### Get all feed follows for the user
+GET {{baseUrl}}/feed_follows
+Authorization: ApiKey {{apiKey}}
+
+### Delete a feed follow
+DELETE {{baseUrl}}/feed_follows/{{feedFollowId}}
+Authorization: ApiKey {{apiKey}}
+
+### Get posts for the user
+GET {{baseUrl}}/posts?limit={{limit}}
+Authorization: ApiKey {{apiKey}}

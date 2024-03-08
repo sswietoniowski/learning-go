@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +12,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	"github.com/sswietoniowski/learning-go/projects/01_rss_aggregator/internal/database"
+
+	_ "github.com/lib/pq"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	godotenv.Load()
@@ -24,6 +32,21 @@ func main() {
 	_, err := strconv.ParseInt(portString, 10, 64)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatal("DATABASE_URL is not found in the environment")
+	}
+
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dbQueries := database.New(db)
+
+	apiCfg := &apiConfig{
+		DB: dbQueries,
 	}
 
 	router := chi.NewRouter()
@@ -39,10 +62,28 @@ func main() {
 	router.Use(cors.Handler(corsOptions))
 
 	v1Router := chi.NewRouter()
-	v1Router.Get("/readiness", readinessHandler)
-	v1Router.Get("/err", errHandler)
+
+	v1Router.Post("/users", apiCfg.handlerUsersCreate)
+	v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerUsersGetForUser))
+
+	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerFeedsCreateForUser))
+	v1Router.Get("/feeds", apiCfg.handlerFeedsGet)
+
+	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerFeedFollowsCreate))
+	v1Router.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerFeedFollowsGetForUser))
+	v1Router.Delete("/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerFeedFollowsDelete))
+
+	v1Router.Get("/posts", apiCfg.middlewareAuth(apiCfg.handlerPostsGetForUser))
+
+	v1Router.Get("/healthz", handlerReadiness)
+	v1Router.Get("/err", handlerErr)
 
 	router.Mount("/api/v1", v1Router)
+
+	const collectionConcurrency = 10
+	const collectionInterval = 1 * time.Minute
+
+	go startScrapping(dbQueries, collectionConcurrency, collectionInterval)
 
 	addr := fmt.Sprintf(":%s", portString)
 	srv := &http.Server{
