@@ -140,7 +140,7 @@ Some useful tools & other resources:
     - [Buf](https://buf.build/) [:file_folder:](https://github.com/bufbuild/buf) - a new way to work with Protocol Buffers,
   - databases:
     - [database/sql](https://pkg.go.dev/database/sql) [:file_folder:](https://go.dev/wiki/SQLDrivers) [:file_folder:](https://go.dev/wiki/SQLInterface),
-    - [pq](github.com/lib/pq) - a pure Go Postgres driver for Go's `database/sql` package,
+    - [pq](https://github.com/lib/pq) - a pure Go Postgres driver for Go's `database/sql` package,
     - [GORM](https://gorm.io/) [:file_folder:](https://github.com/go-gorm/gorm) - a fantastic ORM library for Go,
     - [GORM MySQL Driver](https://gorm.io/docs/connecting_to_the_database.html#MySQL) [:file_folder:](gorm.io/driver/mysql) - a MySQL driver for GORM,
     - [sqlc](https://sqlc.dev/) [:file_folder:](https://github.com/sqlc-dev/sqlc) - a compiler that generates Go code from SQL,
