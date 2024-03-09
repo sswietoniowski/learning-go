@@ -10,8 +10,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/jaswdr/faker/v2"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -20,29 +18,6 @@ type GormMySQLDatabase struct {
 	dsn    string
 	logger *log.Logger
 	db     *gorm.DB
-}
-
-func generateBooks(count int) []Book {
-	var books []Book
-	fake := faker.New()
-	for i := 0; i < count; i++ {
-		book := Book{
-			Id:        int64(i + 3),
-			Title:     fake.Lorem().Sentence(3),
-			Author:    fake.Person().Name(),
-			Published: fake.IntBetween(1900, 2021),
-			Pages:     fake.IntBetween(100, 1000),
-			Genres: []string{
-				fake.Lorem().Word(),
-			},
-			Rating:    fake.Float32(1, 0, 5),
-			Version:   1,
-			Read:      false,
-			CreatedAt: time.Now(),
-		}
-		books = append(books, book)
-	}
-	return books
 }
 
 // NewGormMySQLDatabase creates a new GormMySQLDatabase and returns it with the given DSN and logger.
