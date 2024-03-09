@@ -104,7 +104,7 @@ Then, you can run the following command from the root directory of the project:
 docker compose up
 ```
 
-This command will start the web service, web application, and the database.
+This command will start the web service, web application, and database.
 
 The database is running on `localhost:5433`.
 

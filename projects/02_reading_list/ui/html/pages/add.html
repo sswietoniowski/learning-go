@@ -1,11 +1,13 @@
 {{define "title"}}Add Book{{end}} {{define "main"}}
-<form action="/book/add" method="post">
+<form action="/books/add" method="post">
   <label>Title:</label>
   <input type="text" name="title" /><br />
-  <label>Pages:</label>
-  <input type="number" name="pages" /><br />
+  <label>Author:</label>
+  <input type="text" name="author" /><br />
   <label>Published:</label>
   <input type="number" name="published" /><br />
+  <label>Pages:</label>
+  <input type="number" name="pages" /><br />
   <label>Genres:</label>
   <input type="text" name="genres" /><br />
   <label>Rating:</label>
