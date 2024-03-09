@@ -16,7 +16,7 @@ The application is built using the following technologies, libraries, frameworks
 - [Docker Compose](https://docs.docker.com/compose/),
 - [gorilla/mux](https://github.com/gorilla/mux),
 - [godotenv](https://github.com/joho/godotenv),
-- [pq](github.com/lib/pq),
+- [pq](https://github.com/lib/pq),
 - [GORM](https://gorm.io/) [:file_folder:](gorm.io/gorm).
 - [GORM MySQL Driver](https://gorm.io/docs/connecting_to_the_database.html#MySQL) [:file_folder:](gorm.io/driver/mysql),
 - [faker](https://github.com/jaswdr/faker).
