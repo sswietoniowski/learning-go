@@ -30,7 +30,8 @@ The application is built using the following technologies, libraries, frameworks
 - [chi](https://github.com/go-chi/chi),
 - [cors](https://github.com/go-chi/cors),
 - [godotenv](https://github.com/joho/godotenv),
-- [pq](github.com/lib/pq),
+- [uuid](https://github.com/google/uuid),
+- [pq](https://github.com/lib/pq),
 - [sqlc](https://sqlc.dev/),
 - [goose](https://pressly.github.io/goose/).
 
