@@ -70,7 +70,7 @@ I also used these (paid) courses & books:
 - 📖 [Cloud Native Go, 2nd Edition](https://learning.oreilly.com/library/view/cloud-native-go/9781098156411/),
 - 📖 [Hands-On Software Engineering with Golang](https://learning.oreilly.com/library/view/hands-on-software-engineering/9781838554491/) [:file_folder:](https://github.com/PacktPublishing/Hands-On-Software-Engineering-with-Golang),
 - 📖 [Hands-On Software Architecture with Golang](https://learning.oreilly.com/library/view/hands-on-software-architecture/9781788622592/) [:file_folder:](https://github.com/packtpublishing/hands-on-software-architecture-with-golang),
-- 📖 [Domain-Driven Design with Golang](https://learning.oreilly.com/library/view/domain-driven-design-with/9781804613450/) [:file_folder:](https://github.com/PacktPublishing/Domain-Driven-Design-with-GoLang),
+- ✅ 📖 [Domain-Driven Design with Golang](https://learning.oreilly.com/library/view/domain-driven-design-with/9781804613450/) [:file_folder:](https://github.com/PacktPublishing/Domain-Driven-Design-with-GoLang),
 - 📖 [Event-Driven Architecture in Golang](https://learning.oreilly.com/library/view/event-driven-architecture-in/9781803238012/) [:file_folder:](https://github.com/PacktPublishing/Event-Driven-Architecture-in-Golang),
 - 📖 [Microservices with Go](https://learning.oreilly.com/library/view/microservices-with-go/9781804617007/) [:file_folder:](https://github.com/PacktPublishing/microservices-with-go),
 - 📖 [gRPC Microservices in Go](https://learning.oreilly.com/library/view/grpc-microservices-in/9781633439207/) [:file_folder:](https://github.com/huseyinbabal/grpc-microservices-in-go),
