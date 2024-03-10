@@ -129,15 +129,9 @@ Some useful tools & other resources:
     - [godotenv](https://github.com/joho/godotenv) - a Go port of the Ruby dotenv library,
     - [uuid](https://github.com/google/uuid) - a Go package for UUIDs based on _RFC 4122 and DCE 1.1: Authentication and Security Services_,
     - [faker](https://github.com/jaswdr/faker) - a fake data generator for Go,
-  - network services:
-    - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
-    - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
-    - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
-    - [gorilla/mux](https://github.com/gorilla/mux) - a powerful URL router and dispatcher for Go,
-    - [chi](https://github.com/go-chi/chi) - a lightweight, idiomatic and composable router for building Go HTTP services,
-    - [cors](https://github.com/go-chi/cors) - a CORS middleware for Go,
-    - [oapi-codegen](https://github.com/deepmap/oapi-codegen) - a Go code generator for OpenAPI 3 specifications,
-    - [Buf](https://buf.build/) [:file_folder:](https://github.com/bufbuild/buf) - a new way to work with Protocol Buffers,
+    - [GoMoney](https://github.com/Rhymond/go-money) - a Go implementation of Fowler's Money pattern,
+  - testing:
+    - [gomock](https://github.com/uber-go/mock) - a mocking framework for the Go programming language,
   - databases:
     - [database/sql](https://pkg.go.dev/database/sql) [:file_folder:](https://go.dev/wiki/SQLDrivers) [:file_folder:](https://go.dev/wiki/SQLInterface),
     - [pq](https://github.com/lib/pq) - a pure Go Postgres driver for Go's `database/sql` package,
@@ -145,6 +139,24 @@ Some useful tools & other resources:
     - [GORM MySQL Driver](https://gorm.io/docs/connecting_to_the_database.html#MySQL) [:file_folder:](gorm.io/driver/mysql) - a MySQL driver for GORM,
     - [sqlc](https://sqlc.dev/) [:file_folder:](https://github.com/sqlc-dev/sqlc) - a compiler that generates Go code from SQL,
     - [goose](https://pressly.github.io/goose/) [:file_folder:](https://github.com/pressly/goose) - a database migration tool for Go,
+    - [MongoDB Go Driver](https://github.com/mongodb/mongo-go-driver) - the official Go driver for MongoDB,
+  - network services:
+    - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
+    - [Gorilla Web Toolkit](https://github.com/gorilla) - a web toolkit for the Go programming language,
+    - [gorilla/mux](https://github.com/gorilla/mux) - a powerful URL router and dispatcher for Go,
+    - [chi](https://github.com/go-chi/chi) - a lightweight, idiomatic and composable router for building Go HTTP services,
+    - [cors](https://github.com/go-chi/cors) - a CORS middleware for Go,
+    - [oapi-codegen](https://github.com/deepmap/oapi-codegen) - a Go code generator for OpenAPI 3 specifications,
+    - [Buf](https://buf.build/) [:file_folder:](https://github.com/bufbuild/buf) - a new way to work with Protocol Buffers,
+    - [go-retryablehttp](https://github.com/hashicorp/go-retryablehttp) - a Go library to provide simple and flexible retrying for HTTP clients,
+  - microservices:
+    - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
+  - messaging:
+    - [Confluent's Golang Client for Apache Kafka](https://github.com/confluentinc/confluent-kafka-go) - a Go client for Apache Kafka,
+    - [Go RabbitMQ Client Library](https://github.com/rabbitmq/amqp091-go) - a Go client for RabbitMQ,
+    - [NATS - Go Client](https://github.com/nats-io/nats.go) - a Go client for the NATS messaging system,
+  - payments:
+    - [Go Stripe](https://github.com/stripe/stripe-go) - a Go client for the Stripe API,
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
