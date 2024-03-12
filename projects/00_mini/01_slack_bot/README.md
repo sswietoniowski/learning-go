@@ -17,9 +17,19 @@ The bot can be used to automate tasks in a Slack workspace. It can be used to:
 
 The application is built using the following technologies, libraries, frameworks, and tools:
 
-- [Go](https://golang.org/).
+- [Go](https://golang.org/),
+- [godotenv](github.com/joho/godotenv).
 
 ## Setup
+
+Before running the application, you need to create a `.env` file in the root directory of the project with the following content:
+
+```env
+SLACK_BOT_TOKEN=PUT_YOUR_SLACK_BOT_TOKEN_HERE
+SLACK_APP_TOKEN=PUT_YOUR_SLACK_APP_TOKEN_HERE
+```
+
+To know how to get the `SLACK_BOT_TOKEN` and `SLACK_APP_TOKEN`, please refer to the [official documentation](https://api.slack.com/start/quickstart).
 
 To run this application:
 
