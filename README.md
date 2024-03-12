@@ -158,6 +158,8 @@ Some useful tools & other resources:
     - [NATS - Go Client](https://github.com/nats-io/nats.go) - a Go client for the NATS messaging system,
   - payments:
     - [Go Stripe](https://github.com/stripe/stripe-go) - a Go client for the Stripe API,
+  - communication:
+    - [slacker](https://github.com/slack-io/slacker) - a Go library for the Slack API,
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
