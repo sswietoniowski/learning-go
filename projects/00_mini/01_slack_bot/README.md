@@ -18,7 +18,8 @@ The bot can be used to automate tasks in a Slack workspace. It can be used to:
 The application is built using the following technologies, libraries, frameworks, and tools:
 
 - [Go](https://golang.org/),
-- [godotenv](github.com/joho/godotenv).
+- [godotenv](https://github.com/joho/godotenv),
+- [slacker](https://github.com/slack-io/slacker).
 
 ## Setup
 

@@ -1,10 +1,12 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -13,6 +15,13 @@ func main() {
 	slackBotToken := os.Getenv("SLACK_BOT_TOKEN")
 	slackAppToken := os.Getenv("SLACK_APP_TOKEN")
 
-	fmt.Printf("Bot Token: %s\n", slackBotToken)
-	fmt.Printf("App Token: %s\n", slackAppToken)
+	bot := slacker.NewClient(slackBotToken, slackAppToken)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := bot.Listen(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
