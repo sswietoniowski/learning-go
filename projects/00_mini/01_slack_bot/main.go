@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/shomali11/slacker"
+	"github.com/slack-io/slacker"
 )
 
 func main() {
