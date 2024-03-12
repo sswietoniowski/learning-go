@@ -52,6 +52,8 @@ PORT=8080
 DATABASE_URL=postgres://user:password@host:port/database?sslmode=disable
 ```
 
+or set the environment variables directly in your environment.
+
 To run this application (at this stage), just run the following command:
 
 ```bash
