@@ -30,6 +30,8 @@ SLACK_BOT_TOKEN=PUT_YOUR_SLACK_BOT_TOKEN_HERE
 SLACK_APP_TOKEN=PUT_YOUR_SLACK_APP_TOKEN_HERE
 ```
 
+or set the environment variables directly in your environment.
+
 To know how to get the `SLACK_BOT_TOKEN` and `SLACK_APP_TOKEN`, please refer to the [official documentation](https://api.slack.com/start/quickstart).
 
 To run this application:
