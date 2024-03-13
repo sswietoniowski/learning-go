@@ -131,6 +131,7 @@ Some useful tools & other resources:
     - [uuid](https://github.com/google/uuid) - a Go package for UUIDs based on _RFC 4122 and DCE 1.1: Authentication and Security Services_,
     - [faker](https://github.com/jaswdr/faker) - a fake data generator for Go,
     - [GoMoney](https://github.com/Rhymond/go-money) - a Go implementation of Fowler's Money pattern,
+    - [gjson](https://github.com/tidwall/gjson) - a Go package that provides a fast and simple way to get a value from a JSON document,
   - testing:
     - [gomock](https://github.com/uber-go/mock) - a mocking framework for the Go programming language,
   - databases:
@@ -159,7 +160,11 @@ Some useful tools & other resources:
   - payments:
     - [Go Stripe](https://github.com/stripe/stripe-go) - a Go client for the Stripe API,
   - communication:
+    - [Slack API in Go](https://github.com/slack-go/slack),
     - [slacker](https://github.com/slack-io/slacker) - a Go library for the Slack API,
+  - AI:
+    - [go-wolfram](https://github.com/krognol/go-wolfram),
+    - [wit-go](https://github.com/wit-ai/wit-go),
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
