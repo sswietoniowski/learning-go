@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -15,7 +16,11 @@ import (
 
 func printCommandEvents(eventsCh <-chan socketmode.Event) {
 	for event := range eventsCh {
-		fmt.Printf("Event received: %v\n", event)
+		eventJSON, err := json.Marshal(event)
+		if err != nil {
+			fmt.Printf("Error marshalling event: %v\n", err)
+		}
+		fmt.Printf("Event received:\n%s\n", eventJSON)
 	}
 }
 
@@ -32,7 +37,7 @@ func calculateAge() *slacker.CommandDefinition {
 		age := time.Now().Year() - yob
 
 		message := fmt.Sprintf("You are %d years old", age)
-		ctx.Response().Reply(message)
+		ctx.Response().Reply(message, slacker.WithInThread(true))
 	}
 
 	return &slacker.CommandDefinition{
