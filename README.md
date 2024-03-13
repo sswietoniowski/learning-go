@@ -163,8 +163,8 @@ Some useful tools & other resources:
     - [Slack API in Go](https://github.com/slack-go/slack) - a Go library for the Slack API,
     - [slacker](https://github.com/slack-io/slacker) - a Go library for the Slack API,
   - AI:
-    - [go-wolfram](https://github.com/krognol/go-wolfram) - a Go client for the Wolfram Alpha API,
-    - [wit-go](https://github.com/wit-ai/wit-go) - a Go client for the wit.ai API,
+    - [go-wolfram](https://github.com/krognol/go-wolfram) - a Go client for the [Wolfram Alpha](https://www.wolframalpha.com/) API,
+    - [wit-go](https://github.com/wit-ai/wit-go) - a Go client for the [wit.ai](https://wit.ai/) API,
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
