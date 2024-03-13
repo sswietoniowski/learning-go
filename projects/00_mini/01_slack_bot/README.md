@@ -13,6 +13,7 @@ This is a simple Slack bot.
 The bot can be used to automate tasks in a Slack workspace. It can be used to:
 
 - calculate the age of a person based on their year of birth [🎥](https://www.youtube.com/watch?v=jFfo23yIWac&t=9057s),
+- upload a "lorem ipsum" file to a Slack channel [🎥](https://www.youtube.com/watch?v=jFfo23yIWac&t=9852s),
 - answer (philosophical) questions with the help of the [Wolfram Alpha](https://www.wolframalpha.com/) API and the [wit.ai](https://wit.ai/) API [🎥](https://www.youtube.com/watch?v=jFfo23yIWac&t=26935s).
 
 ## Technologies
@@ -75,6 +76,14 @@ The bot will respond with the age of the person.
 ```text
 You are 24 years old
 ```
+
+To upload a "lorem ipsum" file to a Slack channel, you can use the following command:
+
+```text
+@simple-slack-bot upload lorem ipsum file with 42 words
+```
+
+The bot will respond with a file containing 42 words of "lorem ipsum".
 
 To ask a (philosophical) question, you can use the following command:
 
