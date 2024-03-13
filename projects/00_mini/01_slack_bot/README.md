@@ -13,7 +13,7 @@ This is a simple Slack bot.
 The bot can be used to automate tasks in a Slack workspace. It can be used to:
 
 - calculate the age of a person based on their year of birth [🎥](https://www.youtube.com/watch?v=jFfo23yIWac&t=9057s),
-- answer questions about philosophy with the help of the [Wolfram Alpha](https://www.wolframalpha.com/) API and the [wit.ai](https://wit.ai/) API [🎥](https://www.youtube.com/watch?v=jFfo23yIWac&t=26935s).
+- answer (philosophical) questions with the help of the [Wolfram Alpha](https://www.wolframalpha.com/) API and the [wit.ai](https://wit.ai/) API [🎥](https://www.youtube.com/watch?v=jFfo23yIWac&t=26935s).
 
 ## Technologies
 
@@ -76,7 +76,7 @@ The bot will respond with the age of the person.
 You are 24 years old
 ```
 
-To ask a philosophical question, you can use the following command:
+To ask a (philosophical) question, you can use the following command:
 
 ```text
 @simple-slack-bot answer question: "What is the meaning of life?"
@@ -85,5 +85,5 @@ To ask a philosophical question, you can use the following command:
 The bot will respond with an answer to the question (if it can find one):
 
 ```text
-The meaning of life is 42
+42
 ```
