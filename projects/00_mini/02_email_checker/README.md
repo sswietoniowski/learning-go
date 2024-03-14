@@ -11,7 +11,7 @@ This is a simple email checker tool.
 
 This tool can be used to:
 
-- check if an email address is valid or not.
+- check if an email address is valid or not (based on the email format and the domain).
 
 ## Technologies
 
