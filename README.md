@@ -35,7 +35,7 @@ Based on these (free) courses & articles:
     - ✅ Book Management System [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
     - ✅ SlackBot To Calculate Age [:file_folder:](https://github.com/AkhilSharma90/GO-Slackbot-Calculates-Age),
     - ✅ SlackBot for File Uploading [:file_folder:](https://github.com/AkhilSharma90/GO-SlackBot-Uploads-File),
-    - Email Verifier Tool [:file_folder:](https://github.com/AkhilSharma90/GO-Email-Checking-Tool),
+    - ✅ Email Verifier Tool [:file_folder:](https://github.com/AkhilSharma90/GO-Email-Checking-Tool),
     - AWS Lambda [:file_folder:](https://github.com/AkhilSharma90/Simple-go-AWS-Lambda-example),
     - CRM (_Customer Relationship Management_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-CRM-project),
     - HRMS (_Human Resource Management System_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-fiber-HRMS-project),
