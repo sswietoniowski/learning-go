@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/sswietoniowski/learning-go/projects/00_mini/04_hrms/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
@@ -18,11 +17,8 @@ type EmployeesMongoDBRepository struct {
 	collection *mongo.Collection
 }
 
-func NewEmployeesMongoDBRepository(mongoUri string, mongoDb string) (*EmployeesMongoDBRepository, error) {
-	timeout := 10 * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
+func NewEmployeesMongoDBRepository(ctx context.Context,
+	mongoUri string, mongoDb string) (*EmployeesMongoDBRepository, error) {
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoUri))
 	if err != nil {
 		return nil, err

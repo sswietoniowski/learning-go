@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const moneyCode = money.USD // as of now, we only support USD
+const currencyCode = money.USD // as of now, we only support USD
 
 func MongoDbEmployeeToEmployee(e *MongoDbEmployee) (*domain.Employee, error) {
 	id := e.ID.Hex()
@@ -21,7 +21,7 @@ func MongoDbEmployeeToEmployee(e *MongoDbEmployee) (*domain.Employee, error) {
 	if err != nil {
 		return nil, err
 	}
-	salary := money.New(int64(num), moneyCode)
+	salary := money.New(int64(num), currencyCode)
 
 	employee := &domain.Employee{
 		ID:     id,

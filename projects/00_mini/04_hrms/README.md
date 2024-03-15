@@ -53,7 +53,7 @@ MONGO_DB=hrms
 To run this application, run the following command in the terminal:
 
 ```bash
-go build . && ./04_hrms
+go build -o ./04_hrms.exe ./cmd/api && ./04_hrms.exe
 ```
 
 If you want to add some extra dependencies to the project, you might need to run the following command (as we are using Go modules and vendoring) afterwards:

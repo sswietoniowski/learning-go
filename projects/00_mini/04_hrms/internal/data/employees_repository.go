@@ -29,4 +29,5 @@ type EmployeesRepository interface {
 	GetById(id string) (*domain.Employee, error)
 	ModifyById(id string, employee domain.Employee) (*domain.Employee, error)
 	RemoveById(id string) (*domain.Employee, error)
+	Close() error
 }
