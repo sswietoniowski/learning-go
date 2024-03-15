@@ -148,6 +148,7 @@ Some useful tools & other resources:
     - [gorilla/mux](https://github.com/gorilla/mux) - a powerful URL router and dispatcher for Go,
     - [chi](https://github.com/go-chi/chi) - a lightweight, idiomatic and composable router for building Go HTTP services,
     - [cors](https://github.com/go-chi/cors) - a CORS middleware for Go,
+    - [fiber](https://github.com/gofiber/fiber) - [Express](https://expressjs.com/) inspired web framework written in Go,
     - [oapi-codegen](https://github.com/deepmap/oapi-codegen) - a Go code generator for OpenAPI 3 specifications,
     - [Buf](https://buf.build/) [:file_folder:](https://github.com/bufbuild/buf) - a new way to work with Protocol Buffers,
     - [go-retryablehttp](https://github.com/hashicorp/go-retryablehttp) - a Go library to provide simple and flexible retrying for HTTP clients,
