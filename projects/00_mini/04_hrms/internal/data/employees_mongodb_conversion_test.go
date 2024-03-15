@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Rhymond/go-money"
+	"github.com/sswietoniowski/learning-go/projects/00_mini/04_hrms/internal/domain"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -15,7 +16,7 @@ func TestEmployeeToMongoDbEmployee(t *testing.T) {
 	amount := int64(1000)
 	salary := money.New(amount, money.USD)
 	age := 30
-	employee := &Employee{
+	employee := &domain.Employee{
 		ID:     id,
 		Name:   name,
 		Salary: *salary,
