@@ -57,7 +57,7 @@ func getMongoParams() (*MongoParams, error) {
 func main() {
 	godotenv.Load()
 
-	timeout := 10 * time.Second
+	timeout := 30 * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 

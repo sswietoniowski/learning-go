@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/sswietoniowski/learning-go/projects/00_mini/04_hrms/internal/domain"
@@ -24,10 +25,10 @@ func (e *DatabaseError) Error() string {
 }
 
 type EmployeesRepository interface {
-	GetAll() ([]domain.Employee, error)
-	Add(employee domain.Employee) (*domain.Employee, error)
-	GetById(id string) (*domain.Employee, error)
-	ModifyById(id string, employee domain.Employee) (*domain.Employee, error)
-	RemoveById(id string) (*domain.Employee, error)
+	GetAll(ctx context.Context) ([]domain.Employee, error)
+	Add(ctx context.Context, employee domain.Employee) (*domain.Employee, error)
+	GetById(ctx context.Context, id string) (*domain.Employee, error)
+	ModifyById(ctx context.Context, id string, employee domain.Employee) (*domain.Employee, error)
+	RemoveById(ctx context.Context, id string) (*domain.Employee, error)
 	Close() error
 }

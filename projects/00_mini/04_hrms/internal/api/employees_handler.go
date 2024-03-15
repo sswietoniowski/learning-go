@@ -8,7 +8,7 @@ import (
 )
 
 func (a *Application) getAllEmployees(ctx fiber.Ctx) error {
-	employees, err := a.repository.GetAll()
+	employees, err := a.repository.GetAll(ctx.Context())
 	if err != nil {
 		ctx.Status(fiber.StatusInternalServerError).JSON(err)
 		return err
@@ -27,7 +27,7 @@ func (a *Application) addEmployee(ctx fiber.Ctx) error {
 		return err
 	}
 
-	employee, err := a.repository.Add(*createEmployeeDto.ToEmployee())
+	employee, err := a.repository.Add(ctx.Context(), *createEmployeeDto.ToEmployee())
 	if err != nil {
 		ctx.Status(fiber.StatusInternalServerError).JSON(err)
 		return err
@@ -39,7 +39,7 @@ func (a *Application) addEmployee(ctx fiber.Ctx) error {
 
 func (a *Application) getEmployeeById(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
-	employee, err := a.repository.GetById(id)
+	employee, err := a.repository.GetById(ctx.Context(), id)
 	if err != nil {
 		switch err.(type) {
 		case *data.NotFoundError:
@@ -64,7 +64,7 @@ func (a *Application) modifyEmployeeById(ctx fiber.Ctx) error {
 		return err
 	}
 
-	_, err = a.repository.ModifyById(id, *modifyEmployeeDto.ToEmployee(id))
+	_, err = a.repository.ModifyById(ctx.Context(), id, *modifyEmployeeDto.ToEmployee(id))
 	if err != nil {
 		switch err.(type) {
 		case *data.NotFoundError:
@@ -81,7 +81,7 @@ func (a *Application) modifyEmployeeById(ctx fiber.Ctx) error {
 
 func (a *Application) removeEmployeeById(ctx fiber.Ctx) error {
 	id := ctx.Params("id")
-	_, err := a.repository.RemoveById(id)
+	_, err := a.repository.RemoveById(ctx.Context(), id)
 	if err != nil {
 		switch err.(type) {
 		case *data.NotFoundError:

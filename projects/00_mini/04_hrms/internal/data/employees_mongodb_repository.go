@@ -42,18 +42,18 @@ func NewEmployeesMongoDBRepository(ctx context.Context,
 	return repository, nil
 }
 
-func (r *EmployeesMongoDBRepository) GetAll() ([]domain.Employee, error) {
+func (r *EmployeesMongoDBRepository) GetAll(ctx context.Context) ([]domain.Employee, error) {
 	log.Println("get all employees")
 
 	query := bson.D{}
-	cursor, err := r.collection.Find(r.ctx, query)
+	cursor, err := r.collection.Find(ctx, query)
 	if err != nil {
 		return nil, &DatabaseError{"GetAll", err}
 	}
 
 	mongoDbEmployees := make([]MongoDbEmployee, 0) // empty slice to handle empty result
 
-	if err = cursor.All(r.ctx, &mongoDbEmployees); err != nil {
+	if err = cursor.All(ctx, &mongoDbEmployees); err != nil {
 		return nil, &DatabaseError{"GetAll", err}
 	}
 
@@ -65,7 +65,7 @@ func (r *EmployeesMongoDBRepository) GetAll() ([]domain.Employee, error) {
 	return employees, nil
 }
 
-func (r *EmployeesMongoDBRepository) GetById(id string) (*domain.Employee, error) {
+func (r *EmployeesMongoDBRepository) GetById(ctx context.Context, id string) (*domain.Employee, error) {
 	log.Println("get an employee by id")
 
 	objectId, err := primitive.ObjectIDFromHex(id)
@@ -74,7 +74,7 @@ func (r *EmployeesMongoDBRepository) GetById(id string) (*domain.Employee, error
 	}
 
 	filter := bson.D{{Key: "_id", Value: objectId}}
-	document := r.collection.FindOne(r.ctx, filter)
+	document := r.collection.FindOne(ctx, filter)
 
 	mongoDbEmployee := &MongoDbEmployee{}
 	err = document.Decode(mongoDbEmployee)
@@ -95,7 +95,7 @@ func (r *EmployeesMongoDBRepository) GetById(id string) (*domain.Employee, error
 	return addedEmployee, nil
 }
 
-func (r *EmployeesMongoDBRepository) Add(employee domain.Employee) (*domain.Employee, error) {
+func (r *EmployeesMongoDBRepository) Add(ctx context.Context, employee domain.Employee) (*domain.Employee, error) {
 	log.Println("add a new employee")
 
 	mongoDbEmployee, err := EmployeeToMongoDbEmployee(&employee)
@@ -103,17 +103,17 @@ func (r *EmployeesMongoDBRepository) Add(employee domain.Employee) (*domain.Empl
 		return nil, &DatabaseError{"Add", err}
 	}
 
-	insertResult, err := r.collection.InsertOne(r.ctx, mongoDbEmployee)
+	insertResult, err := r.collection.InsertOne(ctx, mongoDbEmployee)
 	if err != nil {
 		return nil, &DatabaseError{"Add", err}
 	}
 
 	id := insertResult.InsertedID.(primitive.ObjectID).Hex()
 
-	return r.GetById(id)
+	return r.GetById(ctx, id)
 }
 
-func (r *EmployeesMongoDBRepository) ModifyById(id string, employee domain.Employee) (*domain.Employee, error) {
+func (r *EmployeesMongoDBRepository) ModifyById(ctx context.Context, id string, employee domain.Employee) (*domain.Employee, error) {
 	log.Println("modify an employee by id")
 
 	mongoDbEmployee, err := EmployeeToMongoDbEmployee(&employee)
@@ -131,7 +131,7 @@ func (r *EmployeesMongoDBRepository) ModifyById(id string, employee domain.Emplo
 	filter := bson.D{{Key: "_id", Value: objectId}}
 	update := bson.D{{Key: "$set", Value: mongoDbEmployee}}
 
-	err = r.collection.FindOneAndUpdate(r.ctx, filter, update).Err()
+	err = r.collection.FindOneAndUpdate(ctx, filter, update).Err()
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
@@ -141,10 +141,10 @@ func (r *EmployeesMongoDBRepository) ModifyById(id string, employee domain.Emplo
 		}
 	}
 
-	return r.GetById(id)
+	return r.GetById(ctx, id)
 }
 
-func (r *EmployeesMongoDBRepository) RemoveById(id string) (*domain.Employee, error) {
+func (r *EmployeesMongoDBRepository) RemoveById(ctx context.Context, id string) (*domain.Employee, error) {
 	log.Println("remove an employee by id")
 
 	objectId, err := primitive.ObjectIDFromHex(id)
@@ -152,13 +152,13 @@ func (r *EmployeesMongoDBRepository) RemoveById(id string) (*domain.Employee, er
 		return nil, &DatabaseError{"RemoveById", err}
 	}
 
-	employee, err := r.GetById(id)
+	employee, err := r.GetById(ctx, id)
 	if err != nil {
 		return nil, &NotFoundError{ID: id}
 	}
 
 	filter := bson.D{{Key: "_id", Value: objectId}}
-	result, err := r.collection.DeleteOne(r.ctx, filter)
+	result, err := r.collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return nil, &DatabaseError{"RemoveById", err}
 	}
