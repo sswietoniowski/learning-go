@@ -1,7 +1,7 @@
 # HRMS API
 
 @baseUrl = http://localhost:8080/api/v1
-@employeeId = "65f4862e4c874bbe7d9153ca"
+@employeeId = 65f4862e4c874bbe7d9153ca
 
 ### Create a new employee
 POST {{baseUrl}}/employees
@@ -18,3 +18,16 @@ GET {{baseUrl}}/employees
 
 ### Get employee by id
 GET {{baseUrl}}/employees/{{employeeId}}
+
+### Update an employee by id
+PUT {{baseUrl}}/employees/{{employeeId}}
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "salary": 2000,
+    "age": 30
+}
+
+### Delete an employee by id
+DELETE {{baseUrl}}/employees/{{employeeId}}

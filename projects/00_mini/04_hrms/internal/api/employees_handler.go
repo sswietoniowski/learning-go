@@ -14,7 +14,7 @@ func (a *Application) getAllEmployees(ctx fiber.Ctx) error {
 		return err
 	}
 
-	ctx.Status(fiber.StatusOK).JSON(employees)
+	ctx.Status(fiber.StatusOK).JSON(EmployeesToEmployeesDto(employees))
 	return nil
 }
 

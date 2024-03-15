@@ -51,3 +51,11 @@ func (dto *ModifyEmployeeDTO) ToEmployee(id string) *domain.Employee {
 		Age:    dto.Age,
 	}
 }
+
+func EmployeesToEmployeesDto(employees []domain.Employee) []EmployeeDTO {
+	employeesDto := make([]EmployeeDTO, len(employees))
+	for i, e := range employees {
+		employeesDto[i] = *EmployeeToEmployeeDTO(&e)
+	}
+	return employeesDto
+}
