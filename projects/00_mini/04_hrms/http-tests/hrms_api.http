@@ -1,7 +1,7 @@
 # HRMS API
 
 @baseUrl = http://localhost:8080/api/v1
-@employeeId = 65f48727add77bdfb800f47b
+@employeeId = 65f48728add77bdfb800f47c
 
 ### Create a new employee
 POST {{baseUrl}}/employees

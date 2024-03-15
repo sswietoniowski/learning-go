@@ -24,7 +24,7 @@ func (a *Application) addEmployee(ctx fiber.Ctx) error {
 	err := json.Unmarshal(body, &createEmployeeDto)
 	if err != nil {
 		ctx.Status(fiber.StatusBadRequest).JSON(err)
-		return err
+		return nil
 	}
 
 	employee, err := a.repository.Add(ctx.Context(), *createEmployeeDto.ToEmployee())
@@ -44,10 +44,11 @@ func (a *Application) getEmployeeById(ctx fiber.Ctx) error {
 		switch err.(type) {
 		case *data.NotFoundError:
 			ctx.Status(fiber.StatusNotFound).JSON(err)
+			return nil
 		default:
 			ctx.Status(fiber.StatusInternalServerError).JSON(err)
+			return err
 		}
-		return err
 	}
 
 	ctx.Status(fiber.StatusOK).JSON(EmployeeToEmployeeDTO(employee))
@@ -61,7 +62,7 @@ func (a *Application) modifyEmployeeById(ctx fiber.Ctx) error {
 	err := json.Unmarshal(body, &modifyEmployeeDto)
 	if err != nil {
 		ctx.Status(fiber.StatusBadRequest).JSON(err)
-		return err
+		return nil
 	}
 
 	_, err = a.repository.ModifyById(ctx.Context(), id, *modifyEmployeeDto.ToEmployee(id))
@@ -69,10 +70,11 @@ func (a *Application) modifyEmployeeById(ctx fiber.Ctx) error {
 		switch err.(type) {
 		case *data.NotFoundError:
 			ctx.Status(fiber.StatusNotFound).JSON(err)
+			return nil
 		default:
 			ctx.Status(fiber.StatusInternalServerError).JSON(err)
+			return err
 		}
-		return err
 	}
 
 	ctx.Status(fiber.StatusNoContent)
@@ -86,10 +88,11 @@ func (a *Application) removeEmployeeById(ctx fiber.Ctx) error {
 		switch err.(type) {
 		case *data.NotFoundError:
 			ctx.Status(fiber.StatusNotFound).JSON(err)
+			return nil
 		default:
 			ctx.Status(fiber.StatusInternalServerError).JSON(err)
+			return err
 		}
-		return err
 	}
 
 	ctx.Status(fiber.StatusNoContent)
