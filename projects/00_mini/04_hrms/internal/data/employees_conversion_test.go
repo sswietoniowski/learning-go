@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func TestEmployeeToMongoDbEmploee(t *testing.T) {
+func TestEmployeeToMongoDbEmployee(t *testing.T) {
 	// Arrange
 	id := primitive.NewObjectID().Hex()
 	name := "John Doe"
