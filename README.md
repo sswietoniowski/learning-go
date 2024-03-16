@@ -39,7 +39,7 @@ Based on these (free) courses & articles:
     - ✅ 🎥 AWS Lambda [:file_folder:](https://github.com/AkhilSharma90/Simple-go-AWS-Lambda-example),
     - ✅ 🎥 CRM (_Customer Relationship Management_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-CRM-project),
     - ✅ 🎥 HRMS (_Human Resource Management System_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-fiber-HRMS-project),
-    - 🎥 Complete Serverless Stack [:file_folder:](https://github.com/AkhilSharma90/Golang-Serverless-Project),
+    - 🎥 AWS Complete Serverless Stack [:file_folder:](https://github.com/AkhilSharma90/Golang-Serverless-Project),
     - ✅ 🎥 AI Bot with Wolfram, Wit.ai [:file_folder:](https://github.com/AkhilSharma90/AI-Bot-GOlang-Wit.ai-Wolfram-Slack),
   - 🎥 [Go + GRPC](https://youtu.be/a6G5-LUlFO4?si=0WeAPYWBNHGupNiK) [:file_folder:](https://github.com/AkhilSharma90/GO-grpc-demo),
   - 🎥 [Event Driven Programming with GO and Kafka](https://youtu.be/j6bqJKxb2w0?si=bymeGvTf6fk_vsuU) [:file_folder:](https://github.com/AkhilSharma90/GO-Kafka-Example) [:file_folder:](https://github.com/AkhilSharma90/Kafka-GO-Real-Time-Feed) [:file_folder:](https://github.com/AkhilSharma90/GO-Fafka-Grafana-Prometheus-Watermill),
