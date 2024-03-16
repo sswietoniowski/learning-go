@@ -152,6 +152,8 @@ Some useful tools & other resources:
     - [oapi-codegen](https://github.com/deepmap/oapi-codegen) - a Go code generator for OpenAPI 3 specifications,
     - [Buf](https://buf.build/) [:file_folder:](https://github.com/bufbuild/buf) - a new way to work with Protocol Buffers,
     - [go-retryablehttp](https://github.com/hashicorp/go-retryablehttp) - a Go library to provide simple and flexible retrying for HTTP clients,
+  - cloud services:
+    - [AWS Lambda for Go](https://github.com/aws/aws-lambda-go) - a Go library for the AWS Lambda service,
   - microservices:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
   - messaging:

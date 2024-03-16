@@ -113,3 +113,8 @@ fabric.properties
 !.idea/runConfigurations
 
 # End of https://www.toptal.com/developers/gitignore/api/go,goland+all
+
+# Exclude build artifacts
+bootstrap
+bootstrap.zip
+response.json
