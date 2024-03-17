@@ -45,6 +45,13 @@ Based on these (free) courses & articles:
   - 🎥 [Event Driven Programming with GO and Kafka](https://youtu.be/j6bqJKxb2w0?si=bymeGvTf6fk_vsuU) [:file_folder:](https://github.com/AkhilSharma90/GO-Kafka-Example) [:file_folder:](https://github.com/AkhilSharma90/Kafka-GO-Real-Time-Feed) [:file_folder:](https://github.com/AkhilSharma90/GO-Fafka-Grafana-Prometheus-Watermill),
   - 🎥 [GO + React Chat App](https://youtube.com/playlist?list=PL5dTjWUk_cPbn5duL8qdIncitZ9FDp3RA&si=V3uQ2dkeLw4ZUg6Y) [:file_folder:](https://github.com/AkhilSharma90/GO-React-Fullstack-Chat),
   - 🎥 [Video Calling Project - Golang + Docker + WebRTC](https://youtube.com/playlist?list=PL5dTjWUk_cPY3_IWNDPTPPfo_OZLPPRi0&si=jJ6VA-Yp5pcWPt6G) [:file_folder:](https://github.com/AkhilSharma90/Videocall-Chat-GO-Project),
+  - 🎥 [GO Discord Bot Project](https://youtu.be/i4nX0s8WHEE?si=-eoHOfcTN3Qcc8R0) [:file_folder:](https://github.com/AkhilSharma90/go-simple-discordbot) [:file_folder:](https://github.com/AkhilSharma90/go-openai-discord-bot),
+  - 🎥 [GraphQL + GO + MongoDB](https://youtu.be/Yzh23D31Kq8?si=8yAAChoUCj_ZAq2X) [:file_folder:](https://github.com/AkhilSharma90/GO-GraphQL-MongoDB-CRUD-Project),
+  - 🎥 [GO Project - GO + ECHO (Framework) API](https://youtu.be/VSeO9Z026hc?si=1fkIZPmPgVSDzG1p) [:file_folder:](https://github.com/AkhilSharma90/go-echo-CRUD),
+  - 🎥 [GO JWT Authentication with Gin Gonic](https://youtu.be/Cr3BiwGN2Tg?si=vxLLx2KddWc-Bwl5) [:file_folder:](https://github.com/AkhilSharma90/Golang-JWT-Gin-Authentication-project),
+  - 🎥 [URL Shortener Go+Redis](https://youtu.be/3ExDEeSnyvE?si=2jbfH7Pn8sMPxSM2) [:file_folder:](https://github.com/AkhilSharma90/Redis-GO-URL-Shortener),
+  - 🎥 [Docker For Golang - How To Containerize A Golang Project](https://youtu.be/hjOXKmgilTo?si=TdsMCZ62034O38Qy),
+  - 🎥 [Golang On AWS EC2 - How To Deploy A Golang App On Amazon Web Services (AWS)](https://youtu.be/DEfmfWGg9js?si=-nS13X5Gkf7wi8rH),
 - documentation:
   - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
   - ✅ 📖 [Go Blog](https://go.dev/blog/),
