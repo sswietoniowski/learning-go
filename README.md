@@ -129,11 +129,13 @@ Some useful tools & other resources:
   - general:
     - [gopls](https://github.com/golang/tools/tree/master/gopls) - the Go language server,
     - [Cobra](https://github.com/spf13/cobra) - a library for creating powerful modern CLI applications,
+    - [cobra-cli](https://github.com/spf13/cobra-cli) - a CLI generator for Cobra,
     - [godotenv](https://github.com/joho/godotenv) - a Go port of the Ruby dotenv library,
     - [uuid](https://github.com/google/uuid) - a Go package for UUIDs based on _RFC 4122 and DCE 1.1: Authentication and Security Services_,
     - [faker](https://github.com/jaswdr/faker) - a fake data generator for Go,
     - [GoMoney](https://github.com/Rhymond/go-money) - a Go implementation of Fowler's Money pattern,
     - [gjson](https://github.com/tidwall/gjson) - a Go package that provides a fast and simple way to get a value from a JSON document,
+    - [goreleaser](https://github.com/goreleaser/goreleaser) - a Go project for building and releasing Go binaries,
   - testing:
     - [gomock](https://github.com/uber-go/mock) - a mocking framework for the Go programming language,
   - databases:
