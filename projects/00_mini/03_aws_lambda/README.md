@@ -19,7 +19,7 @@ The application is built using the following technologies, libraries, frameworks
 
 - [Go](https://golang.org/),
 - [AWS Lambda for Go](https://github.com/aws/aws-lambda-go),
-- [localstack](https://github.com/localstack/localstack) [📖](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal).
+- [LocalStack](https://github.com/localstack/localstack) [📖](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal).
 
 ## Setup
 
@@ -30,13 +30,13 @@ To run this application, you need to have the following installed on your system
 
 Of course, you also need an AWS account or a **LocalStack** instance running (requires Docker).
 
-To install `localstack`, you can run the following command:
+To install LocalStack, you can run the following command:
 
 ```bash
 pip install localstack
 ```
 
-To start `localstack`, you can run the following command:
+To start LocalStack, you can run the following command:
 
 ```bash
 localstack start -d
@@ -48,15 +48,15 @@ Alternatively, you can use the `docker-compose` file provided in this repository
 docker-compose up -d
 ```
 
-If you want to use the AWS CLI with `localstack`, please follow [this](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal) guide.
+If you want to use the AWS CLI with LocalStack, please follow [this](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal) guide.
 
-First you need to create a role for your Lambda function. You can do this by running the following command:
+First you need to create a role for your lambda function. You can do this by running the following command:
 
 ```bash
 aws iam create-role --role-name lambda-ex --assume-role-policy-document file://trust-policy.json
 ```
 
-For `localstack`, you can need to add to every command the `--endpoint-url=http://localhost:4566` flag (or define an alias `awslocal` for the AWS CLI with the same flag).
+For LocalStack, you can need to add to every command the `--endpoint-url=http://localhost:4566` flag (or define an alias `awslocal` for the AWS CLI with the same flag).
 
 ```bash
 alias awslocal="aws --endpoint-url=http://localhost:4566"
