@@ -9,9 +9,7 @@ services:
       - '127.0.0.1:4510-4559:4510-4559' # external services port range
     environment:
       # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
-      - SERVICES=lambda,apigateway,cloudformation,cloudwatch,dynamodb,ec2,es,firehose,iam,kinesis,kms,route53,s3,secretsmanager,sns,sqs,ssm,stepfunctions,sts
       - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=300
-      - LAMBDA_EXECUTOR=docker
       - DEBUG=${DEBUG:-0}
     volumes:
       - '${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack'
