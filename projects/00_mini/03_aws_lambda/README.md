@@ -28,7 +28,7 @@ To run this application, you need to have the following installed on your system
 - [Go](https://golang.org/),
 - [AWS CLI](https://aws.amazon.com/cli/).
 
-Of course, you also need an AWS account or a `localstack` instance running (requires Docker).
+Of course, you also need an AWS account or a **LocalStack** instance running (requires Docker).
 
 To install `localstack`, you can run the following command:
 
@@ -42,6 +42,12 @@ To start `localstack`, you can run the following command:
 localstack start -d
 ```
 
+Alternatively, you can use the `docker-compose` file provided in this repository:
+
+```bash
+docker-compose up -d
+```
+
 If you want to use the AWS CLI with `localstack`, please follow [this](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal) guide.
 
 First you need to create a role for your Lambda function. You can do this by running the following command:
@@ -50,7 +56,11 @@ First you need to create a role for your Lambda function. You can do this by run
 aws iam create-role --role-name lambda-ex --assume-role-policy-document file://trust-policy.json
 ```
 
-For `localstack`, you can need to add to every command the `--endpoint-url=http://localhost:4566` flag.
+For `localstack`, you can need to add to every command the `--endpoint-url=http://localhost:4566` flag (or define an alias `awslocal` for the AWS CLI with the same flag).
+
+```bash
+alias awslocal="aws --endpoint-url=http://localhost:4566"
+```
 
 Where `trust-policy.json` is a file with the following content:
 
@@ -111,6 +121,12 @@ Then you can create the Lambda function (you need to replace the role ARN with t
 aws lambda create-function --function-name aws-lambda --zip-file fileb://./bootstrap.zip --handler bootstrap --runtime provided.al2 --role arn:aws:iam::PUT_YOUR_ID_HERE:role/lambda-ex
 ```
 
+For the LocalStack we can use the following command:
+
+```bash
+awslocal lambda create-function --function-name aws-lambda --zip-file fileb://./bootstrap.zip --handler bootstrap --runtime go1.x --role arn:aws:iam::PUT_YOUR_ID_HERE:role/lambda-ex
+```
+
 To list the functions, you can run the following command:
 
 ```bash
@@ -129,6 +145,12 @@ In the `response.json` file, you should see something like this:
 {
   "message": "Hello, John Doe! You are 24 years old."
 }
+```
+
+If you have received the time out error, you can increase the timeout for the function:
+
+```bash
+aws lambda update-function-configuration --function-name aws-lambda --timeout 300
 ```
 
 To remove the function, you can run the following command:
