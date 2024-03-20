@@ -18,7 +18,8 @@ This application has the following features:
 The application is built using the following technologies, libraries, frameworks, and tools:
 
 - [Go](https://golang.org/),
-- [AWS Lambda for Go](https://github.com/aws/aws-lambda-go).
+- [AWS Lambda for Go](https://github.com/aws/aws-lambda-go),
+- [localstack](https://github.com/localstack/localstack) [📖](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal).
 
 ## Setup
 
@@ -27,12 +28,45 @@ To run this application, you need to have the following installed on your system
 - [Go](https://golang.org/),
 - [AWS CLI](https://aws.amazon.com/cli/).
 
-Of course, you also need an AWS account.
+Of course, you also need an AWS account or a `localstack` instance running (requires Docker).
+
+To install `localstack`, you can run the following command:
+
+```bash
+pip install localstack
+```
+
+To start `localstack`, you can run the following command:
+
+```bash
+localstack start -d
+```
+
+If you want to use the AWS CLI with `localstack`, please follow [this](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal) guide.
 
 First you need to create a role for your Lambda function. You can do this by running the following command:
 
 ```bash
 aws iam create-role --role-name lambda-ex --assume-role-policy-document file://trust-policy.json
+```
+
+For `localstack`, you can need to add to every command the `--endpoint-url=http://localhost:4566` flag.
+
+Where `trust-policy.json` is a file with the following content:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
 ```
 
 Then you need to attach the `AWSLambdaBasicExecutionRole` policy to the role:
@@ -43,16 +77,32 @@ aws iam attach-role-policy --role-name lambda-ex --policy-arn arn:aws:iam::aws:p
 
 Now you can build the application:
 
+Windows:
+
 ```powershell
 set GOOS=linux
 set GOARCH=amd64
 go build -o bootstrap main.go
 ```
 
+Linux:
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o bootstrap main.go
+```
+
 And then you can create a zip file with the application:
+
+Windows:
 
 ```powershell
 Compress-Archive -Path .\bootstrap -DestinationPath .\bootstrap.zip
+```
+
+Linux:
+
+```bash
+zip bootstrap.zip bootstrap
 ```
 
 Then you can create the Lambda function (you need to replace the role ARN with the one you created):
