@@ -101,6 +101,12 @@ Linux:
 GOOS=linux GOARCH=amd64 go build -o bootstrap main.go
 ```
 
+For the LocalStack and under Linux, you can use the following command:
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o main main.go 
+```
+
 And then you can create a zip file with the application:
 
 Windows:
@@ -115,6 +121,12 @@ Linux:
 zip bootstrap.zip bootstrap
 ```
 
+For the LocalStack and under Linux, you can use the following command:
+
+```bash
+zip deployment.zip main
+```
+
 Then you can create the Lambda function (you need to replace the role ARN with the one you created):
 
 ```bash
@@ -124,7 +136,7 @@ aws lambda create-function --function-name aws-lambda --zip-file fileb://./boots
 For the LocalStack we can use the following command:
 
 ```bash
-awslocal lambda create-function --function-name aws-lambda --zip-file fileb://./bootstrap.zip --handler bootstrap --runtime go1.x --role arn:aws:iam::PUT_YOUR_ID_HERE:role/lambda-ex
+awslocal lambda create-function --function-name aws-lambda --zip-file fileb://deployment.zip --handler main --runtime go1.x --role arn:aws:iam::PUT_YOUR_ID_HERE:role/lambda-ex
 ```
 
 To list the functions, you can run the following command:

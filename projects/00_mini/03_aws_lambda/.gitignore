@@ -118,6 +118,8 @@ fabric.properties
 bootstrap
 bootstrap.zip
 response.json
+main
+deployment.zip
 
 # Exclude LocalStack artifacts
 volume/*
