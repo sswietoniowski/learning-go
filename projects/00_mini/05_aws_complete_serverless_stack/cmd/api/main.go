@@ -7,14 +7,12 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 
 	"github.com/sswietoniowski/learning-go/projects/00_mini/05_aws_complete_serverless_stack/pkg/internal/handlers"
 	"github.com/sswietoniowski/learning-go/projects/00_mini/05_aws_complete_serverless_stack/pkg/internal/users"
 )
 
-var dynaClient dynamodbiface.DynamoDBAPI
+var usersRepository *users.UsersRepository
 
 func main() {
 	region := os.Getenv("AWS_REGION")
@@ -27,16 +25,12 @@ func main() {
 		return
 	}
 
-	dynaClient = dynamodb.New(awsSession)
+	usersRepository = users.NewUsersRepository(awsSession)
 
 	lambda.Start(handler)
 }
 
 func handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	const tableName = "aws-complete-serverless-stack-users"
-
-	usersRepository := users.NewUsersRepository(tableName, dynaClient)
-
 	switch req.HTTPMethod {
 	case "GET":
 		return handlers.GetUser(req, usersRepository)

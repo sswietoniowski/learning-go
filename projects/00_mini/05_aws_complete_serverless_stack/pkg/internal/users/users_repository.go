@@ -1,16 +1,24 @@
 package users
 
-import "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+import (
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+)
 
 type UsersRepository struct {
-	tableName  string
 	dynaClient dynamodbiface.DynamoDBAPI
+	tableName  string
 }
 
-func NewUsersRepository(tableName string, dynaClient dynamodbiface.DynamoDBAPI) *UsersRepository {
+const tableName = "aws-complete-serverless-stack-users"
+
+func NewUsersRepository(session *session.Session) *UsersRepository {
+	dynaClient := dynamodb.New(session)
+
 	return &UsersRepository{
-		tableName:  tableName,
 		dynaClient: dynaClient,
+		tableName:  tableName,
 	}
 }
 
