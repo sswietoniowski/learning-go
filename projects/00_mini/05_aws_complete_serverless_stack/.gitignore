@@ -113,3 +113,11 @@ fabric.properties
 !.idea/runConfigurations
 
 # End of https://www.toptal.com/developers/gitignore/api/go,goland+all
+
+# Local .env file
+.env
+.env.local
+
+# Build artifacts
+build/
+*.exe
