@@ -168,6 +168,7 @@ Some useful tools & other resources:
     - [go-retryablehttp](https://github.com/hashicorp/go-retryablehttp) - a Go library to provide simple and flexible retrying for HTTP clients,
   - cloud services:
     - [AWS Lambda for Go](https://github.com/aws/aws-lambda-go) - a Go library for the AWS Lambda service,
+    - [AWS SDK for Go](https://github.com/aws/aws-sdk-go) - the official AWS SDK for the Go programming language,
     - [LocalStack](https://github.com/localstack/localstack) [📖](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal) - a fully functional local AWS cloud stack,
   - microservices:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
