@@ -1,4 +1,4 @@
-package users
+package database
 
 type User struct {
 	FirstName string `json:"firstName"`

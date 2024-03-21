@@ -1,4 +1,4 @@
-package users
+package database
 
 import (
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -34,6 +34,6 @@ func (ur *UsersRepository) UpdateUser(user *User) error {
 	return nil
 }
 
-func (ur *UsersRepository) DeleteUser(email string) error {
+func (ur *UsersRepository) DeleteUserByEmail(email string) error {
 	return nil
 }
