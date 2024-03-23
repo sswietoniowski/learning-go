@@ -38,6 +38,24 @@ func NewUsersRepository(session *session.Session) *UsersRepository {
 	}
 }
 
+func (ur *UsersRepository) GetUsers() ([]User, error) {
+	input := &dynamodb.ScanInput{
+		TableName: aws.String(ur.tableName),
+	}
+
+	result, err := ur.dynaClient.Scan(input)
+	if err != nil {
+		return nil, errors.New(ErrorFailedToFetchRecord)
+	}
+
+	users := make([]User, 0)
+	if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, users); err != nil {
+		return nil, errors.New(ErrorFailedToUnmarshalRecord)
+	}
+
+	return users, nil
+}
+
 func (ur *UsersRepository) GetUserByEmail(email string) (*User, error) {
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -59,24 +77,6 @@ func (ur *UsersRepository) GetUserByEmail(email string) (*User, error) {
 	}
 
 	return user, nil
-}
-
-func (ur *UsersRepository) GetUsers() ([]User, error) {
-	input := &dynamodb.ScanInput{
-		TableName: aws.String(ur.tableName),
-	}
-
-	result, err := ur.dynaClient.Scan(input)
-	if err != nil {
-		return nil, errors.New(ErrorFailedToFetchRecord)
-	}
-
-	users := make([]User, 0)
-	if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, users); err != nil {
-		return nil, errors.New(ErrorFailedToUnmarshalRecord)
-	}
-
-	return users, nil
 }
 
 func (ur *UsersRepository) CreateUser(user *User) error {
