@@ -60,6 +60,7 @@ Based on these (free) courses & articles:
   - ✅ 📖 [Go go-to guide](https://yourbasic.org/golang/),
 - others:
   - ✅ 📖 **[Go Developer Roadmap](https://roadmap.sh/golang)**,
+  - ✅ 📖 [Learning Go in 2024; From Beginner to Senior](https://www.bytesizego.com/blog/learning-golang-2024),
   - 🎥 [GopherConAU 2023](https://youtube.com/playlist?list=PLN_36A3Rw5hFsJqqs7olOAxxU-WJGlXS0&si=HxF5aiRd-abSMu89):
     - 🎥 [Rob Pike - What We Got Right, What We Got Wrong](https://youtu.be/yE5Tpp2BSGw?si=wTZPk8VwXTjZ-kgh),
   - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas),
@@ -118,6 +119,7 @@ Some useful tools & other resources:
   - [The Go Programming Language Specification](https://go.dev/ref/spec),
   - [Standard Go Project Layout](https://github.com/golang-standards/project-layout),
   - [Go Proverbs](https://go-proverbs.github.io/) - a collection of proverbs that represent the best practices of writing Go code,
+  - [BytesizeGo](https://www.bytesizego.com/),
 - playground online:
   - [Go Playground](https://go.dev/play/),
 - SDKs:
