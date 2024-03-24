@@ -164,7 +164,7 @@ Where `post-request.json` is:
 {
   "httpMethod": "POST",
   "path": "/users",
-  "body": "{\"email\": \"afox@unknown.com\"}"
+  "body": "{\"email\": \"asmith@unknown.com\"}"
 }
 ```
 
