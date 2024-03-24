@@ -38,7 +38,7 @@ func NewUsersRepository(session *session.Session) *UsersRepository {
 	}
 }
 
-func (ur *UsersRepository) GetUsers() ([]User, error) {
+func (ur *UsersRepository) GetAll() ([]User, error) {
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(ur.tableName),
 	}
@@ -56,7 +56,7 @@ func (ur *UsersRepository) GetUsers() ([]User, error) {
 	return users, nil
 }
 
-func (ur *UsersRepository) GetUserByEmail(email string) (*User, error) {
+func (ur *UsersRepository) GetByEmail(email string) (*User, error) {
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"email": {
@@ -79,12 +79,12 @@ func (ur *UsersRepository) GetUserByEmail(email string) (*User, error) {
 	return user, nil
 }
 
-func (ur *UsersRepository) CreateUser(user *User) (*User, error) {
+func (ur *UsersRepository) Create(user *User) (*User, error) {
 	if user == nil {
 		return nil, errors.New(ErrorInvalidUserData)
 	}
 
-	existingUser, err := ur.GetUserByEmail(user.Email)
+	existingUser, err := ur.GetByEmail(user.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -110,12 +110,12 @@ func (ur *UsersRepository) CreateUser(user *User) (*User, error) {
 	return user, nil
 }
 
-func (ur *UsersRepository) UpdateUser(user *User) (*User, error) {
+func (ur *UsersRepository) Update(user *User) (*User, error) {
 	if user == nil {
 		return nil, errors.New(ErrorInvalidUserData)
 	}
 
-	databaseUser, err := ur.GetUserByEmail(user.Email)
+	databaseUser, err := ur.GetByEmail(user.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -141,14 +141,14 @@ func (ur *UsersRepository) UpdateUser(user *User) (*User, error) {
 	return user, nil
 }
 
-func (ur *UsersRepository) DeleteUserByEmail(email string) error {
+func (ur *UsersRepository) DeleteByEmail(email string) (*User, error) {
 	if email == "" {
-		return errors.New(ErrorInvalidEmail)
+		return nil, errors.New(ErrorInvalidEmail)
 	}
 
-	_, err := ur.GetUserByEmail(email)
+	databaseUser, err := ur.GetByEmail(email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	input := &dynamodb.DeleteItemInput{
@@ -162,8 +162,8 @@ func (ur *UsersRepository) DeleteUserByEmail(email string) error {
 
 	_, err = ur.dynaClient.DeleteItem(input)
 	if err != nil {
-		return errors.New(ErrorCouldNotDeleteItem)
+		return nil, errors.New(ErrorCouldNotDeleteItem)
 	}
 
-	return nil
+	return databaseUser, nil
 }

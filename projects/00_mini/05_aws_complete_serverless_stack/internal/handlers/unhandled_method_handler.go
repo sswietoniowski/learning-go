@@ -1,7 +1,13 @@
 package handlers
 
-import "github.com/aws/aws-lambda-go/events"
+import (
+	"net/http"
+
+	"github.com/aws/aws-lambda-go/events"
+)
+
+const ErrorMethodNotAllowed = "method not allowed"
 
 func UnhandledMethod() (*events.APIGatewayProxyResponse, error) {
-	return nil, nil
+	return apiResponse(http.StatusMethodNotAllowed, ErrorMethodNotAllowed)
 }

@@ -9,9 +9,17 @@ This is a simple demonstration of how to create a serverless application using A
 
 ## Features
 
-This application has the following features:
+This application has the following features.
 
-- TODO:.
+Functional:
+
+- store, retrieve, update, and delete users' data in a **DynamoDB** table,
+- expose the CRUD operations on users' data through an **API Gateway** and **Lambda**.
+
+Non-functional:
+
+- use **AWS** cloud or **LocalStack** to run the application,
+- use the **AWS SDK for Go** and **AWS Lambda for Go** to interact with the AWS services.
 
 ## Technologies
 
