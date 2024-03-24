@@ -121,3 +121,6 @@ fabric.properties
 # Build artifacts
 build/
 *.exe
+
+# LocalStack artifacts
+volume/

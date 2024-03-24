@@ -60,3 +60,61 @@ docker-compose up -d
 If you want to use the AWS CLI with LocalStack, please follow [this](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal) guide.
 
 For LocalStack, you can need to add to every command the `--endpoint-url=http://localhost:4566` flag (or define an alias `awslocal` for the AWS CLI with the same flag).
+
+First you need to create a role for your lambda function. You can do this by running the following command:
+
+```bash
+aws iam create-role --role-name lambda-ex --assume-role-policy-document file://trust-policy.json
+```
+
+Then you need to attach the `AWSLambdaBasicExecutionRole` policy to the role:
+
+```bash
+aws iam attach-role-policy --role-name lambda-ex --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+```
+
+Now you can build the application:
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o ./build ./cmd/api/main.go
+```
+
+And then you can create a zip file with the application:
+
+```bash
+zip -jrm ./build/main.zip ./build/main
+```
+
+Now you can deploy the application to AWS or LocalStack:
+
+```bash
+awslocal lambda create-function --function-name aws-complete-serverless-stack --runtime go1.x --role arn:aws:iam::000000000000:role/lambda-role --handler main --zip-file fileb://./build/main.zip
+```
+
+Now you need to create a DynamoDB table:
+
+```bash
+aws dynamodb create-table \
+    --table-name aws-complete-serverless-stack-users \
+    --attribute-definitions AttributeName=email,AttributeType=S \
+    --key-schema AttributeName=email,KeyType=HASH \
+    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
+```
+
+And finally, you can create the API Gateway:
+
+```bash
+aws apigateway create-rest-api --name aws-complete-serverless-stack
+```
+
+Create any action that would use lambda integration:
+
+```bash
+aws apigateway put-method --rest-api-id <rest-api-id> --resource-id <resource-id> --http-method POST --authorization-type
+```
+
+And deploy the API:
+
+```bash
+aws apigateway create-deployment --rest-api-id <rest-api-id> --stage-name dev
+```

@@ -29,7 +29,7 @@ Based on these (free) courses & articles:
 - courses:
   - ✅ 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
   - ✅ 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets) :+1:,
-  - 🎥 [Learn Go Programming by Building 11 Projects – Full Course](https://youtu.be/jFfo23yIWac?si=G5IuLzxacB2ycRkO):
+  - ✅ 🎥 [Learn Go Programming by Building 11 Projects – Full Course](https://youtu.be/jFfo23yIWac?si=G5IuLzxacB2ycRkO) :+1::
     - ✅ 🎥 Simple Web Server [:file_folder:](https://github.com/AkhilSharma90/simple-http-server-GO),
     - ✅ 🎥 CRUD API [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
     - ✅ 🎥 Book Management System [:file_folder:](https://github.com/AkhilSharma90/Golang-MySQL-CRUD-Bookstore-Management-API),
@@ -39,7 +39,7 @@ Based on these (free) courses & articles:
     - ✅ 🎥 AWS Lambda [:file_folder:](https://github.com/AkhilSharma90/Simple-go-AWS-Lambda-example),
     - ✅ 🎥 CRM (_Customer Relationship Management_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-CRM-project),
     - ✅ 🎥 HRMS (_Human Resource Management System_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-fiber-HRMS-project),
-    - 🎥 AWS Complete Serverless Stack [:file_folder:](https://github.com/AkhilSharma90/Golang-Serverless-Project),
+    - ✅ 🎥 AWS Complete Serverless Stack [:file_folder:](https://github.com/AkhilSharma90/Golang-Serverless-Project),
     - ✅ 🎥 AI Bot with Wolfram, Wit.ai [:file_folder:](https://github.com/AkhilSharma90/AI-Bot-GOlang-Wit.ai-Wolfram-Slack),
   - 🎥 [Go + GRPC](https://youtu.be/a6G5-LUlFO4?si=0WeAPYWBNHGupNiK) [:file_folder:](https://github.com/AkhilSharma90/GO-grpc-demo),
   - 🎥 [Event Driven Programming with GO and Kafka](https://youtu.be/j6bqJKxb2w0?si=bymeGvTf6fk_vsuU) [:file_folder:](https://github.com/AkhilSharma90/GO-Kafka-Example) [:file_folder:](https://github.com/AkhilSharma90/Kafka-GO-Real-Time-Feed) [:file_folder:](https://github.com/AkhilSharma90/GO-Fafka-Grafana-Prometheus-Watermill),
