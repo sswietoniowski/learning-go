@@ -194,18 +194,6 @@ to remove the API Gateway:
 aws apigateway delete-rest-api --rest-api-id <rest-api-id>
 ```
 
-Create any action that would use lambda integration:
-
-```bash
-aws apigateway put-method --rest-api-id <rest-api-id> --resource-id <resource-id> --http-method POST --authorization-type
-```
-
-And deploy the API:
-
-```bash
-aws apigateway create-deployment --rest-api-id <rest-api-id> --stage-name dev
-```
-
 You can retrieve endpoint URL:
 
 ```bash
