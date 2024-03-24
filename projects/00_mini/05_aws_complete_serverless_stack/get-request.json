@@ -1,5 +1,7 @@
 {
   "httpMethod": "GET",
   "path": "/users",
-  "queryStringParameters": {}
+  "queryStringParameters": {
+    "email": "jdoe@unknown.com"
+  }
 }

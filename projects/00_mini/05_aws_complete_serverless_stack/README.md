@@ -61,6 +61,14 @@ If you want to use the AWS CLI with LocalStack, please follow [this](https://doc
 
 For LocalStack, you can need to add to every command the `--endpoint-url=http://localhost:4566` flag (or define an alias `awslocal` for the AWS CLI with the same flag).
 
+I've tested everything under LocalStack, if you want to deploy this application to real AWS, you need to modify `main.go` and replace existing code for the DynamoDB client with the following code:
+
+```go
+awsSession, err := session.NewSession(&aws.Config{
+  Region:      aws.String(region),
+})
+```
+
 First you need to create a role for your lambda function. You can do this by running the following command:
 
 ```bash
@@ -138,6 +146,12 @@ Where `get-request.json` is:
 }
 ```
 
+Alternatively, you can use the following command:
+
+```bash
+aws lambda invoke --function-name aws-complete-serverless-stack --payload "{\"httpMethod\": \"GET\", \"path\": \"/users\", \"queryStringParameters\": {}}" --endpoint-url=http://localhost:4566 response.json
+```
+
 You can also invoke the lambda function using POST:
 
 ```bash
@@ -152,6 +166,13 @@ Where `post-request.json` is:
   "path": "/users",
   "body": "{\"email\": \"afox@unknown.com\"}"
 }
+```
+
+To see logs from the lambda function, you can run the following command:
+
+```bash
+aws logs tail /aws/lambda/aws-complete-serverless-stack --follow
+```
 
 And finally, you can create the API Gateway:
 

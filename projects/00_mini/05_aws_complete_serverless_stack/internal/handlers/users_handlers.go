@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -38,6 +39,8 @@ func CreateUser(req events.APIGatewayProxyRequest, usersRepository *database.Use
 	user := new(database.User)
 
 	if err := json.Unmarshal([]byte(req.Body), user); err != nil {
+		log.Printf("Error: %s", err)
+
 		return errorResponse(http.StatusBadRequest, errors.New(ErrorInvalidUserData))
 	}
 
@@ -57,6 +60,8 @@ func UpdateUser(req events.APIGatewayProxyRequest, usersRepository *database.Use
 	user := new(database.User)
 
 	if err := json.Unmarshal([]byte(req.Body), user); err != nil {
+		log.Printf("Error: %s", err)
+
 		return errorResponse(http.StatusBadRequest, errors.New(ErrorInvalidUserData))
 	}
 

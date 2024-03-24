@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -45,15 +46,19 @@ func (ur *UsersRepository) GetAll() ([]User, error) {
 
 	result, err := ur.dynaClient.Scan(input)
 	if err != nil {
+		log.Printf("UsersRepository.GetAll - Error: %s", err)
+
 		return nil, errors.New(ErrorFailedToFetchRecord)
 	}
 
-	users := make([]User, 0)
+	users := new([]User)
 	if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, users); err != nil {
+		log.Printf("UsersRepository.GetAll - Error: %s", err)
+
 		return nil, errors.New(ErrorFailedToUnmarshalRecord)
 	}
 
-	return users, nil
+	return *users, nil
 }
 
 func (ur *UsersRepository) GetByEmail(email string) (*User, error) {
@@ -68,11 +73,15 @@ func (ur *UsersRepository) GetByEmail(email string) (*User, error) {
 
 	result, err := ur.dynaClient.GetItem(input)
 	if err != nil {
+		log.Printf("UsersRepository.GetByEmail - Error: %s", err)
+
 		return nil, errors.New(ErrorFailedToFetchRecord)
 	}
 
 	user := new(User)
 	if err := dynamodbattribute.UnmarshalMap(result.Item, user); err != nil {
+		log.Printf("UsersRepository.GetByEmail - Error: %s", err)
+
 		return nil, errors.New(ErrorFailedToUnmarshalRecord)
 	}
 
@@ -94,6 +103,8 @@ func (ur *UsersRepository) Create(user *User) (*User, error) {
 
 	av, err := dynamodbattribute.MarshalMap(user)
 	if err != nil {
+		log.Printf("UsersRepository.Create - Error: %s", err)
+
 		return nil, errors.New(ErrorCouldNotMarshalItem)
 	}
 
@@ -104,6 +115,8 @@ func (ur *UsersRepository) Create(user *User) (*User, error) {
 
 	_, err = ur.dynaClient.PutItem(input)
 	if err != nil {
+		log.Printf("UsersRepository.Create - Error: %s", err)
+
 		return nil, errors.New(ErrorCouldNotDynamoPutItem)
 	}
 
@@ -125,6 +138,8 @@ func (ur *UsersRepository) Update(user *User) (*User, error) {
 
 	av, err := dynamodbattribute.MarshalMap(user)
 	if err != nil {
+		log.Printf("UsersRepository.Update - Error: %s", err)
+
 		return nil, errors.New(ErrorCouldNotMarshalItem)
 	}
 
@@ -135,6 +150,8 @@ func (ur *UsersRepository) Update(user *User) (*User, error) {
 
 	_, err = ur.dynaClient.PutItem(input)
 	if err != nil {
+		log.Printf("UsersRepository.Update - Error: %s", err)
+
 		return nil, errors.New(ErrorCouldNotDynamoPutItem)
 	}
 
@@ -162,6 +179,8 @@ func (ur *UsersRepository) DeleteByEmail(email string) (*User, error) {
 
 	_, err = ur.dynaClient.DeleteItem(input)
 	if err != nil {
+		log.Printf("UsersRepository.DeleteByEmail - Error: %s", err)
+
 		return nil, errors.New(ErrorCouldNotDeleteItem)
 	}
 
