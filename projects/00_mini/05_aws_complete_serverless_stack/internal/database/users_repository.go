@@ -79,14 +79,91 @@ func (ur *UsersRepository) GetUserByEmail(email string) (*User, error) {
 	return user, nil
 }
 
-func (ur *UsersRepository) CreateUser(user *User) error {
-	return nil
+func (ur *UsersRepository) CreateUser(user *User) (*User, error) {
+	if user == nil {
+		return nil, errors.New(ErrorInvalidUserData)
+	}
+
+	existingUser, err := ur.GetUserByEmail(user.Email)
+	if err != nil {
+		return nil, err
+	}
+	if existingUser != nil {
+		return nil, errors.New(ErrorUserAlreadyExists)
+	}
+
+	av, err := dynamodbattribute.MarshalMap(user)
+	if err != nil {
+		return nil, errors.New(ErrorCouldNotMarshalItem)
+	}
+
+	input := &dynamodb.PutItemInput{
+		Item:      av,
+		TableName: aws.String(ur.tableName),
+	}
+
+	_, err = ur.dynaClient.PutItem(input)
+	if err != nil {
+		return nil, errors.New(ErrorCouldNotDynamoPutItem)
+	}
+
+	return user, nil
 }
 
-func (ur *UsersRepository) UpdateUser(user *User) error {
-	return nil
+func (ur *UsersRepository) UpdateUser(user *User) (*User, error) {
+	if user == nil {
+		return nil, errors.New(ErrorInvalidUserData)
+	}
+
+	databaseUser, err := ur.GetUserByEmail(user.Email)
+	if err != nil {
+		return nil, err
+	}
+	if databaseUser == nil {
+		return nil, errors.New(ErrorUserDoesNotExist)
+	}
+
+	av, err := dynamodbattribute.MarshalMap(user)
+	if err != nil {
+		return nil, errors.New(ErrorCouldNotMarshalItem)
+	}
+
+	input := &dynamodb.PutItemInput{
+		Item:      av,
+		TableName: aws.String(ur.tableName),
+	}
+
+	_, err = ur.dynaClient.PutItem(input)
+	if err != nil {
+		return nil, errors.New(ErrorCouldNotDynamoPutItem)
+	}
+
+	return user, nil
 }
 
 func (ur *UsersRepository) DeleteUserByEmail(email string) error {
+	if email == "" {
+		return errors.New(ErrorInvalidEmail)
+	}
+
+	_, err := ur.GetUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	input := &dynamodb.DeleteItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"email": {
+				S: aws.String(email),
+			},
+		},
+		TableName: aws.String(ur.tableName),
+	}
+
+	_, err = ur.dynaClient.DeleteItem(input)
+	if err != nil {
+		return errors.New(ErrorCouldNotDeleteItem)
+	}
+
 	return nil
 }
