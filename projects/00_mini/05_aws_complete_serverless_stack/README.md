@@ -174,10 +174,24 @@ To see logs from the lambda function, you can run the following command:
 aws logs tail /aws/lambda/aws-complete-serverless-stack --follow
 ```
 
-And finally, you can create the API Gateway:
+And finally, you can create the API Gateway, to simplify that part I've create a script that you can run (adjust it to your needs):
 
 ```bash
-aws apigateway create-rest-api --name aws-complete-serverless-stack
+./setup_api_gateway.sh
+```
+
+Great explanation of what this script is doing can be found [here](https://conor-aspell.medium.com/creating-an-api-gateway-using-the-aws-cli-dbed2849a773).
+
+If that succeeded, you can list all the APIs:
+
+```bash
+aws apigateway get-rest-apis
+```
+
+to remove the API Gateway:
+
+```bash
+aws apigateway delete-rest-api --rest-api-id <rest-api-id>
 ```
 
 Create any action that would use lambda integration:
@@ -191,3 +205,30 @@ And deploy the API:
 ```bash
 aws apigateway create-deployment --rest-api-id <rest-api-id> --stage-name dev
 ```
+
+You can retrieve endpoint URL:
+
+```bash
+region=$(aws configure get region)
+endpoint_url=http://localhost:4566
+echo "https://$(aws apigateway get-rest-apis --query 'items[0].id' --output text --region $region --endpoint-url=$endpoint_url).execute-api.$region.amazonaws.com/prod"
+```
+
+Now you can test the API Gateway (LocalStack):
+
+```bash
+rest_api_id=$(aws apigateway get-rest-apis --query 'items[0].id' --output text --region $region --endpoint-url=$endpoint_url)
+stage_name=prod
+curl -X GET -H "Content-Type: application/json" http://localhost:4566/restapis/$rest_api_id/$stage_name/_user_request_/
+```
+
+If it works, you should see something like this:
+
+```json
+[
+  { "firstName": "", "lastName": "", "email": "jdoe@unknown.com" },
+  { "firstName": "", "lastName": "", "email": "asmith@unknown.com" }
+]
+```
+
+And it means that you have successfully deployed the complete serverless stack application using AWS :-).
