@@ -73,6 +73,12 @@ Then you need to attach the `AWSLambdaBasicExecutionRole` policy to the role:
 aws iam attach-role-policy --role-name lambda-ex --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 ```
 
+To allow access to the DynamoDB table, you need to attach the `AmazonDynamoDBFullAccess` policy to the role (you can also create a custom policy with the required permissions):
+
+```bash
+aws iam attach-role-policy --role-name lambda-ex --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+```
+
 Now you can build the application:
 
 ```bash
@@ -88,7 +94,7 @@ zip -jrm ./build/main.zip ./build/main
 Now you can deploy the application to AWS or LocalStack:
 
 ```bash
-awslocal lambda create-function --function-name aws-complete-serverless-stack --runtime go1.x --role arn:aws:iam::000000000000:role/lambda-role --handler main --zip-file fileb://./build/main.zip
+aws lambda create-function --function-name aws-complete-serverless-stack --runtime go1.x --role arn:aws:iam::PUT_YOUR_ID_HERE:role/lambda-ex --handler main --zip-file fileb://./build/main.zip --timeout 900
 ```
 
 Now you need to create a DynamoDB table:
@@ -100,6 +106,52 @@ aws dynamodb create-table \
     --key-schema AttributeName=email,KeyType=HASH \
     --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
 ```
+
+You can also add some data to the table:
+
+```bash
+aws dynamodb put-item --table-name aws-complete-serverless-stack-users --item '{"email": {"S": "jdoe@unknown.com"}}'
+aws dynamodb put-item --table-name aws-complete-serverless-stack-users --item '{"email": {"S": "asmith@unknown.com"}}'
+```
+
+To retrieve the data from the table, you can run the following command:
+
+```bash
+aws dynamodb scan --table-name aws-complete-serverless-stack-users
+```
+
+You can invoke the lambda function using GET:
+
+```bash
+aws lambda invoke --function-name aws-complete-serverless-stack --cli-binary-format raw-in-base64-out --payload file://get-request.json response.json
+```
+
+Where `get-request.json` is:
+
+```json
+{
+  "httpMethod": "GET",
+  "path": "/users",
+  "queryStringParameters": {
+    "email": "jdoe@unknown.com"
+  }
+}
+```
+
+You can also invoke the lambda function using POST:
+
+```bash
+aws lambda invoke --function-name aws-complete-serverless-stack --cli-binary-format raw-in-base64-out --payload file://post-request.json response.json
+```
+
+Where `post-request.json` is:
+
+```json
+{
+  "httpMethod": "POST",
+  "path": "/users",
+  "body": "{\"email\": \"afox@unknown.com\"}"
+}
 
 And finally, you can create the API Gateway:
 

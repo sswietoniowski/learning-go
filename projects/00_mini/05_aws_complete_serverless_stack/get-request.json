@@ -1,0 +1,5 @@
+{
+  "httpMethod": "GET",
+  "path": "/users",
+  "queryStringParameters": {}
+}
