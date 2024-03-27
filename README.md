@@ -53,6 +53,7 @@ Based on these (free) courses & articles:
   - 🎥 [Docker For Golang - How To Containerize A Golang Project](https://youtu.be/hjOXKmgilTo?si=TdsMCZ62034O38Qy),
   - 🎥 [Golang On AWS EC2 - How To Deploy A Golang App On Amazon Web Services (AWS)](https://youtu.be/DEfmfWGg9js?si=-nS13X5Gkf7wi8rH),
   - 🎥 [FULL Introduction To HTMX Using Golang](https://youtu.be/x7v6SNIgJpE?si=9ivyEbxtn59dGb08) [:file_folder:](https://github.com/ThePrimeagen/htmx_golang),
+  - 🎥 [Learn By Building: Language Server Protocol](https://youtu.be/YsdlcQoHqPY?si=TNQpB2AOeepfEvWn) 🎥 [LSP Explained (in 5 Minutes)](https://youtu.be/LaS32vctfOY?si=HMykFCbHfeMDUxjK) [:file_folder:](https://github.com/tjdevries/educationalsp),
 - documentation:
   - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
   - ✅ 📖 [Go Blog](https://go.dev/blog/),

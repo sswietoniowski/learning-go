@@ -1,6 +1,6 @@
 # AWS Complete Serverless Stack
 
-This is a simple demonstration of how to create a serverless application using AWS: API Gateway + DynamoDB + Lambda.
+This is a simple demonstration of how to create a serverless application using AWS: API Gateway, DynamoDB, and Lambda.
 
 - [AWS Complete Serverless Stack](#aws-complete-serverless-stack)
   - [Features](#features)
@@ -59,9 +59,9 @@ docker-compose up -d
 
 If you want to use the AWS CLI with LocalStack, please follow [this](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal) guide.
 
-For LocalStack, you can need to add to every command the `--endpoint-url=http://localhost:4566` flag (or define an alias `awslocal` for the AWS CLI with the same flag).
+For LocalStack, you need to add to every command the `--endpoint-url=http://localhost:4566` flag (or define an alias `awslocal` for the AWS CLI with the same flag).
 
-I've tested everything under LocalStack, if you want to deploy this application to real AWS, you need to modify `main.go` and replace existing code for the DynamoDB client with the following code:
+I've tested everything under LocalStack, and if you want to deploy this application to real AWS, you need to modify `main.go` and replace the existing code for the DynamoDB client with the following code:
 
 ```go
 awsSession, err := session.NewSession(&aws.Config{
@@ -69,7 +69,7 @@ awsSession, err := session.NewSession(&aws.Config{
 })
 ```
 
-First you need to create a role for your lambda function. You can do this by running the following command:
+First, you need to create a role for your lambda function. You can do this by running the following command:
 
 ```bash
 aws iam create-role --role-name lambda-ex --assume-role-policy-document file://trust-policy.json
@@ -93,7 +93,7 @@ Now you can build the application:
 GOOS=linux GOARCH=amd64 go build -o ./build ./cmd/api/main.go
 ```
 
-And then you can create a zip file with the application:
+Then you can create a zip file with the application:
 
 ```bash
 zip -jrm ./build/main.zip ./build/main
@@ -105,7 +105,7 @@ Now you can deploy the application to AWS or LocalStack:
 aws lambda create-function --function-name aws-complete-serverless-stack --runtime go1.x --role arn:aws:iam::PUT_YOUR_ID_HERE:role/lambda-ex --handler main --zip-file fileb://./build/main.zip --timeout 900
 ```
 
-Now you need to create a DynamoDB table:
+Now, you need to create a DynamoDB table:
 
 ```bash
 aws dynamodb create-table \
