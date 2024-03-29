@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"log"
 	"time"
 
@@ -31,5 +32,27 @@ func (s *HelloServer) SayHelloServerStreaming(req *pb.NamesList, stream pb.Greet
 			return err
 		}
 	}
+
+	return nil
+}
+
+func (s *HelloServer) SayHelloClientStreaming(stream pb.GreetService_SayHelloClientStreamingServer) error {
+	log.Printf("Receiving names from the client...")
+
+	names := []string{}
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		log.Printf("Received name: %v", req.Name)
+		names = append(names, req.Name)
+	}
+	log.Printf("Received names: %v", names)
+
 	return nil
 }

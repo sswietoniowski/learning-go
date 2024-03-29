@@ -43,3 +43,36 @@ func CallSayHelloServerStreaming(client pb.GreetServiceClient, names *pb.NamesLi
 
 	log.Println("Finished receiving messages")
 }
+
+func CallSayHelloClientStreaming(client pb.GreetServiceClient, names []string) {
+	log.Printf("Calling SayHelloClientStreaming with names: %v", names)
+
+	stream, err := client.SayHelloClientStreaming(context.Background())
+	if err != nil {
+		log.Fatalf("Failed to call SayHelloClientStreaming: %v", err)
+	}
+
+	for _, name := range names {
+		duration := 2 * time.Second // simulate some processing time
+		time.Sleep(duration)
+
+		req := &pb.HelloRequest{Name: name}
+		if err := stream.Send(req); err != nil {
+			log.Fatalf("Failed to send a name: %v", err)
+		}
+
+		log.Printf("Sent name: %v", name)
+	}
+
+	log.Println("Finished sending names")
+
+	res, err := stream.CloseAndRecv()
+	switch err {
+	case io.EOF:
+		log.Println("Received EOF")
+	case nil:
+		log.Printf("Received response: %v", res.Messages)
+	default:
+		log.Fatalf("Failed to receive a response: %v", err)
+	}
+}

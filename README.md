@@ -41,7 +41,7 @@ Based on these (free) courses & articles:
     - ✅ 🎥 HRMS (_Human Resource Management System_) with Fiber [:file_folder:](https://github.com/AkhilSharma90/go-beginner-fiber-HRMS-project),
     - ✅ 🎥 AWS Complete Serverless Stack [:file_folder:](https://github.com/AkhilSharma90/Golang-Serverless-Project),
     - ✅ 🎥 AI Bot with Wolfram, Wit.ai [:file_folder:](https://github.com/AkhilSharma90/AI-Bot-GOlang-Wit.ai-Wolfram-Slack),
-  - 🎥 [Go + GRPC](https://youtu.be/a6G5-LUlFO4?si=0WeAPYWBNHGupNiK) [:file_folder:](https://github.com/AkhilSharma90/GO-grpc-demo),
+  - ✅ 🎥 [Go + GRPC](https://youtu.be/a6G5-LUlFO4?si=0WeAPYWBNHGupNiK) [:file_folder:](https://github.com/AkhilSharma90/GO-grpc-demo),
   - 🎥 [Event Driven Programming with GO and Kafka](https://youtu.be/j6bqJKxb2w0?si=bymeGvTf6fk_vsuU) [:file_folder:](https://github.com/AkhilSharma90/GO-Kafka-Example) [:file_folder:](https://github.com/AkhilSharma90/Kafka-GO-Real-Time-Feed) [:file_folder:](https://github.com/AkhilSharma90/GO-Fafka-Grafana-Prometheus-Watermill),
   - 🎥 [GO + React Chat App](https://youtube.com/playlist?list=PL5dTjWUk_cPbn5duL8qdIncitZ9FDp3RA&si=V3uQ2dkeLw4ZUg6Y) [:file_folder:](https://github.com/AkhilSharma90/GO-React-Fullstack-Chat),
   - 🎥 [Video Calling Project - Golang + Docker + WebRTC](https://youtube.com/playlist?list=PL5dTjWUk_cPY3_IWNDPTPPfo_OZLPPRi0&si=jJ6VA-Yp5pcWPt6G) [:file_folder:](https://github.com/AkhilSharma90/Videocall-Chat-GO-Project),
