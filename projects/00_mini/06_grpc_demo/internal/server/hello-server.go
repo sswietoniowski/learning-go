@@ -13,9 +13,9 @@ type HelloServer struct {
 	pb.GreetServiceServer
 }
 
-func (s *HelloServer) SayHello(ctx context.Context, _ *pb.SayHelloRequest) (*pb.SayHelloResponse, error) {
+func (s *HelloServer) SayHello(ctx context.Context, req *pb.SayHelloRequest) (*pb.SayHelloResponse, error) {
 	return &pb.SayHelloResponse{
-		Message: "Hello from the gRPC server",
+		Message: "Hello " + req.Name + " from the gRPC server!",
 	}, nil
 }
 
