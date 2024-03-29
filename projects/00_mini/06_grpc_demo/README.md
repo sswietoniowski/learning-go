@@ -62,9 +62,9 @@ To generate Go code from the `.proto` files, you can run the following command:
 ```bash
 protoc \
   --go_out=./internal/common/genproto \
-  --go_opt=module=github.com/sswietoniowski/learning-go/projects/00_mini/06_grpc_demo/common/genproto \
+  --go_opt=module=github.com/sswietoniowski/learning-go/projects/00_mini/06_grpc_demo/internal/common/genproto \
   --go-grpc_out=./internal/common/genproto \
-  --go-grpc_opt=module=github.com/sswietoniowski/learning-go/projects/00_mini/06_grpc_demo/common/genproto \
+  --go-grpc_opt=module=github.com/sswietoniowski/learning-go/projects/00_mini/06_grpc_demo/internal/common/genproto \
   ./api/protobuf/*.proto
 ```
 
