@@ -2,7 +2,6 @@ version: v1
 name: github.com/sswietoniowski/learning-go
 build:
   excludes: [./vendor, ./.git]
-
 breaking:
   use:
     - FILE
