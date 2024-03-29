@@ -89,6 +89,7 @@ I also used these (paid) courses & books:
 - ✅ 📖 [Domain-Driven Design with Golang](https://learning.oreilly.com/library/view/domain-driven-design-with/9781804613450/) [:file_folder:](https://github.com/PacktPublishing/Domain-Driven-Design-with-GoLang),
 - 📖 [Event-Driven Architecture in Golang](https://learning.oreilly.com/library/view/event-driven-architecture-in/9781803238012/) [:file_folder:](https://github.com/PacktPublishing/Event-Driven-Architecture-in-Golang),
 - 📖 [Microservices with Go](https://learning.oreilly.com/library/view/microservices-with-go/9781804617007/) [:file_folder:](https://github.com/PacktPublishing/microservices-with-go),
+- 📖 [Mastering API Architecture](https://learning.oreilly.com/library/view/mastering-api-architecture/9781492090625/) [:file_folder:](https://github.com/masteringapi),
 - 📖 [gRPC: Up and Running](https://learning.oreilly.com/library/view/grpc-up-and/9781492058328/) [:file_folder:](https://grpc-up-and-running.github.io/),
 - 📖 [gRPC Microservices in Go](https://learning.oreilly.com/library/view/grpc-microservices-in/9781633439207/) [:file_folder:](https://github.com/huseyinbabal/grpc-microservices-in-go),
 - 📖 [Go With The Domain](https://threedots.tech/go-with-the-domain/) [:file_folder:](https://github.com/ThreeDotsLabs/wild-workouts-go-ddd-example) [:file_folder:](https://github.com/sswietoniowski/learning-go-wild-workouts),
