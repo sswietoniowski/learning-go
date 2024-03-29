@@ -174,7 +174,7 @@ Some useful tools & other resources:
     - [fiber](https://github.com/gofiber/fiber) - [Express](https://expressjs.com/) inspired web framework written in Go,
     - [oapi-codegen](https://github.com/deepmap/oapi-codegen) - a Go code generator for OpenAPI 3 specifications,
     - [go-retryablehttp](https://github.com/hashicorp/go-retryablehttp) - a Go library to provide simple and flexible retrying for HTTP clients,
-    - [protobuf-go](https://github.com/protocolbuffers/protobuf-go) - a Go support for [Google's protocol buffers](https://protobuf.dev/),
+    - [protobuf-go](https://github.com/protocolbuffers/protobuf-go) - a Go support for [Google's protocol buffers](https://protobuf.dev/) [📖](https://cloud.google.com/dotnet/docs/reference/Google.Protobuf/latest/Google.Protobuf.WellKnownTypes),
     - [grpc-go](https://github.com/grpc/grpc-go) - a Go implementation of [gRPC](https://grpc.io/),
     - [Buf](https://buf.build/) [:file_folder:](https://github.com/bufbuild/buf) - a new way to work with Protocol Buffers,
   - cloud services:
