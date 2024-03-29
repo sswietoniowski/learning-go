@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v3.12.4
-// source: api/protobuf/greet.proto
+// source: api/protobuf/v1/greet.proto
 
 package genproto
 
@@ -20,29 +20,29 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type NoParam struct {
+type NoRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *NoParam) Reset() {
-	*x = NoParam{}
+func (x *NoRequest) Reset() {
+	*x = NoRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_protobuf_greet_proto_msgTypes[0]
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *NoParam) String() string {
+func (x *NoRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NoParam) ProtoMessage() {}
+func (*NoRequest) ProtoMessage() {}
 
-func (x *NoParam) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protobuf_greet_proto_msgTypes[0]
+func (x *NoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -53,12 +53,12 @@ func (x *NoParam) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NoParam.ProtoReflect.Descriptor instead.
-func (*NoParam) Descriptor() ([]byte, []int) {
-	return file_api_protobuf_greet_proto_rawDescGZIP(), []int{0}
+// Deprecated: Use NoRequest.ProtoReflect.Descriptor instead.
+func (*NoRequest) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{0}
 }
 
-type HelloRequest struct {
+type SayHelloRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -66,23 +66,23 @@ type HelloRequest struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 }
 
-func (x *HelloRequest) Reset() {
-	*x = HelloRequest{}
+func (x *SayHelloRequest) Reset() {
+	*x = SayHelloRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_protobuf_greet_proto_msgTypes[1]
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *HelloRequest) String() string {
+func (x *SayHelloRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HelloRequest) ProtoMessage() {}
+func (*SayHelloRequest) ProtoMessage() {}
 
-func (x *HelloRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protobuf_greet_proto_msgTypes[1]
+func (x *SayHelloRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -93,19 +93,19 @@ func (x *HelloRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HelloRequest.ProtoReflect.Descriptor instead.
-func (*HelloRequest) Descriptor() ([]byte, []int) {
-	return file_api_protobuf_greet_proto_rawDescGZIP(), []int{1}
+// Deprecated: Use SayHelloRequest.ProtoReflect.Descriptor instead.
+func (*SayHelloRequest) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *HelloRequest) GetName() string {
+func (x *SayHelloRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-type HelloResponse struct {
+type SayHelloResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -113,23 +113,23 @@ type HelloResponse struct {
 	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
 }
 
-func (x *HelloResponse) Reset() {
-	*x = HelloResponse{}
+func (x *SayHelloResponse) Reset() {
+	*x = SayHelloResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_protobuf_greet_proto_msgTypes[2]
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *HelloResponse) String() string {
+func (x *SayHelloResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HelloResponse) ProtoMessage() {}
+func (*SayHelloResponse) ProtoMessage() {}
 
-func (x *HelloResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protobuf_greet_proto_msgTypes[2]
+func (x *SayHelloResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -140,19 +140,19 @@ func (x *HelloResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HelloResponse.ProtoReflect.Descriptor instead.
-func (*HelloResponse) Descriptor() ([]byte, []int) {
-	return file_api_protobuf_greet_proto_rawDescGZIP(), []int{2}
+// Deprecated: Use SayHelloResponse.ProtoReflect.Descriptor instead.
+func (*SayHelloResponse) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *HelloResponse) GetMessage() string {
+func (x *SayHelloResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-type NamesList struct {
+type SayHelloServerStreamingRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -160,23 +160,23 @@ type NamesList struct {
 	Names []string `protobuf:"bytes,1,rep,name=names,proto3" json:"names,omitempty"`
 }
 
-func (x *NamesList) Reset() {
-	*x = NamesList{}
+func (x *SayHelloServerStreamingRequest) Reset() {
+	*x = SayHelloServerStreamingRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_protobuf_greet_proto_msgTypes[3]
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *NamesList) String() string {
+func (x *SayHelloServerStreamingRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NamesList) ProtoMessage() {}
+func (*SayHelloServerStreamingRequest) ProtoMessage() {}
 
-func (x *NamesList) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protobuf_greet_proto_msgTypes[3]
+func (x *SayHelloServerStreamingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -187,19 +187,113 @@ func (x *NamesList) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NamesList.ProtoReflect.Descriptor instead.
-func (*NamesList) Descriptor() ([]byte, []int) {
-	return file_api_protobuf_greet_proto_rawDescGZIP(), []int{3}
+// Deprecated: Use SayHelloServerStreamingRequest.ProtoReflect.Descriptor instead.
+func (*SayHelloServerStreamingRequest) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *NamesList) GetNames() []string {
+func (x *SayHelloServerStreamingRequest) GetNames() []string {
 	if x != nil {
 		return x.Names
 	}
 	return nil
 }
 
-type MessagesList struct {
+type SayHelloServerStreamingResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+}
+
+func (x *SayHelloServerStreamingResponse) Reset() {
+	*x = SayHelloServerStreamingResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SayHelloServerStreamingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SayHelloServerStreamingResponse) ProtoMessage() {}
+
+func (x *SayHelloServerStreamingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SayHelloServerStreamingResponse.ProtoReflect.Descriptor instead.
+func (*SayHelloServerStreamingResponse) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SayHelloServerStreamingResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type SayHelloClientStreamingRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *SayHelloClientStreamingRequest) Reset() {
+	*x = SayHelloClientStreamingRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SayHelloClientStreamingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SayHelloClientStreamingRequest) ProtoMessage() {}
+
+func (x *SayHelloClientStreamingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SayHelloClientStreamingRequest.ProtoReflect.Descriptor instead.
+func (*SayHelloClientStreamingRequest) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SayHelloClientStreamingRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type SayHelloClientStreamingResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -207,23 +301,23 @@ type MessagesList struct {
 	Messages []string `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
 }
 
-func (x *MessagesList) Reset() {
-	*x = MessagesList{}
+func (x *SayHelloClientStreamingResponse) Reset() {
+	*x = SayHelloClientStreamingResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_protobuf_greet_proto_msgTypes[4]
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *MessagesList) String() string {
+func (x *SayHelloClientStreamingResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MessagesList) ProtoMessage() {}
+func (*SayHelloClientStreamingResponse) ProtoMessage() {}
 
-func (x *MessagesList) ProtoReflect() protoreflect.Message {
-	mi := &file_api_protobuf_greet_proto_msgTypes[4]
+func (x *SayHelloClientStreamingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -234,94 +328,220 @@ func (x *MessagesList) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MessagesList.ProtoReflect.Descriptor instead.
-func (*MessagesList) Descriptor() ([]byte, []int) {
-	return file_api_protobuf_greet_proto_rawDescGZIP(), []int{4}
+// Deprecated: Use SayHelloClientStreamingResponse.ProtoReflect.Descriptor instead.
+func (*SayHelloClientStreamingResponse) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *MessagesList) GetMessages() []string {
+func (x *SayHelloClientStreamingResponse) GetMessages() []string {
 	if x != nil {
 		return x.Messages
 	}
 	return nil
 }
 
-var File_api_protobuf_greet_proto protoreflect.FileDescriptor
+type SayHelloBidirectionalStreamingRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-var file_api_protobuf_greet_proto_rawDesc = []byte{
-	0x0a, 0x18, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x67,
-	0x72, 0x65, 0x65, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0d, 0x67, 0x72, 0x65, 0x65,
-	0x74, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x22, 0x09, 0x0a, 0x07, 0x4e, 0x6f, 0x50,
-	0x61, 0x72, 0x61, 0x6d, 0x22, 0x22, 0x0a, 0x0c, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x29, 0x0a, 0x0d, 0x48, 0x65, 0x6c, 0x6c,
-	0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73,
-	0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73,
-	0x61, 0x67, 0x65, 0x22, 0x21, 0x0a, 0x09, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x4c, 0x69, 0x73, 0x74,
-	0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52,
-	0x05, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x22, 0x2a, 0x0a, 0x0c, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x73, 0x32, 0xdd, 0x02, 0x0a, 0x0c, 0x47, 0x72, 0x65, 0x65, 0x74, 0x53, 0x65, 0x72, 0x76,
-	0x69, 0x63, 0x65, 0x12, 0x40, 0x0a, 0x08, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x12,
-	0x16, 0x2e, 0x67, 0x72, 0x65, 0x65, 0x74, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e,
-	0x4e, 0x6f, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x1a, 0x1c, 0x2e, 0x67, 0x72, 0x65, 0x65, 0x74, 0x5f,
-	0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x53, 0x0a, 0x17, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c,
-	0x6f, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67,
-	0x12, 0x18, 0x2e, 0x67, 0x72, 0x65, 0x65, 0x74, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
-	0x2e, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x67, 0x72, 0x65,
-	0x65, 0x74, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x48, 0x65, 0x6c, 0x6c, 0x6f,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x55, 0x0a, 0x17, 0x53, 0x61,
-	0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65,
-	0x61, 0x6d, 0x69, 0x6e, 0x67, 0x12, 0x1b, 0x2e, 0x67, 0x72, 0x65, 0x65, 0x74, 0x5f, 0x73, 0x65,
-	0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x67, 0x72, 0x65, 0x65, 0x74, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69,
-	0x63, 0x65, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x28,
-	0x01, 0x12, 0x5f, 0x0a, 0x1e, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x42, 0x69, 0x64,
-	0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
-	0x69, 0x6e, 0x67, 0x12, 0x1b, 0x2e, 0x67, 0x72, 0x65, 0x65, 0x74, 0x5f, 0x73, 0x65, 0x72, 0x76,
-	0x69, 0x63, 0x65, 0x2e, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x1c, 0x2e, 0x67, 0x72, 0x65, 0x65, 0x74, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
-	0x2e, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x28, 0x01,
-	0x30, 0x01, 0x42, 0x55, 0x5a, 0x53, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x73, 0x73, 0x77, 0x69, 0x65, 0x74, 0x6f, 0x6e, 0x69, 0x6f, 0x77, 0x73, 0x6b, 0x69, 0x2f,
-	0x6c, 0x65, 0x61, 0x72, 0x6e, 0x69, 0x6e, 0x67, 0x2d, 0x67, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a,
-	0x65, 0x63, 0x74, 0x73, 0x2f, 0x30, 0x30, 0x5f, 0x6d, 0x69, 0x6e, 0x69, 0x2f, 0x30, 0x36, 0x5f,
-	0x67, 0x72, 0x70, 0x63, 0x5f, 0x64, 0x65, 0x6d, 0x6f, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e,
-	0x2f, 0x67, 0x65, 0x6e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *SayHelloBidirectionalStreamingRequest) Reset() {
+	*x = SayHelloBidirectionalStreamingRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SayHelloBidirectionalStreamingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SayHelloBidirectionalStreamingRequest) ProtoMessage() {}
+
+func (x *SayHelloBidirectionalStreamingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SayHelloBidirectionalStreamingRequest.ProtoReflect.Descriptor instead.
+func (*SayHelloBidirectionalStreamingRequest) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SayHelloBidirectionalStreamingRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type SayHelloBidirectionalStreamingResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+}
+
+func (x *SayHelloBidirectionalStreamingResponse) Reset() {
+	*x = SayHelloBidirectionalStreamingResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_protobuf_v1_greet_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SayHelloBidirectionalStreamingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SayHelloBidirectionalStreamingResponse) ProtoMessage() {}
+
+func (x *SayHelloBidirectionalStreamingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_protobuf_v1_greet_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SayHelloBidirectionalStreamingResponse.ProtoReflect.Descriptor instead.
+func (*SayHelloBidirectionalStreamingResponse) Descriptor() ([]byte, []int) {
+	return file_api_protobuf_v1_greet_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SayHelloBidirectionalStreamingResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+var File_api_protobuf_v1_greet_proto protoreflect.FileDescriptor
+
+var file_api_protobuf_v1_greet_proto_rawDesc = []byte{
+	0x0a, 0x1b, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x76,
+	0x31, 0x2f, 0x67, 0x72, 0x65, 0x65, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0f, 0x61,
+	0x70, 0x69, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x76, 0x31, 0x22, 0x0b,
+	0x0a, 0x09, 0x4e, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x25, 0x0a, 0x0f, 0x53,
+	0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12,
+	0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61,
+	0x6d, 0x65, 0x22, 0x2c, 0x0a, 0x10, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x22, 0x36, 0x0a, 0x1e, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x53, 0x65, 0x72, 0x76,
+	0x65, 0x72, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x09, 0x52, 0x05, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x22, 0x3b, 0x0a, 0x1f, 0x53, 0x61, 0x79, 0x48,
+	0x65, 0x6c, 0x6c, 0x6f, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65,
+	0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x34, 0x0a, 0x1e, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c,
+	0x6f, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x3d, 0x0a, 0x1f, 0x53,
+	0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a,
+	0x0a, 0x08, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09,
+	0x52, 0x08, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x22, 0x3b, 0x0a, 0x25, 0x53, 0x61,
+	0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x42, 0x69, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f,
+	0x6e, 0x61, 0x6c, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x42, 0x0a, 0x26, 0x53, 0x61, 0x79, 0x48, 0x65,
+	0x6c, 0x6c, 0x6f, 0x42, 0x69, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c,
+	0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x32, 0xf7, 0x03, 0x0a, 0x0c,
+	0x47, 0x72, 0x65, 0x65, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x4f, 0x0a, 0x08,
+	0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x12, 0x20, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x61, 0x79, 0x48, 0x65,
+	0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x70, 0x69,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x61, 0x79,
+	0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7e, 0x0a,
+	0x17, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67, 0x12, 0x2f, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x61, 0x79, 0x48, 0x65,
+	0x6c, 0x6c, 0x6f, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69,
+	0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30, 0x2e, 0x61, 0x70, 0x69, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x61, 0x79, 0x48,
+	0x65, 0x6c, 0x6c, 0x6f, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x7e, 0x0a,
+	0x17, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67, 0x12, 0x2f, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x61, 0x79, 0x48, 0x65,
+	0x6c, 0x6c, 0x6f, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69,
+	0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30, 0x2e, 0x61, 0x70, 0x69, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x61, 0x79, 0x48,
+	0x65, 0x6c, 0x6c, 0x6f, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x28, 0x01, 0x12, 0x95, 0x01,
+	0x0a, 0x1e, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x42, 0x69, 0x64, 0x69, 0x72, 0x65,
+	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67,
+	0x12, 0x36, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
+	0x76, 0x31, 0x2e, 0x53, 0x61, 0x79, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x42, 0x69, 0x64, 0x69, 0x72,
+	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e,
+	0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x37, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x61, 0x79, 0x48, 0x65,
+	0x6c, 0x6c, 0x6f, 0x42, 0x69, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c,
+	0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x28, 0x01, 0x30, 0x01, 0x42, 0x5e, 0x5a, 0x5c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
+	0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x73, 0x77, 0x69, 0x65, 0x74, 0x6f, 0x6e, 0x69, 0x6f, 0x77, 0x73,
+	0x6b, 0x69, 0x2f, 0x6c, 0x65, 0x61, 0x72, 0x6e, 0x69, 0x6e, 0x67, 0x2d, 0x67, 0x6f, 0x2f, 0x70,
+	0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x30, 0x30, 0x5f, 0x6d, 0x69, 0x6e, 0x69, 0x2f,
+	0x30, 0x36, 0x5f, 0x67, 0x72, 0x70, 0x63, 0x5f, 0x64, 0x65, 0x6d, 0x6f, 0x2f, 0x69, 0x6e, 0x74,
+	0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2f, 0x67, 0x65, 0x6e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_api_protobuf_greet_proto_rawDescOnce sync.Once
-	file_api_protobuf_greet_proto_rawDescData = file_api_protobuf_greet_proto_rawDesc
+	file_api_protobuf_v1_greet_proto_rawDescOnce sync.Once
+	file_api_protobuf_v1_greet_proto_rawDescData = file_api_protobuf_v1_greet_proto_rawDesc
 )
 
-func file_api_protobuf_greet_proto_rawDescGZIP() []byte {
-	file_api_protobuf_greet_proto_rawDescOnce.Do(func() {
-		file_api_protobuf_greet_proto_rawDescData = protoimpl.X.CompressGZIP(file_api_protobuf_greet_proto_rawDescData)
+func file_api_protobuf_v1_greet_proto_rawDescGZIP() []byte {
+	file_api_protobuf_v1_greet_proto_rawDescOnce.Do(func() {
+		file_api_protobuf_v1_greet_proto_rawDescData = protoimpl.X.CompressGZIP(file_api_protobuf_v1_greet_proto_rawDescData)
 	})
-	return file_api_protobuf_greet_proto_rawDescData
+	return file_api_protobuf_v1_greet_proto_rawDescData
 }
 
-var file_api_protobuf_greet_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_api_protobuf_greet_proto_goTypes = []interface{}{
-	(*NoParam)(nil),       // 0: greet_service.NoParam
-	(*HelloRequest)(nil),  // 1: greet_service.HelloRequest
-	(*HelloResponse)(nil), // 2: greet_service.HelloResponse
-	(*NamesList)(nil),     // 3: greet_service.NamesList
-	(*MessagesList)(nil),  // 4: greet_service.MessagesList
+var file_api_protobuf_v1_greet_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_api_protobuf_v1_greet_proto_goTypes = []interface{}{
+	(*NoRequest)(nil),                              // 0: api.protobuf.v1.NoRequest
+	(*SayHelloRequest)(nil),                        // 1: api.protobuf.v1.SayHelloRequest
+	(*SayHelloResponse)(nil),                       // 2: api.protobuf.v1.SayHelloResponse
+	(*SayHelloServerStreamingRequest)(nil),         // 3: api.protobuf.v1.SayHelloServerStreamingRequest
+	(*SayHelloServerStreamingResponse)(nil),        // 4: api.protobuf.v1.SayHelloServerStreamingResponse
+	(*SayHelloClientStreamingRequest)(nil),         // 5: api.protobuf.v1.SayHelloClientStreamingRequest
+	(*SayHelloClientStreamingResponse)(nil),        // 6: api.protobuf.v1.SayHelloClientStreamingResponse
+	(*SayHelloBidirectionalStreamingRequest)(nil),  // 7: api.protobuf.v1.SayHelloBidirectionalStreamingRequest
+	(*SayHelloBidirectionalStreamingResponse)(nil), // 8: api.protobuf.v1.SayHelloBidirectionalStreamingResponse
 }
-var file_api_protobuf_greet_proto_depIdxs = []int32{
-	0, // 0: greet_service.GreetService.SayHello:input_type -> greet_service.NoParam
-	3, // 1: greet_service.GreetService.SayHelloServerStreaming:input_type -> greet_service.NamesList
-	1, // 2: greet_service.GreetService.SayHelloClientStreaming:input_type -> greet_service.HelloRequest
-	1, // 3: greet_service.GreetService.SayHelloBidirectionalStreaming:input_type -> greet_service.HelloRequest
-	2, // 4: greet_service.GreetService.SayHello:output_type -> greet_service.HelloResponse
-	2, // 5: greet_service.GreetService.SayHelloServerStreaming:output_type -> greet_service.HelloResponse
-	4, // 6: greet_service.GreetService.SayHelloClientStreaming:output_type -> greet_service.MessagesList
-	2, // 7: greet_service.GreetService.SayHelloBidirectionalStreaming:output_type -> greet_service.HelloResponse
+var file_api_protobuf_v1_greet_proto_depIdxs = []int32{
+	1, // 0: api.protobuf.v1.GreetService.SayHello:input_type -> api.protobuf.v1.SayHelloRequest
+	3, // 1: api.protobuf.v1.GreetService.SayHelloServerStreaming:input_type -> api.protobuf.v1.SayHelloServerStreamingRequest
+	5, // 2: api.protobuf.v1.GreetService.SayHelloClientStreaming:input_type -> api.protobuf.v1.SayHelloClientStreamingRequest
+	7, // 3: api.protobuf.v1.GreetService.SayHelloBidirectionalStreaming:input_type -> api.protobuf.v1.SayHelloBidirectionalStreamingRequest
+	2, // 4: api.protobuf.v1.GreetService.SayHello:output_type -> api.protobuf.v1.SayHelloResponse
+	4, // 5: api.protobuf.v1.GreetService.SayHelloServerStreaming:output_type -> api.protobuf.v1.SayHelloServerStreamingResponse
+	6, // 6: api.protobuf.v1.GreetService.SayHelloClientStreaming:output_type -> api.protobuf.v1.SayHelloClientStreamingResponse
+	8, // 7: api.protobuf.v1.GreetService.SayHelloBidirectionalStreaming:output_type -> api.protobuf.v1.SayHelloBidirectionalStreamingResponse
 	4, // [4:8] is the sub-list for method output_type
 	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -329,14 +549,14 @@ var file_api_protobuf_greet_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_api_protobuf_greet_proto_init() }
-func file_api_protobuf_greet_proto_init() {
-	if File_api_protobuf_greet_proto != nil {
+func init() { file_api_protobuf_v1_greet_proto_init() }
+func file_api_protobuf_v1_greet_proto_init() {
+	if File_api_protobuf_v1_greet_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_api_protobuf_greet_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NoParam); i {
+		file_api_protobuf_v1_greet_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*NoRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -347,8 +567,8 @@ func file_api_protobuf_greet_proto_init() {
 				return nil
 			}
 		}
-		file_api_protobuf_greet_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HelloRequest); i {
+		file_api_protobuf_v1_greet_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SayHelloRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -359,8 +579,8 @@ func file_api_protobuf_greet_proto_init() {
 				return nil
 			}
 		}
-		file_api_protobuf_greet_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HelloResponse); i {
+		file_api_protobuf_v1_greet_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SayHelloResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -371,8 +591,8 @@ func file_api_protobuf_greet_proto_init() {
 				return nil
 			}
 		}
-		file_api_protobuf_greet_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NamesList); i {
+		file_api_protobuf_v1_greet_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SayHelloServerStreamingRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -383,8 +603,56 @@ func file_api_protobuf_greet_proto_init() {
 				return nil
 			}
 		}
-		file_api_protobuf_greet_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MessagesList); i {
+		file_api_protobuf_v1_greet_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SayHelloServerStreamingResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_protobuf_v1_greet_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SayHelloClientStreamingRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_protobuf_v1_greet_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SayHelloClientStreamingResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_protobuf_v1_greet_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SayHelloBidirectionalStreamingRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_protobuf_v1_greet_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SayHelloBidirectionalStreamingResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -400,18 +668,18 @@ func file_api_protobuf_greet_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_api_protobuf_greet_proto_rawDesc,
+			RawDescriptor: file_api_protobuf_v1_greet_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_api_protobuf_greet_proto_goTypes,
-		DependencyIndexes: file_api_protobuf_greet_proto_depIdxs,
-		MessageInfos:      file_api_protobuf_greet_proto_msgTypes,
+		GoTypes:           file_api_protobuf_v1_greet_proto_goTypes,
+		DependencyIndexes: file_api_protobuf_v1_greet_proto_depIdxs,
+		MessageInfos:      file_api_protobuf_v1_greet_proto_msgTypes,
 	}.Build()
-	File_api_protobuf_greet_proto = out.File
-	file_api_protobuf_greet_proto_rawDesc = nil
-	file_api_protobuf_greet_proto_goTypes = nil
-	file_api_protobuf_greet_proto_depIdxs = nil
+	File_api_protobuf_v1_greet_proto = out.File
+	file_api_protobuf_v1_greet_proto_rawDesc = nil
+	file_api_protobuf_v1_greet_proto_goTypes = nil
+	file_api_protobuf_v1_greet_proto_depIdxs = nil
 }

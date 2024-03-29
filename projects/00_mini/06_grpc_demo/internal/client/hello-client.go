@@ -14,14 +14,14 @@ func CallSayHello(client pb.GreetServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	resp, err := client.SayHello(ctx, &pb.NoParam{})
+	resp, err := client.SayHello(ctx, &pb.SayHelloRequest{})
 	if err != nil {
 		log.Fatalf("Failed to call SayHello: %v", err)
 	}
 	log.Printf("Received response: %v", resp.Message)
 }
 
-func CallSayHelloServerStreaming(client pb.GreetServiceClient, names *pb.NamesList) {
+func CallSayHelloServerStreaming(client pb.GreetServiceClient, names *pb.SayHelloServerStreamingRequest) {
 	log.Printf("Calling SayHelloServerStreaming with names: %v", names.Names)
 
 	stream, err := client.SayHelloServerStreaming(context.Background(), names)
@@ -56,7 +56,9 @@ func CallSayHelloClientStreaming(client pb.GreetServiceClient, names []string) {
 		duration := 2 * time.Second // simulate some processing time
 		time.Sleep(duration)
 
-		req := &pb.HelloRequest{Name: name}
+		req := &pb.SayHelloClientStreamingRequest{
+			Name: name,
+		}
 		if err := stream.Send(req); err != nil {
 			log.Fatalf("Failed to send a name: %v", err)
 		}
@@ -90,7 +92,9 @@ func CallSayHelloBidirectionalStreaming(client pb.GreetServiceClient, names []st
 			duration := 2 * time.Second // simulate some processing time
 			time.Sleep(duration)
 
-			req := &pb.HelloRequest{Name: name}
+			req := &pb.SayHelloBidirectionalStreamingRequest{
+				Name: name,
+			}
 			if err := stream.Send(req); err != nil {
 				log.Fatalf("Failed to send a name: %v", err)
 			}

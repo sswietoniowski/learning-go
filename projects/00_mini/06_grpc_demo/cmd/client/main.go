@@ -25,7 +25,7 @@ func main() {
 
 	client.CallSayHello(c)
 
-	names := &pb.NamesList{
+	names := &pb.SayHelloServerStreamingRequest{
 		Names: []string{"Alice", "Bob", "Charlie"},
 	}
 

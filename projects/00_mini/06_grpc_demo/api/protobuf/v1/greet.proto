@@ -1,0 +1,47 @@
+syntax="proto3";
+
+option go_package = "github.com/sswietoniowski/learning-go/projects/00_mini/06_grpc_demo/internal/common/genproto";
+
+package api.protobuf.v1;
+
+service GreetService {
+    rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
+    rpc SayHelloServerStreaming(SayHelloServerStreamingRequest) returns (stream SayHelloServerStreamingResponse);
+    rpc SayHelloClientStreaming(stream SayHelloClientStreamingRequest) returns (SayHelloClientStreamingResponse);
+    rpc SayHelloBidirectionalStreaming(stream SayHelloBidirectionalStreamingRequest) returns (stream SayHelloBidirectionalStreamingResponse);
+}
+
+message NoRequest {
+}
+
+message SayHelloRequest {
+    string name = 1;
+}
+
+message SayHelloResponse {
+    string message = 1;
+}
+
+message SayHelloServerStreamingRequest {
+    repeated string names = 1;
+}
+
+message SayHelloServerStreamingResponse {
+    string message = 1;
+}
+
+message SayHelloClientStreamingRequest {
+    string name = 1;
+}
+
+message SayHelloClientStreamingResponse {
+    repeated string messages = 1;
+}
+
+message SayHelloBidirectionalStreamingRequest {
+    string name = 1;
+}
+
+message SayHelloBidirectionalStreamingResponse {
+    string message = 1;
+}

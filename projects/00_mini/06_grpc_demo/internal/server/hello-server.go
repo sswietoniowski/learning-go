@@ -13,19 +13,19 @@ type HelloServer struct {
 	pb.GreetServiceServer
 }
 
-func (s *HelloServer) SayHello(ctx context.Context, _ *pb.NoParam) (*pb.HelloResponse, error) {
-	return &pb.HelloResponse{
+func (s *HelloServer) SayHello(ctx context.Context, _ *pb.SayHelloRequest) (*pb.SayHelloResponse, error) {
+	return &pb.SayHelloResponse{
 		Message: "Hello from the gRPC server",
 	}, nil
 }
 
-func (s *HelloServer) SayHelloServerStreaming(req *pb.NamesList, stream pb.GreetService_SayHelloServerStreamingServer) error {
+func (s *HelloServer) SayHelloServerStreaming(req *pb.SayHelloServerStreamingRequest, stream pb.GreetService_SayHelloServerStreamingServer) error {
 	log.Printf("Received request with names: %v", req.Names)
 	for _, name := range req.Names {
 		duration := 2 * time.Second // simulate some processing time
 		time.Sleep(duration)
 
-		res := &pb.HelloResponse{
+		res := &pb.SayHelloServerStreamingResponse{
 			Message: "Hello " + name,
 		}
 		if err := stream.Send(res); err != nil {
@@ -68,7 +68,7 @@ func (s *HelloServer) SayHelloBidirectionalStreaming(stream pb.GreetService_SayH
 		}
 		log.Printf("Received name: %v", req.Name)
 
-		res := &pb.HelloResponse{
+		res := &pb.SayHelloBidirectionalStreamingResponse{
 			Message: "Hello " + req.Name,
 		}
 		if err := stream.Send(res); err != nil {
