@@ -76,3 +76,44 @@ func CallSayHelloClientStreaming(client pb.GreetServiceClient, names []string) {
 		log.Fatalf("Failed to receive a response: %v", err)
 	}
 }
+
+func CallSayHelloBidirectionalStreaming(client pb.GreetServiceClient, names []string) {
+	log.Printf("Calling SayHelloBidirectionalStreaming with names: %v", names)
+
+	stream, err := client.SayHelloBidirectionalStreaming(context.Background())
+	if err != nil {
+		log.Fatalf("Failed to call SayHelloBidirectionalStreaming: %v", err)
+	}
+
+	go func() {
+		for _, name := range names {
+			duration := 2 * time.Second // simulate some processing time
+			time.Sleep(duration)
+
+			req := &pb.HelloRequest{Name: name}
+			if err := stream.Send(req); err != nil {
+				log.Fatalf("Failed to send a name: %v", err)
+			}
+
+			log.Printf("Sent name: %v", name)
+		}
+
+		if err := stream.CloseSend(); err != nil {
+			log.Fatalf("Failed to close the send stream: %v", err)
+		}
+	}()
+
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Failed to receive a response: %v", err)
+		}
+
+		log.Printf("Received message: %v", res.Message)
+	}
+
+	log.Println("Finished receiving messages")
+}

@@ -32,4 +32,6 @@ func main() {
 	client.CallSayHelloServerStreaming(c, names)
 
 	client.CallSayHelloClientStreaming(c, []string{"Alice", "Bob", "Charlie"})
+
+	client.CallSayHelloBidirectionalStreaming(c, []string{"Alice", "Bob", "Charlie"})
 }
