@@ -1,4 +1,4 @@
-syntax="proto3";
+syntax = "proto3";
 
 option go_package = "github.com/sswietoniowski/learning-go/projects/00_mini/06_grpc_demo/internal/common/genproto";
 
