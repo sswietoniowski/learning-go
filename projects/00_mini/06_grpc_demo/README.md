@@ -1,4 +1,4 @@
-# gRPC
+# gRPC Demo
 
 This is a simple gRPC client-server application based on [this](https://grpc.io/docs/languages/go/quickstart/) and [this](https://grpc.io/docs/languages/go/basics/) introduction to gRPC.
 
