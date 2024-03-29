@@ -21,6 +21,7 @@ func (s *HelloServer) SayHello(ctx context.Context, req *pb.SayHelloRequest) (*p
 
 func (s *HelloServer) SayHelloServerStreaming(req *pb.SayHelloServerStreamingRequest, stream pb.GreetService_SayHelloServerStreamingServer) error {
 	log.Printf("Received request with names: %v", req.Names)
+
 	for _, name := range req.Names {
 		duration := 2 * time.Second // simulate some processing time
 		time.Sleep(duration)
@@ -40,7 +41,6 @@ func (s *HelloServer) SayHelloClientStreaming(stream pb.GreetService_SayHelloCli
 	log.Printf("Receiving names from the client...")
 
 	names := []string{}
-
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {
@@ -52,6 +52,7 @@ func (s *HelloServer) SayHelloClientStreaming(stream pb.GreetService_SayHelloCli
 		log.Printf("Received name: %v", req.Name)
 		names = append(names, req.Name)
 	}
+	
 	log.Printf("Received names: %v", names)
 
 	return nil
