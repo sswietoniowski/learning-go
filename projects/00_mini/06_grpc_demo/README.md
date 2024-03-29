@@ -47,6 +47,27 @@ That can be done easily with help of [Homebrew](https://brew.sh/):
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+Before generating Go code from the `.proto` files, you need to install the following Go packages:
+
+```bash
+go get google.golang.org/protobuf/cmd/protoc-gen-go
+go install google.golang.org/protobuf/cmd/protoc-gen-go
+go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+export PATH="$PATH:$(go env GOPATH)/bin"
+```
+
+To generate Go code from the `.proto` files, you can run the following command:
+
+```bash
+protoc \
+  --go_out=./internal/common/genproto \
+  --go_opt=module=github.com/sswietoniowski/learning-go/projects/00_mini/06_grpc_demo/common/genproto \
+  --go-grpc_out=./internal/common/genproto \
+  --go-grpc_opt=module=github.com/sswietoniowski/learning-go/projects/00_mini/06_grpc_demo/common/genproto \
+  ./api/protobuf/*.proto
+```
+
 To run this application, you need to start the server first and then the client. You can do this by running the following commands:
 
 To start the server:

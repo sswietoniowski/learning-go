@@ -1,4 +1,4 @@
-# IDE Setup 2024-02-09
+# IDE Setup 2024-03-29
 
 As far as I know, the best IDE (as of now) for Go is **[GoLand](https://www.jetbrains.com/go/)**. It's a paid IDE, but students and teachers can get a free license.
 
@@ -10,7 +10,7 @@ To learn more about your options, read [this](https://go.dev/wiki/IDEsAndTextEdi
 
 ## Table of Contents
 
-- [IDE Setup 2024-02-09](#ide-setup-2024-02-09)
+- [IDE Setup 2024-03-29](#ide-setup-2024-03-29)
   - [Table of Contents](#table-of-contents)
   - [Install SDK](#install-sdk)
   - [Install Extensions](#install-extensions)
@@ -37,7 +37,8 @@ I've chosen the following ones:
 - **[Go Test Explorer](https://marketplace.visualstudio.com/items?itemName=premparihar.gotestexplorer)**,
 - **[Go Auto Struct Tag](https://marketplace.visualstudio.com/items?itemName=vivaldy22.go-auto-struct-tag)**,
 - **[Go Outliner](https://marketplace.visualstudio.com/items?itemName=766b.go-outliner)**,
-- **[Go Doc](https://marketplace.visualstudio.com/items?itemName=msyrus.go-doc)**.
+- **[Go Doc](https://marketplace.visualstudio.com/items?itemName=msyrus.go-doc)**,
+- [Protobuf (Protocol Buffers)](https://marketplace.visualstudio.com/items?itemName=pbkit.vscode-pbkit).
 
 ## More customizations
 
