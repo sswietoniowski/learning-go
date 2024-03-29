@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"io"
 	"log"
 	"time"
 
@@ -18,4 +19,27 @@ func CallSayHello(client pb.GreetServiceClient) {
 		log.Fatalf("Failed to call SayHello: %v", err)
 	}
 	log.Printf("Received response: %v", resp.Message)
+}
+
+func CallSayHelloServerStreaming(client pb.GreetServiceClient, names *pb.NamesList) {
+	log.Printf("Calling SayHelloServerStreaming with names: %v", names.Names)
+
+	stream, err := client.SayHelloServerStreaming(context.Background(), names)
+	if err != nil {
+		log.Fatalf("Failed to call SayHelloServerStreaming: %v", err)
+	}
+
+	for {
+		message, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Failed to receive a message: %v", err)
+		}
+
+		log.Printf("Received message: %v", message.Message)
+	}
+
+	log.Println("Finished receiving messages")
 }
