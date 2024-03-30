@@ -1,6 +1,6 @@
 # Slack Bot
 
-This is a simple Slack bot.
+This is a simple [Slack](https://slack.com/) bot.
 
 - [Slack Bot](#slack-bot)
   - [Features](#features)
