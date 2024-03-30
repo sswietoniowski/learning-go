@@ -12,7 +12,7 @@ This is a simple [Discord](https://discord.com/) bot.
 
 The bot can be used to automate tasks in a Discord server. It can be used to:
 
-- as of now, respond to the ping message:
+- as of now, respond to the ping message.
 
 ## Technologies
 
