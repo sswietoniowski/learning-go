@@ -12,7 +12,7 @@ This is a simple [Discord](https://discord.com/) bot.
 
 The bot can be used to automate tasks in a Discord server. It can be used to:
 
-- TODO:
+- as of now, respond to the ping message:
 
 ## Technologies
 
@@ -30,9 +30,9 @@ Before running the application, you need to create a `.env` file in the root dir
 DISCORD_BOT_TOKEN=PUT_YOUR_DISCORD_BOT_TOKEN_HERE
 ```
 
-or set the environment variables directly in your environment.
+Or set the environment variables directly in your environment.
 
-To know how to get the `DISCORD_BOT_TOKEN`, please read [this guide](https://www.writebots.com/discord-bot-token/).
+To get the `DISCORD_BOT_TOKEN`, please read [this guide](https://www.writebots.com/discord-bot-token/).
 
 To run this application:
 
@@ -40,15 +40,15 @@ To run this application:
 go build . && ./08_discord_bot
 ```
 
-If you want to add some extra dependencies to the project, you might need to run the following command (as we are using Go modules and vendoring) afterwards:
+If you want to add some extra dependencies to the project, you might need to run the following command (as we are using Go modules and vendoring) afterward:
 
 ```bash
 go mod tidy && go mod vendor
 ```
 
-Provided that you've configured Discord properly, you should be able to interact with the bot in a Discord server.
+Given that you've set up Discord properly, you should be able to interact with the bot in a Discord server.
 
-In my case, I've created a bot called `simple-bot` and I can interact with it by mentioning it in a message.
+In my case, I've created a bot called `simple-bot`, and I can interact with it by mentioning it in a message.
 
 ### Usage
 
