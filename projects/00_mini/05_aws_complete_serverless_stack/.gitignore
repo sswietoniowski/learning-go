@@ -119,8 +119,10 @@ fabric.properties
 .env.local
 
 # Build artifacts
-build/
+build/*
 *.exe
+
+!build/.gitkeep
 
 # LocalStack artifacts
 volume/
