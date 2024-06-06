@@ -71,7 +71,8 @@ Based on these (free) courses & articles:
   - ✅ 📖 [The Go init Function](https://tutorialedge.net/golang/the-go-init-function/),
   - ✅ 📖 [How to Use go:embed in Go](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/),
   - ✅ 📖 [What are UUIDs, and are they better than regular IDs?](https://blog.boot.dev/clean-code/what-are-uuids-and-should-you-use-them/),
-  - ✅ 📖 [Introducing sqlc - Compile SQL queries to type-safe Go](https://conroy.org/introducing-sqlc).
+  - ✅ 📖 [Introducing sqlc - Compile SQL queries to type-safe Go](https://conroy.org/introducing-sqlc),
+  - 🎥 [Software Architecture in Golang: C4 Model for Diagraming and Documentation](https://youtu.be/pZ2z2tZkMsE?si=d2zwMfpyw65eOaZh).
 
 I also used these (paid) courses & books:
 
