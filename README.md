@@ -200,7 +200,8 @@ Some useful tools & other resources:
     - [wit-go](https://github.com/wit-ai/wit-go) - a Go client for the [wit.ai](https://wit.ai/) API,
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
-  - [JSON to Go Struct](https://mholt.github.io/json-to-go/).
+  - [JSON to Go Struct](https://mholt.github.io/json-to-go/),
+  - [podinfo](https://github.com/stefanprodan/podinfo) - Go microservice template for Kubernetes.
 
 ## Extras
 
