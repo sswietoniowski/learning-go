@@ -190,6 +190,8 @@ Some useful tools & other resources:
     - [Confluent's Golang Client for Apache Kafka](https://github.com/confluentinc/confluent-kafka-go) - a Go client for Apache Kafka,
     - [Go RabbitMQ Client Library](https://github.com/rabbitmq/amqp091-go) - a Go client for RabbitMQ,
     - [NATS - Go Client](https://github.com/nats-io/nats.go) - a Go client for the NATS messaging system,
+    - [memphis](https://github.com/superstreamlabs/memphis) - a highly scalable and effortless data streaming platform,
+    - [gazette](https://github.com/gazette/core) - a platform that flexibly mix SQL, batch, and stream processing paradigms,
   - payments:
     - [Go Stripe](https://github.com/stripe/stripe-go) - a Go client for the Stripe API,
   - communication:
