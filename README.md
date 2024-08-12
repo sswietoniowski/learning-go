@@ -180,6 +180,7 @@ Some useful tools & other resources:
     - [protobuf-go](https://github.com/protocolbuffers/protobuf-go) - a Go support for [Google's protocol buffers](https://protobuf.dev/) [📖](https://cloud.google.com/dotnet/docs/reference/Google.Protobuf/latest/Google.Protobuf.WellKnownTypes),
     - [grpc-go](https://github.com/grpc/grpc-go) - a Go implementation of [gRPC](https://grpc.io/),
     - [Buf](https://buf.build/) [:file_folder:](https://github.com/bufbuild/buf) - a new way to work with Protocol Buffers,
+    - [go-retryablehttp](https://github.com/hashicorp/go-retryablehttp) - retryable HTTP client,
   - cloud services:
     - [AWS Lambda for Go](https://github.com/aws/aws-lambda-go) - a Go library for the AWS Lambda service,
     - [AWS SDK for Go](https://github.com/aws/aws-sdk-go) - the official AWS SDK for the Go programming language,
