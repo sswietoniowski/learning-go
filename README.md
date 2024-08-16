@@ -188,6 +188,7 @@ Some useful tools & other resources:
   - microservices:
     - [Go Kit](https://github.com/go-kit/kit) - a toolkit for microservices,
   - messaging:
+    - [Sarama](https://github.com/IBM/sarama) - a Go library for Apache Kafka,
     - [Confluent's Golang Client for Apache Kafka](https://github.com/confluentinc/confluent-kafka-go) - a Go client for Apache Kafka,
     - [Go RabbitMQ Client Library](https://github.com/rabbitmq/amqp091-go) - a Go client for RabbitMQ,
     - [NATS - Go Client](https://github.com/nats-io/nats.go) - a Go client for the NATS messaging system,
