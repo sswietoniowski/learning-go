@@ -104,6 +104,7 @@ I also used these (paid) courses & books:
 - 📖 [Platform Engineering on Kubernetes](https://learning.oreilly.com/library/view/platform-engineering-on/9781617299322/) [:file_folder:](https://github.com/salaboy/from-monolith-to-k8s),
 - 📖 [Bootstrapping Microservices with Docker, Kubernetes, and Terraform](https://learning.oreilly.com/library/view/bootstrapping-microservices-with/9781617297212/) [:file_folder:](https://github.com/bootstrapping-microservices/),
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
+- 📖 [Designing Microservices Platforms with NATS](https://learning.oreilly.com/library/view/designing-microservices-platforms/9781801072212/),
 - 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
   - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
   - ✅ 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files) :+1:,
