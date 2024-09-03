@@ -82,6 +82,7 @@ I also used these (paid) courses & books:
 - 📖 [Learn Concurrent Programming with Go](https://learning.oreilly.com/library/view/learn-concurrent-programming/9781633438385/) [:file_folder:](https://github.com/cutajarj/ConcurrentProgrammingWithGo),
 - 📖 [Test-Driven Development in Go](https://learning.oreilly.com/library/view/test-driven-development-in/9781803247878/) [:file_folder:](https://github.com/PacktPublishing/Test-Driven-Development-in-Go),
 - 🎥 [Advanced Testing and Debugging in Go](https://learning.oreilly.com/course/advanced-testing-and/1100111TESTINGINGO/),
+- 📖 [Effective Go Recipes](https://learning.oreilly.com/library/view/effective-go-recipes/9798888650950/),
 - 📖 [100 Go Mistakes and How to Avoid Them](https://learning.oreilly.com/library/view/100-go-mistakes/9781617299599/) [:file_folder:](https://github.com/teivah/100-go-mistakes),
 - 📖 [Functional Programming in Go](https://learning.oreilly.com/library/view/functional-programming-in/9781801811163/) [📁](https://github.com/PacktPublishing/Functional-Programming-in-Go.),
 - 📖 [Building Modern CLI Applications in Go](https://learning.oreilly.com/library/view/building-modern-cli/9781804611654/) [:file_folder:](https://github.com/PacktPublishing/Building-Modern-CLI-Applications-in-Go),
