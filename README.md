@@ -43,8 +43,8 @@ Based on these (free) courses & articles:
     - ✅ 🎥 AI Bot with Wolfram, Wit.ai [:file_folder:](https://github.com/AkhilSharma90/AI-Bot-GOlang-Wit.ai-Wolfram-Slack),
   - ✅ 🎥 [Go + GRPC](https://youtu.be/a6G5-LUlFO4?si=0WeAPYWBNHGupNiK) [:file_folder:](https://github.com/AkhilSharma90/GO-grpc-demo),
   - 🎥 [Event Driven Programming with GO and Kafka](https://youtu.be/j6bqJKxb2w0?si=bymeGvTf6fk_vsuU) [:file_folder:](https://github.com/AkhilSharma90/GO-Kafka-Example) [:file_folder:](https://github.com/AkhilSharma90/Kafka-GO-Real-Time-Feed) [:file_folder:](https://github.com/AkhilSharma90/GO-Fafka-Grafana-Prometheus-Watermill),
-  - 🎥 [GO + React Chat App](https://youtube.com/playlist?list=PL5dTjWUk_cPbn5duL8qdIncitZ9FDp3RA&si=V3uQ2dkeLw4ZUg6Y) [:file_folder:](https://github.com/AkhilSharma90/GO-React-Fullstack-Chat),
-  - 🎥 [Video Calling Project - Golang + Docker + WebRTC](https://youtube.com/playlist?list=PL5dTjWUk_cPY3_IWNDPTPPfo_OZLPPRi0&si=jJ6VA-Yp5pcWPt6G) [:file_folder:](https://github.com/AkhilSharma90/Videocall-Chat-GO-Project),
+  - ▶️ 🎥 [GO + React Chat App](https://youtube.com/playlist?list=PL5dTjWUk_cPbn5duL8qdIncitZ9FDp3RA&si=V3uQ2dkeLw4ZUg6Y) [:file_folder:](https://github.com/AkhilSharma90/GO-React-Fullstack-Chat),
+  - ▶️ 🎥 [Video Calling Project - Golang + Docker + WebRTC](https://youtube.com/playlist?list=PL5dTjWUk_cPY3_IWNDPTPPfo_OZLPPRi0&si=jJ6VA-Yp5pcWPt6G) [:file_folder:](https://github.com/AkhilSharma90/Videocall-Chat-GO-Project),
   - ✅ 🎥 [GO Discord Bot Project](https://youtu.be/i4nX0s8WHEE?si=-eoHOfcTN3Qcc8R0) [:file_folder:](https://github.com/AkhilSharma90/go-simple-discordbot) [:file_folder:](https://github.com/AkhilSharma90/go-openai-discord-bot),
   - 🎥 [GraphQL + GO + MongoDB](https://youtu.be/Yzh23D31Kq8?si=8yAAChoUCj_ZAq2X) [:file_folder:](https://github.com/AkhilSharma90/GO-GraphQL-MongoDB-CRUD-Project),
   - 🎥 [GO Project - GO + ECHO (Framework) API](https://youtu.be/VSeO9Z026hc?si=1fkIZPmPgVSDzG1p) [:file_folder:](https://github.com/AkhilSharma90/go-echo-CRUD),
@@ -64,7 +64,7 @@ Based on these (free) courses & articles:
   - ✅ 📖 **[Go Developer Roadmap](https://roadmap.sh/golang)**,
   - ✅ 📖 [Learning Go in 2024; From Beginner to Senior](https://www.bytesizego.com/blog/learning-golang-2024),
   - 🎥 [GopherConAU 2023](https://youtube.com/playlist?list=PLN_36A3Rw5hFsJqqs7olOAxxU-WJGlXS0&si=HxF5aiRd-abSMu89):
-    - 🎥 [Rob Pike - What We Got Right, What We Got Wrong](https://youtu.be/yE5Tpp2BSGw?si=wTZPk8VwXTjZ-kgh),
+  - ▶️ 🎥 [Rob Pike - What We Got Right, What We Got Wrong](https://youtu.be/yE5Tpp2BSGw?si=wTZPk8VwXTjZ-kgh),
   - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas),
   - ✅ 📖 [How to Sort Strings With Go Alphabetically in Any Language](https://webdevstation.com/posts/how-to-sort-strings-with-go-alphabetically-in-any-language/),
   - ✅ 🎥 [Go vs Rust: Which To Learn In 2024?](https://youtu.be/LjIe4w_-vzk?si=RHX5mpoQQkcI2VNo) :+1:,
@@ -73,12 +73,14 @@ Based on these (free) courses & articles:
   - ✅ 📖 [How to Use go:embed in Go](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/),
   - ✅ 📖 [What are UUIDs, and are they better than regular IDs?](https://blog.boot.dev/clean-code/what-are-uuids-and-should-you-use-them/),
   - ✅ 📖 [Introducing sqlc - Compile SQL queries to type-safe Go](https://conroy.org/introducing-sqlc),
-  - 🎥 [Software Architecture and System Design in Go/Golang](https://youtube.com/playlist?list=PL7yAAGMOat_GCd12Lrv_evJ3Zhv1dl8B-&si=rxvuR0-MRgfHi4rk).
+  - ▶️ 🎥 [Software Architecture and System Design in Go/Golang](https://youtube.com/playlist?list=PL7yAAGMOat_GCd12Lrv_evJ3Zhv1dl8B-&si=rxvuR0-MRgfHi4rk),
+  - ▶️ 🎥 [Synchronous vs Asynchronous Architecture - NO SILVER BULLET](https://www.youtube.com/live/SRjTQCDpXVo?si=sk72lFCY272F0JKm),
+  - ▶️ 🎥 [Event-Driven Architecture: The Hard Parts - NO SILVER BULLET](https://www.youtube.com/live/iMZpPNQ6ynU?si=OY9JFBNhRJfCq7Gb).
 
 I also used these (paid) courses & books:
 
 - ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25) :+1:,
-- 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
+- ▶️ 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
 - 📖 [Learn Concurrent Programming with Go](https://learning.oreilly.com/library/view/learn-concurrent-programming/9781633438385/) [:file_folder:](https://github.com/cutajarj/ConcurrentProgrammingWithGo),
 - 📖 [Test-Driven Development in Go](https://learning.oreilly.com/library/view/test-driven-development-in/9781803247878/) [:file_folder:](https://github.com/PacktPublishing/Test-Driven-Development-in-Go),
 - 🎥 [Advanced Testing and Debugging in Go](https://learning.oreilly.com/course/advanced-testing-and/1100111TESTINGINGO/),
@@ -98,7 +100,7 @@ I also used these (paid) courses & books:
 - 📖 [gRPC Microservices in Go](https://learning.oreilly.com/library/view/grpc-microservices-in/9781633439207/) [:file_folder:](https://github.com/huseyinbabal/grpc-microservices-in-go),
 - 📖 [Go With The Domain](https://threedots.tech/go-with-the-domain/) [:file_folder:](https://github.com/ThreeDotsLabs/wild-workouts-go-ddd-example) [:file_folder:](https://github.com/sswietoniowski/learning-go-wild-workouts),
 - 📖 [Pro Go: The Complete Guide to Programming Reliable and Efficient Software Using Golang](https://learning.oreilly.com/library/view/pro-go-the/9781484273555/) [:file_folder:](https://github.com/Apress/pro-go),
-- 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
+- ▶️ 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
 - 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
 - 📖 [Hands-On System Programming with Go](https://learning.oreilly.com/library/view/hands-on-system-programming/9781789804072/) [📁](https://github.com/packtpublishing/hands-on-system-programming-with-go),
 - 📖 [Go for DevOps](https://learning.oreilly.com/library/view/go-for-devops/9781801818896/) [📁](https://github.com/PacktPublishing/Go-for-DevOps),
