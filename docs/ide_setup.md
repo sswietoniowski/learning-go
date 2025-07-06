@@ -27,6 +27,12 @@ If you're using Windows and using [Chocolatey](https://chocolatey.org/), you can
 choco install golang
 ```
 
+Alternatively, you can use [WinGet](https://learn.microsoft.com/en-us/windows/package-manager/winget/), like so:
+
+```powershell
+winget install --id=GoLang.Go  -e
+```
+
 ## Install Extensions
 
 To work with Go in Visual Studio Code, you will need to install some extensions.
