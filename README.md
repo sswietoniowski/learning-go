@@ -28,7 +28,6 @@ Based on these (free) courses & articles:
 
 - courses:
   - ✅ 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
-  - ✅ 🎥 [Mastering Go With GoLand](https://www.bytesizego.com/courses/a508e491-8e7b-4f29-9cbb-a374126cecac/view),
   - ✅ 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets) :+1:,
   - ✅ 🎥 [Learn Go Programming by Building 11 Projects – Full Course](https://youtu.be/jFfo23yIWac?si=G5IuLzxacB2ycRkO) :+1::
     - ✅ 🎥 Simple Web Server [:file_folder:](https://github.com/AkhilSharma90/simple-http-server-GO),
@@ -56,6 +55,7 @@ Based on these (free) courses & articles:
   - 🎥 [FULL Introduction To HTMX Using Golang](https://youtu.be/x7v6SNIgJpE?si=9ivyEbxtn59dGb08) [:file_folder:](https://github.com/ThePrimeagen/htmx_golang),
   - 🎥 [Learn By Building: Language Server Protocol](https://youtu.be/YsdlcQoHqPY?si=TNQpB2AOeepfEvWn) 🎥 [LSP Explained (in 5 Minutes)](https://youtu.be/LaS32vctfOY?si=HMykFCbHfeMDUxjK) [:file_folder:](https://github.com/tjdevries/educationalsp),
   - 🎥 [How To Structure Your Go App - Full Course (Hex Arch + Tests)](https://youtu.be/MpFog2kZsHk?si=lnFj5tdgHS7yvfU9),
+  - ✅ 🎥 [Mastering Go With GoLand](https://www.bytesizego.com/courses/a508e491-8e7b-4f29-9cbb-a374126cecac/view),
 - documentation:
   - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
   - ✅ 📖 [Go Blog](https://go.dev/blog/),
