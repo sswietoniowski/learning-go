@@ -28,6 +28,7 @@ Based on these (free) courses & articles:
 
 - courses:
   - ✅ 📖 [Go Tutorial](https://www.w3schools.com/go/index.php),
+  - ✅ 🎥 [Mastering Go With GoLand](https://www.bytesizego.com/courses/a508e491-8e7b-4f29-9cbb-a374126cecac/view),
   - ✅ 🎥 [Go Programming – Golang Course with Bonus Projects](https://youtu.be/un6ZyFkqFKo?si=oSqnFoNOjPHmPjgy) [:file_folder:](https://github.com/bootdotdev/fcc-learn-golang-assets) :+1:,
   - ✅ 🎥 [Learn Go Programming by Building 11 Projects – Full Course](https://youtu.be/jFfo23yIWac?si=G5IuLzxacB2ycRkO) :+1::
     - ✅ 🎥 Simple Web Server [:file_folder:](https://github.com/AkhilSharma90/simple-http-server-GO),
