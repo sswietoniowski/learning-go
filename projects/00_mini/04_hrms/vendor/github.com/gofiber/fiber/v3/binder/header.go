@@ -1,34 +1,35 @@
 package binder
 
 import (
-	"reflect"
-	"strings"
-
 	"github.com/gofiber/utils/v2"
 	"github.com/valyala/fasthttp"
 )
 
-type headerBinding struct{}
+// HeaderBinding is the binder implementation used to populate values from HTTP headers.
+type HeaderBinding struct {
+	EnableSplitting bool
+}
 
-func (*headerBinding) Name() string {
+// Name returns the binding name.
+func (*HeaderBinding) Name() string {
 	return "header"
 }
 
-func (b *headerBinding) Bind(req *fasthttp.Request, out any) error {
+// Bind parses the request header and returns the result.
+func (b *HeaderBinding) Bind(req *fasthttp.Request, out any) error {
 	data := make(map[string][]string)
-	req.Header.VisitAll(func(key, val []byte) {
+	for key, val := range req.Header.All() {
 		k := utils.UnsafeString(key)
 		v := utils.UnsafeString(val)
-
-		if strings.Contains(v, ",") && equalFieldType(out, reflect.Slice, k) {
-			values := strings.Split(v, ",")
-			for i := 0; i < len(values); i++ {
-				data[k] = append(data[k], values[i])
-			}
-		} else {
-			data[k] = append(data[k], v)
+		if err := formatBindData(b.Name(), out, data, k, v, b.EnableSplitting, false); err != nil {
+			return err
 		}
-	})
+	}
 
 	return parse(b.Name(), out, data)
+}
+
+// Reset resets the HeaderBinding binder.
+func (b *HeaderBinding) Reset() {
+	b.EnableSplitting = false
 }

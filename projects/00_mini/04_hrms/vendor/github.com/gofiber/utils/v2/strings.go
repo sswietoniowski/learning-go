@@ -4,24 +4,37 @@
 
 package utils
 
-// ToLower converts ascii string to lower-case
-func ToLower(b string) string {
-	res := make([]byte, len(b))
-	copy(res, b)
-	for i := 0; i < len(res); i++ {
-		res[i] = toLowerTable[res[i]]
-	}
+import (
+	casestrings "github.com/gofiber/utils/v2/strings"
+)
 
-	return UnsafeString(res)
+// ToLower converts ascii string to lower-case.
+//
+// Deprecated: use package "github.com/gofiber/utils/v2/strings" and call strings.ToLower.
+func ToLower(b string) string {
+	return casestrings.ToLower(b)
 }
 
-// ToUpper converts ascii string to upper-case
+// ToUpper converts ascii string to upper-case.
+//
+// Deprecated: use package "github.com/gofiber/utils/v2/strings" and call strings.ToUpper.
 func ToUpper(b string) string {
-	res := make([]byte, len(b))
-	copy(res, b)
-	for i := 0; i < len(res); i++ {
-		res[i] = toUpperTable[res[i]]
-	}
+	return casestrings.ToUpper(b)
+}
 
-	return UnsafeString(res)
+// AddTrailingSlashString appends a trailing '/' to s if it does not already end with one.
+// If the input already ends with '/', the original string is returned.
+// A new string is returned only when a '/' needs to be appended.
+func AddTrailingSlashString(s string) string {
+	n := len(s)
+	if n == 0 {
+		return "/"
+	}
+	if s[n-1] == '/' {
+		return s
+	}
+	buf := make([]byte, n+1)
+	copy(buf, s)
+	buf[n] = '/'
+	return UnsafeString(buf)
 }

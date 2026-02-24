@@ -41,12 +41,13 @@ func NewWriter(dstW io.Writer, newWriter NewWriterFunc) Writer {
 type writer struct {
 	dstW io.Writer
 	zw   Writer
-	xw   xWriter
 
 	err error
-	n   int
+	xw  xWriter
 
-	p  []byte
+	p []byte
+	n int
+
 	op op
 }
 
@@ -61,6 +62,13 @@ const (
 
 func (w *writer) Write(p []byte) (int, error) {
 	w.p = p
+	err := w.do(opWrite)
+	w.p = nil
+	return w.n, err
+}
+
+func (w *writer) WriteString(s string) (int, error) {
+	w.p = s2b(s)
 	err := w.do(opWrite)
 	w.p = nil
 	return w.n, err

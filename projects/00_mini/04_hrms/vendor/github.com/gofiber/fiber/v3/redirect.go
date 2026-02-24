@@ -1,47 +1,101 @@
 // ⚡️ Fiber is an Express inspired web framework written in Go with ☕️
-// 📝 Github Repository: https://github.com/gofiber/fiber
+// 📝 GitHub Repository: https://github.com/gofiber/fiber
 // 📌 API Documentation: https://docs.gofiber.io
 
 package fiber
 
 import (
-	"errors"
-	"strings"
+	"bytes"
+	"encoding/hex"
 	"sync"
 
-	"github.com/gofiber/fiber/v3/binder"
 	"github.com/gofiber/utils/v2"
+	utilsbytes "github.com/gofiber/utils/v2/bytes"
 	"github.com/valyala/bytebufferpool"
+	"github.com/valyala/fasthttp"
+
+	"github.com/gofiber/fiber/v3/binder"
 )
 
 // Pool for redirection
-var redirectPool = sync.Pool{
-	New: func() any {
-		return &Redirect{
-			status:   StatusFound,
-			oldInput: make(map[string]string, 0),
-		}
-	},
-}
-
-// Cookie name to send flash messages when to use redirection.
-const (
-	FlashCookieName     = "fiber_flash"
-	OldInputDataPrefix  = "old_input_data_"
-	CookieDataSeparator = ","
-	CookieDataAssigner  = ":"
+var (
+	redirectPool = sync.Pool{
+		New: func() any {
+			return &Redirect{
+				status:   StatusSeeOther,
+				messages: make(redirectionMsgs, 0),
+			}
+		},
+	}
+	oldInputPool = sync.Pool{
+		New: func() any {
+			return make(map[string]string)
+		},
+	}
 )
 
-// Redirect is a struct to use it with Ctx.
-type Redirect struct {
-	c      *DefaultCtx // Embed ctx
-	status int         // Status code of redirection. Default: StatusFound
+const maxPoolableMapSize = 64
 
-	messages []string          // Flash messages
-	oldInput map[string]string // Old input data
+// FlashCookieName Cookie name to send flash messages when to use redirection.
+const (
+	FlashCookieName = "fiber_flash"
+)
+
+var flashCookieNeedle = []byte(FlashCookieName + "=")
+
+// hasFlashCookie is on the request hot path and runs on every request/response cycle.
+// Keep this cheap for users who don't use flash messages:
+// 1) a fast raw-header prefilter to avoid unnecessary cookie parsing,
+// 2) an exact cookie lookup to avoid prefix false positives (e.g. fiber_flashX).
+func hasFlashCookie(header *fasthttp.RequestHeader) bool {
+	rawHeaders := header.RawHeaders()
+	if len(rawHeaders) == 0 {
+		return false
+	}
+
+	if !bytes.Contains(rawHeaders, flashCookieNeedle) {
+		return false
+	}
+
+	return header.Cookie(FlashCookieName) != nil
 }
 
-// A config to use with Redirect().Route()
+// redirectionMsgs is a struct that used to store flash messages and old input data in cookie using MSGP.
+// msgp -file="redirect.go" -o="redirect_msgp.go" -unexported
+// Cookie payloads are limited to ~4KB, so keep flash message counts bounded but usable.
+//
+//msgp:limit arrays:256 maps:32 marshal:true
+//msgp:ignore Redirect RedirectConfig OldInputData FlashMessage
+type redirectionMsg struct {
+	key        string
+	value      string
+	level      uint8
+	isOldInput bool
+}
+
+type redirectionMsgs []redirectionMsg
+
+// OldInputData is a struct that holds the old input data.
+type OldInputData struct {
+	Key   string
+	Value string
+}
+
+// FlashMessage is a struct that holds the flash message data.
+type FlashMessage struct {
+	Key   string
+	Value string
+	Level uint8
+}
+
+// Redirect is a struct that holds the redirect data.
+type Redirect struct {
+	c        *DefaultCtx     // Embed ctx
+	messages redirectionMsgs // Flash messages and old input data
+	status   int             // Status code of redirection. Default: 303 StatusSeeOther
+}
+
+// RedirectConfig A config to use with Redirect().Route()
 // You can specify queries or route parameters.
 // NOTE: We don't use net/url to parse parameters because of it has poor performance. You have to pass map.
 type RedirectConfig struct {
@@ -53,7 +107,7 @@ type RedirectConfig struct {
 func AcquireRedirect() *Redirect {
 	redirect, ok := redirectPool.Get().(*Redirect)
 	if !ok {
-		panic(errors.New("failed to type-assert to *Redirect"))
+		panic(errRedirectTypeAssertion)
 	}
 
 	return redirect
@@ -61,7 +115,7 @@ func AcquireRedirect() *Redirect {
 
 // ReleaseRedirect returns c acquired via Redirect to redirect pool.
 //
-// It is forbidden accessing req and/or its' members after returning
+// It is forbidden accessing req and/or its members after returning
 // it to redirect pool.
 func ReleaseRedirect(r *Redirect) {
 	r.release()
@@ -69,118 +123,213 @@ func ReleaseRedirect(r *Redirect) {
 }
 
 func (r *Redirect) release() {
-	r.status = 302
+	r.status = StatusSeeOther
 	r.messages = r.messages[:0]
-	// reset map
-	for k := range r.oldInput {
-		delete(r.oldInput, k)
-	}
 	r.c = nil
 }
 
+func acquireOldInput() map[string]string {
+	oldInput, ok := oldInputPool.Get().(map[string]string)
+	if !ok {
+		return make(map[string]string)
+	}
+
+	return oldInput
+}
+
+func releaseOldInput(oldInput map[string]string) {
+	if len(oldInput) > maxPoolableMapSize {
+		return
+	}
+
+	clear(oldInput)
+	oldInputPool.Put(oldInput)
+}
+
 // Status sets the status code of redirection.
-// If status is not specified, status defaults to 302 Found.
+// If status is not specified, status defaults to 303 See Other.
 func (r *Redirect) Status(code int) *Redirect {
 	r.status = code
 
 	return r
 }
 
-// You can send flash messages by using With().
+// With You can send flash messages by using With().
 // They will be sent as a cookie.
 // You can get them by using: Redirect().Messages(), Redirect().Message()
 // Note: You must use escape char before using ',' and ':' chars to avoid wrong parsing.
-func (r *Redirect) With(key, value string) *Redirect {
-	r.messages = append(r.messages, key+CookieDataAssigner+value)
+func (r *Redirect) With(key, value string, level ...uint8) *Redirect {
+	// Get level
+	var msgLevel uint8
+	if len(level) > 0 {
+		msgLevel = level[0]
+	}
+
+	// Override old message if exists
+	for i, msg := range r.messages {
+		if msg.key == key && !msg.isOldInput {
+			r.messages[i].value = value
+			r.messages[i].level = msgLevel
+
+			return r
+		}
+	}
+
+	r.messages = append(r.messages, redirectionMsg{
+		key:   key,
+		value: value,
+		level: msgLevel,
+	})
 
 	return r
 }
 
-// You can send input data by using WithInput().
+// WithInput You can send input data by using WithInput().
 // They will be sent as a cookie.
 // This method can send form, multipart form, query data to redirected route.
 // You can get them by using: Redirect().OldInputs(), Redirect().OldInput()
 func (r *Redirect) WithInput() *Redirect {
 	// Get content-type
-	ctype := utils.ToLower(utils.UnsafeString(r.c.Context().Request.Header.ContentType()))
+	ctype := utils.UnsafeString(utilsbytes.UnsafeToLower(r.c.RequestCtx().Request.Header.ContentType()))
 	ctype = binder.FilterFlags(utils.ParseVendorSpecificContentType(ctype))
 
+	oldInput := acquireOldInput()
+	defer releaseOldInput(oldInput)
+
 	switch ctype {
-	case MIMEApplicationForm:
-		_ = r.c.Bind().Form(r.oldInput) //nolint:errcheck // not needed
-	case MIMEMultipartForm:
-		_ = r.c.Bind().MultipartForm(r.oldInput) //nolint:errcheck // not needed
+	case MIMEApplicationForm, MIMEMultipartForm:
+		_ = r.c.Bind().Form(oldInput) //nolint:errcheck // not needed
 	default:
-		_ = r.c.Bind().Query(r.oldInput) //nolint:errcheck // not needed
+		_ = r.c.Bind().Query(oldInput) //nolint:errcheck // not needed
+	}
+
+	// Add old input data
+	for k, v := range oldInput {
+		r.messages = append(r.messages, redirectionMsg{
+			key:        k,
+			value:      v,
+			isOldInput: true,
+		})
 	}
 
 	return r
 }
 
-// Get flash messages.
-func (r *Redirect) Messages() map[string]string {
-	msgs := r.c.redirectionMessages
-	flashMessages := make(map[string]string, len(msgs))
-
-	for _, msg := range msgs {
-		k, v := parseMessage(msg)
-
-		if !strings.HasPrefix(k, OldInputDataPrefix) {
-			flashMessages[k] = v
-		}
+// Messages Get flash messages.
+func (r *Redirect) Messages() []FlashMessage {
+	if len(r.c.flashMessages) == 0 {
+		return nil
 	}
+
+	flashMessages := make([]FlashMessage, 0, len(r.c.flashMessages))
+	writeIdx := 0
+
+	for _, msg := range r.c.flashMessages {
+		if msg.isOldInput {
+			r.c.flashMessages[writeIdx] = msg
+			writeIdx++
+			continue
+		}
+
+		flashMessages = append(flashMessages, FlashMessage{
+			Key:   msg.key,
+			Value: msg.value,
+			Level: msg.level,
+		})
+	}
+
+	for i := writeIdx; i < len(r.c.flashMessages); i++ {
+		r.c.flashMessages[i] = redirectionMsg{}
+	}
+
+	r.c.flashMessages = r.c.flashMessages[:writeIdx]
 
 	return flashMessages
 }
 
-// Get flash message by key.
-func (r *Redirect) Message(key string) string {
-	msgs := r.c.redirectionMessages
-
-	for _, msg := range msgs {
-		k, v := parseMessage(msg)
-
-		if !strings.HasPrefix(k, OldInputDataPrefix) && k == key {
-			return v
-		}
+// Message Get flash message by key.
+func (r *Redirect) Message(key string) FlashMessage {
+	if len(r.c.flashMessages) == 0 {
+		return FlashMessage{}
 	}
-	return ""
+
+	var flashMessage FlashMessage
+	found := false
+	writeIdx := 0
+
+	for _, msg := range r.c.flashMessages {
+		if msg.isOldInput || found || msg.key != key {
+			r.c.flashMessages[writeIdx] = msg
+			writeIdx++
+			continue
+		}
+
+		flashMessage = FlashMessage{
+			Key:   msg.key,
+			Value: msg.value,
+			Level: msg.level,
+		}
+		found = true
+	}
+
+	for i := writeIdx; i < len(r.c.flashMessages); i++ {
+		r.c.flashMessages[i] = redirectionMsg{}
+	}
+
+	r.c.flashMessages = r.c.flashMessages[:writeIdx]
+
+	return flashMessage
 }
 
-// Get old input data.
-func (r *Redirect) OldInputs() map[string]string {
-	msgs := r.c.redirectionMessages
-	oldInputs := make(map[string]string, len(msgs))
-
-	for _, msg := range msgs {
-		k, v := parseMessage(msg)
-
-		if strings.HasPrefix(k, OldInputDataPrefix) {
-			// remove "old_input_data_" part from key
-			oldInputs[k[len(OldInputDataPrefix):]] = v
+// OldInputs Get old input data.
+func (r *Redirect) OldInputs() []OldInputData {
+	// Count old inputs first to avoid allocation if none exist
+	count := 0
+	for _, msg := range r.c.flashMessages {
+		if msg.isOldInput {
+			count++
 		}
 	}
-	return oldInputs
-}
 
-// Get old input data by key.
-func (r *Redirect) OldInput(key string) string {
-	msgs := r.c.redirectionMessages
+	if count == 0 {
+		return nil
+	}
 
-	for _, msg := range msgs {
-		k, v := parseMessage(msg)
-
-		if strings.HasPrefix(k, OldInputDataPrefix) && k[len(OldInputDataPrefix):] == key {
-			return v
+	inputs := make([]OldInputData, 0, count)
+	for _, msg := range r.c.flashMessages {
+		if msg.isOldInput {
+			inputs = append(inputs, OldInputData{
+				Key:   msg.key,
+				Value: msg.value,
+			})
 		}
 	}
-	return ""
+
+	return inputs
 }
 
-// Redirect to the URL derived from the specified path, with specified status.
+// OldInput Get old input data by key.
+func (r *Redirect) OldInput(key string) OldInputData {
+	msgs := r.c.flashMessages
+
+	for _, msg := range msgs {
+		if msg.key == key && msg.isOldInput {
+			return OldInputData{
+				Key:   msg.key,
+				Value: msg.value,
+			}
+		}
+	}
+
+	return OldInputData{}
+}
+
+// To redirect to the URL derived from the specified path, with specified status.
 func (r *Redirect) To(location string) error {
 	r.c.setCanonical(HeaderLocation, location)
 	r.c.Status(r.status)
+
+	r.processFlashMessages()
 
 	return nil
 }
@@ -195,41 +344,10 @@ func (r *Redirect) Route(name string, config ...RedirectConfig) error {
 	}
 
 	// Get location from route name
-	location, err := r.c.getLocationFromRoute(r.c.App().GetRoute(name), cfg.Params)
+	route := r.c.App().GetRoute(name)
+	location, err := r.c.getLocationFromRoute(&route, cfg.Params)
 	if err != nil {
 		return err
-	}
-
-	// Flash messages
-	if len(r.messages) > 0 || len(r.oldInput) > 0 {
-		messageText := bytebufferpool.Get()
-		defer bytebufferpool.Put(messageText)
-
-		// flash messages
-		for i, message := range r.messages {
-			messageText.WriteString(message)
-			// when there are more messages or oldInput -> add a comma
-			if len(r.messages)-1 != i || (len(r.messages)-1 == i && len(r.oldInput) > 0) {
-				messageText.WriteString(CookieDataSeparator)
-			}
-		}
-		r.messages = r.messages[:0]
-
-		// old input data
-		i := 1
-		for k, v := range r.oldInput {
-			messageText.WriteString(OldInputDataPrefix + k + CookieDataAssigner + v)
-			if len(r.oldInput) != i {
-				messageText.WriteString(CookieDataSeparator)
-			}
-			i++
-		}
-
-		r.c.Cookie(&Cookie{
-			Name:        FlashCookieName,
-			Value:       r.c.app.getString(messageText.Bytes()),
-			SessionOnly: true,
-		})
 	}
 
 	// Check queries
@@ -237,23 +355,24 @@ func (r *Redirect) Route(name string, config ...RedirectConfig) error {
 		queryText := bytebufferpool.Get()
 		defer bytebufferpool.Put(queryText)
 
-		i := 1
+		first := true
 		for k, v := range cfg.Queries {
-			queryText.WriteString(k + "=" + v)
-
-			if i != len(cfg.Queries) {
-				queryText.WriteString("&")
+			if !first {
+				queryText.WriteByte('&')
 			}
-			i++
+			first = false
+			queryText.WriteString(k)
+			queryText.WriteByte('=')
+			queryText.WriteString(v)
 		}
 
-		return r.To(location + "?" + r.c.app.getString(queryText.Bytes()))
+		return r.To(location + "?" + r.c.app.toString(queryText.Bytes()))
 	}
 
 	return r.To(location)
 }
 
-// Redirect back to the URL to referer.
+// Back redirect to the URL to referer.
 func (r *Redirect) Back(fallback ...string) error {
 	location := r.c.Get(HeaderReferer)
 	if location == "" {
@@ -270,30 +389,45 @@ func (r *Redirect) Back(fallback ...string) error {
 	return r.To(location)
 }
 
-// setFlash is a method to get flash messages before removing them
-func (r *Redirect) setFlash() {
+// parseAndClearFlashMessages is a method to get flash messages before they are getting removed
+func (r *Redirect) parseAndClearFlashMessages() {
 	// parse flash messages
-	cookieValue := r.c.Cookies(FlashCookieName)
-
-	var commaPos int
-	for {
-		commaPos = findNextNonEscapedCharsetPosition(cookieValue, []byte(CookieDataSeparator))
-		if commaPos != -1 {
-			r.c.redirectionMessages = append(r.c.redirectionMessages, strings.Trim(cookieValue[:commaPos], " "))
-			cookieValue = cookieValue[commaPos+1:]
-		} else {
-			r.c.redirectionMessages = append(r.c.redirectionMessages, strings.Trim(cookieValue, " "))
-			break
-		}
+	cookieValue, err := hex.DecodeString(r.c.Cookies(FlashCookieName))
+	if err != nil {
+		return
 	}
 
-	r.c.ClearCookie(FlashCookieName)
+	_, err = r.c.flashMessages.UnmarshalMsg(cookieValue)
+	if err != nil {
+		return
+	}
+
+	r.c.Cookie(&Cookie{
+		Name:   FlashCookieName,
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
 }
 
-func parseMessage(raw string) (string, string) { //nolint: revive // not necessary
-	if i := findNextNonEscapedCharsetPosition(raw, []byte(CookieDataAssigner)); i != -1 {
-		return RemoveEscapeChar(raw[:i]), RemoveEscapeChar(raw[i+1:])
+// processFlashMessages is a helper function to process flash messages and old input data
+// and set them as cookies
+func (r *Redirect) processFlashMessages() {
+	if len(r.messages) == 0 {
+		return
 	}
 
-	return RemoveEscapeChar(raw), ""
+	val, err := r.messages.MarshalMsg(nil)
+	if err != nil {
+		return
+	}
+
+	dst := make([]byte, hex.EncodedLen(len(val)))
+	hex.Encode(dst, val)
+
+	r.c.Cookie(&Cookie{
+		Name:        FlashCookieName,
+		Value:       r.c.app.toString(dst),
+		SessionOnly: true,
+	})
 }

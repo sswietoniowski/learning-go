@@ -1,5 +1,5 @@
 // ⚡️ Fiber is an Express inspired web framework written in Go with ☕️
-// 🤖 Github Repository: https://github.com/gofiber/fiber
+// 🤖 GitHub Repository: https://github.com/gofiber/fiber
 // 📌 API Documentation: https://docs.gofiber.io
 
 // Package fiber is an Express inspired web framework built on top of Fasthttp,
@@ -14,53 +14,33 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"unsafe"
 
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/utils/v2"
-
 	"github.com/valyala/fasthttp"
+
+	"github.com/gofiber/fiber/v3/binder"
+	"github.com/gofiber/fiber/v3/log"
 )
 
 // Version of current fiber package
-const Version = "3.0.0-beta.1"
+const Version = "3.1.0"
 
 // Handler defines a function to serve HTTP requests.
 type Handler = func(Ctx) error
 
 // Map is a shortcut for map[string]any, useful for JSON returns
 type Map map[string]any
-
-// Storage interface for communicating with different database/key-value
-// providers
-type Storage interface {
-	// Get gets the value for the given key.
-	// `nil, nil` is returned when the key does not exist
-	Get(key string) ([]byte, error)
-
-	// Set stores the given value for the given key along
-	// with an expiration value, 0 means no expiration.
-	// Empty key or value will be ignored without an error.
-	Set(key string, val []byte, exp time.Duration) error
-
-	// Delete deletes the value for the given key.
-	// It returns no error if the storage does not contain the key,
-	Delete(key string) error
-
-	// Reset resets the storage and delete all keys.
-	Reset() error
-
-	// Close closes the storage and will stop any running garbage
-	// collectors and open connections.
-	Close() error
-}
 
 // ErrorHandler defines a function that will process all errors
 // returned from any handlers in the stack
@@ -80,53 +60,59 @@ type ErrorHandler = func(Ctx, error) error
 
 // Error represents an error that occurred while handling a request.
 type Error struct {
-	Code    int    `json:"code"`
 	Message string `json:"message"`
+	Code    int    `json:"code"`
 }
 
 // App denotes the Fiber application.
 type App struct {
-	mutex sync.Mutex
-	// Route stack divided by HTTP methods
-	stack [][]*Route
-	// Route stack divided by HTTP methods and route prefixes
-	treeStack []map[string][]*Route
-	// contains the information if the route stack has been changed to build the optimized tree
-	routesRefreshed bool
-	// Amount of registered routes
-	routesCount uint32
-	// Amount of registered handlers
-	handlersCount uint32
+	// App config
+	config Config
+	// Indicates if the value was explicitly configured
+	configured Config
 	// Ctx pool
 	pool sync.Pool
 	// Fasthttp server
 	server *fasthttp.Server
-	// App config
-	config Config
 	// Converts string to a byte slice
-	getBytes func(s string) (b []byte)
+	toBytes func(s string) (b []byte)
 	// Converts byte slice to a string
-	getString func(b []byte) string
+	toString func(b []byte) string
 	// Hooks
 	hooks *Hooks
 	// Latest route & group
 	latestRoute *Route
 	// newCtxFunc
 	newCtxFunc func(app *App) CustomCtx
-	// custom binders
-	customBinders []CustomBinder
 	// TLS handler
 	tlsHandler *TLSHandler
 	// Mount fields
 	mountFields *mountFields
-	// Indicates if the value was explicitly configured
-	configured Config
+	// state management
+	state *State
+	// Route stack divided by HTTP methods
+	stack [][]*Route
 	// customConstraints is a list of external constraints
 	customConstraints []CustomConstraint
+	// sendfiles stores configurations for handling ctx.SendFile operations
+	sendfiles []*sendFileStore
+	// custom binders
+	customBinders []CustomBinder
+	// Route stack divided by HTTP methods and route prefixes
+	treeStack []map[int][]*Route
+	// sendfilesMutex is a mutex used for sendfile operations
+	sendfilesMutex sync.RWMutex
+	mutex          sync.Mutex
+	// Amount of registered handlers
+	handlersCount uint32
+	// contains the information if the route stack has been changed to build the optimized tree
+	routesRefreshed bool
+	// hasCustomCtx tracks whether app uses a custom context implementation
+	hasCustomCtx bool
 }
 
 // Config is a struct holding the server settings.
-type Config struct {
+type Config struct { //nolint:govet // Aligning the struct fields is not necessary. betteralign:ignore
 	// Enables the "Server: value" HTTP header.
 	//
 	// Default: ""
@@ -138,12 +124,18 @@ type Config struct {
 	// Default: false
 	StrictRouting bool `json:"strict_routing"`
 
-	// When set to true, enables case sensitive routing.
+	// When set to true, enables case-sensitive routing.
 	// E.g. "/FoO" and "/foo" are treated as different routes.
 	// By default this is disabled and both "/FoO" and "/foo" will execute the same handler.
 	//
 	// Default: false
 	CaseSensitive bool `json:"case_sensitive"`
+
+	// When set to true, disables automatic registration of HEAD routes for
+	// every GET route.
+	//
+	// Default: false
+	DisableHeadAutoRegister bool `json:"disable_head_auto_register"`
 
 	// When set to true, this relinquishes the 0-allocation promise in certain
 	// cases in order to access the handler values (e.g. request bodies) in an
@@ -162,10 +154,16 @@ type Config struct {
 	UnescapePath bool `json:"unescape_path"`
 
 	// Max body size that the server accepts.
-	// -1 will decline any body size
+	// Zero or negative values fall back to the default limit.
 	//
 	// Default: 4 * 1024 * 1024
 	BodyLimit int `json:"body_limit"`
+
+	// MaxRanges sets the maximum number of ranges parsed from a Range header.
+	// Zero or negative values fall back to the default limit.
+	//
+	// Default: 16
+	MaxRanges int `json:"max_ranges"`
 
 	// Maximum number of concurrent connections.
 	//
@@ -186,6 +184,14 @@ type Config struct {
 	//
 	// Default: false
 	PassLocalsToViews bool `json:"pass_locals_to_views"`
+
+	// PassLocalsToContext controls whether StoreInContext also propagates values to
+	// the request context.Context for Fiber-backed contexts.
+	//
+	// ValueFromContext for Fiber-backed contexts always reads from c.Locals().
+	//
+	// Default: false
+	PassLocalsToContext bool `json:"pass_locals_to_context"`
 
 	// The amount of time allowed to read the full request including body.
 	// It is reset after the request handler has returned.
@@ -219,11 +225,11 @@ type Config struct {
 	// Default: 4096
 	WriteBufferSize int `json:"write_buffer_size"`
 
-	// CompressedFileSuffix adds suffix to the original file name and
+	// CompressedFileSuffixes adds suffix to the original file name and
 	// tries saving the resulting compressed file under the new file name.
 	//
-	// Default: ".fiber.gz"
-	CompressedFileSuffix string `json:"compressed_file_suffix"`
+	// Default: map[string]string{"gzip": ".fiber.gz", "br": ".fiber.br", "zstd": ".fiber.zst"}
+	CompressedFileSuffixes map[string]string `json:"compressed_file_suffixes"`
 
 	// ProxyHeader will enable c.IP() to return the value of the given header key
 	// By default c.IP() will return the Remote IP from the TCP connection
@@ -276,6 +282,8 @@ type Config struct {
 	// StreamRequestBody enables request body streaming,
 	// and calls the handler sooner when given body is
 	// larger than the current limit.
+	//
+	// Default: false
 	StreamRequestBody bool
 
 	// Will not pre parse Multipart Form data if set to true.
@@ -284,6 +292,8 @@ type Config struct {
 	// multipart form data as a binary blob, or choose when to parse the data.
 	//
 	// Server pre parses multipart form data by default.
+	//
+	// Default: false
 	DisablePreParseMultipartForm bool
 
 	// Aggressively reduces memory usage at the cost of higher CPU usage
@@ -295,14 +305,6 @@ type Config struct {
 	//
 	// Default: false
 	ReduceMemoryUsage bool `json:"reduce_memory_usage"`
-
-	// FEATURE: v2.3.x
-	// The router executes the same handler by default if StrictRouting or CaseSensitive is disabled.
-	// Enabling RedirectFixedPath will change this behavior into a client redirect to the original route path.
-	// Using the status code 301 for GET requests and 308 for all other request methods.
-	//
-	// Default: false
-	// RedirectFixedPath bool
 
 	// When set by an external client of Fiber it will use the provided implementation of a
 	// JSONMarshal
@@ -318,6 +320,34 @@ type Config struct {
 	// Default: json.Unmarshal
 	JSONDecoder utils.JSONUnmarshal `json:"-"`
 
+	// When set by an external client of Fiber it will use the provided implementation of a
+	// MsgPackMarshal
+	//
+	// Allowing for flexibility in using another msgpack library for encoding
+	// Default: binder.UnimplementedMsgpackMarshal
+	MsgPackEncoder utils.MsgPackMarshal `json:"-"`
+
+	// When set by an external client of Fiber it will use the provided implementation of a
+	// MsgPackUnmarshal
+	//
+	// Allowing for flexibility in using another msgpack library for decoding
+	// Default: binder.UnimplementedMsgpackUnmarshal
+	MsgPackDecoder utils.MsgPackUnmarshal `json:"-"`
+
+	// When set by an external client of Fiber it will use the provided implementation of a
+	// CBORMarshal
+	//
+	// Allowing for flexibility in using another cbor library for encoding
+	// Default: binder.UnimplementedCborMarshal
+	CBOREncoder utils.CBORMarshal `json:"-"`
+
+	// When set by an external client of Fiber it will use the provided implementation of a
+	// CBORUnmarshal
+	//
+	// Allowing for flexibility in using another cbor library for decoding
+	// Default: binder.UnimplementedCborUnmarshal
+	CBORDecoder utils.CBORUnmarshal `json:"-"`
+
 	// XMLEncoder set by an external client of Fiber it will use the provided implementation of a
 	// XMLMarshal
 	//
@@ -325,34 +355,43 @@ type Config struct {
 	// Default: xml.Marshal
 	XMLEncoder utils.XMLMarshal `json:"-"`
 
+	// XMLDecoder set by an external client of Fiber it will use the provided implementation of a
+	// XMLUnmarshal
+	//
+	// Allowing for flexibility in using another XML library for decoding
+	// Default: xml.Unmarshal
+	XMLDecoder utils.XMLUnmarshal `json:"-"`
+
 	// If you find yourself behind some sort of proxy, like a load balancer,
 	// then certain header information may be sent to you using special X-Forwarded-* headers or the Forwarded header.
 	// For example, the Host HTTP header is usually used to return the requested host.
 	// But when you’re behind a proxy, the actual host may be stored in an X-Forwarded-Host header.
 	//
-	// If you are behind a proxy, you should enable TrustedProxyCheck to prevent header spoofing.
-	// If you enable EnableTrustedProxyCheck and leave TrustedProxies empty Fiber will skip
+	// If you are behind a proxy, you should enable TrustProxy to prevent header spoofing.
+	// If you enable TrustProxy and do not provide a TrustProxyConfig, Fiber will skip
 	// all headers that could be spoofed.
-	// If request ip in TrustedProxies whitelist then:
+	// If the request IP is in the TrustProxyConfig.Proxies allowlist, then:
 	//   1. c.Scheme() get value from X-Forwarded-Proto, X-Forwarded-Protocol, X-Forwarded-Ssl or X-Url-Scheme header
 	//   2. c.IP() get value from ProxyHeader header.
 	//   3. c.Host() and c.Hostname() get value from X-Forwarded-Host header
-	// But if request ip NOT in Trusted Proxies whitelist then:
-	//   1. c.Scheme() WON't get value from X-Forwarded-Proto, X-Forwarded-Protocol, X-Forwarded-Ssl or X-Url-Scheme header,
-	//    will return https in case when tls connection is handled by the app, of http otherwise
+	// But if the request IP is NOT in the TrustProxyConfig.Proxies allowlist, then:
+	//   1. c.Scheme() WON'T get value from X-Forwarded-Proto, X-Forwarded-Protocol, X-Forwarded-Ssl or X-Url-Scheme header,
+	//    will return https when a TLS connection is handled by the app, or http otherwise.
 	//   2. c.IP() WON'T get value from ProxyHeader header, will return RemoteIP() from fasthttp context
 	//   3. c.Host() and c.Hostname() WON'T get value from X-Forwarded-Host header, fasthttp.Request.URI().Host()
 	//    will be used to get the hostname.
 	//
-	// Default: false
-	EnableTrustedProxyCheck bool `json:"enable_trusted_proxy_check"`
-
-	// Read EnableTrustedProxyCheck doc.
+	// To automatically trust all loopback, link-local, or private IP addresses,
+	// without manually adding them to the TrustProxyConfig.Proxies allowlist,
+	// you can set TrustProxyConfig.Loopback, TrustProxyConfig.LinkLocal, or TrustProxyConfig.Private to true.
 	//
-	// Default: []string
-	TrustedProxies     []string `json:"trusted_proxies"`
-	trustedProxiesMap  map[string]struct{}
-	trustedProxyRanges []*net.IPNet
+	// Default: false
+	TrustProxy bool `json:"trust_proxy"`
+
+	// Read TrustProxy doc.
+	//
+	// Default: DefaultTrustProxyConfig
+	TrustProxyConfig TrustProxyConfig `json:"trust_proxy_config"`
 
 	// If set to true, c.IP() and c.IPs() will validate IP addresses before returning them.
 	// Also, c.IP() will return only the first valid IP rather than just the raw header
@@ -372,7 +411,7 @@ type Config struct {
 	// Default: nil
 	StructValidator StructValidator
 
-	// RequestMethods provides customizibility for HTTP methods. You can add/remove methods as you wish.
+	// RequestMethods provides customizability for HTTP methods. You can add/remove methods as you wish.
 	//
 	// Optional. Default: DefaultMethods
 	RequestMethods []string
@@ -383,52 +422,57 @@ type Config struct {
 	//
 	// Optional. Default: false
 	EnableSplittingOnParsers bool `json:"enable_splitting_on_parsers"`
+
+	// Services is a list of services that are used by the app (e.g. databases, caches, etc.)
+	//
+	// Optional. Default: a zero value slice
+	Services []Service
+
+	// ServicesStartupContextProvider is a context provider for the startup of the services.
+	//
+	// Optional. Default: a provider that returns context.Background()
+	ServicesStartupContextProvider func() context.Context
+
+	// ServicesShutdownContextProvider is a context provider for the shutdown of the services.
+	//
+	// Optional. Default: a provider that returns context.Background()
+	ServicesShutdownContextProvider func() context.Context
 }
 
-// Static defines configuration options when defining static assets.
-type Static struct {
-	// When set to true, the server tries minimizing CPU usage by caching compressed files.
-	// This works differently than the github.com/gofiber/compression middleware.
-	// Optional. Default value false
-	Compress bool `json:"compress"`
+// Default TrustProxyConfig
+var DefaultTrustProxyConfig = TrustProxyConfig{}
 
-	// When set to true, enables byte range requests.
-	// Optional. Default value false
-	ByteRange bool `json:"byte_range"`
+// TrustProxyConfig is a struct for configuring trusted proxies if Config.TrustProxy is true.
+type TrustProxyConfig struct {
+	ips map[string]struct{}
 
-	// When set to true, enables directory browsing.
-	// Optional. Default value false.
-	Browse bool `json:"browse"`
-
-	// When set to true, enables direct download.
-	// Optional. Default value false.
-	Download bool `json:"download"`
-
-	// The name of the index file for serving a directory.
-	// Optional. Default value "index.html".
-	Index string `json:"index"`
-
-	// Expiration duration for inactive file handlers.
-	// Use a negative time.Duration to disable it.
+	// Proxies is a list of trusted proxy IP addresses or CIDR ranges.
 	//
-	// Optional. Default value 10 * time.Second.
-	CacheDuration time.Duration `json:"cache_duration"`
+	// Default: []string
+	Proxies []string `json:"proxies"`
 
-	// The value for the Cache-Control HTTP-header
-	// that is set on the file response. MaxAge is defined in seconds.
-	//
-	// Optional. Default value 0.
-	MaxAge int `json:"max_age"`
+	ranges []*net.IPNet
 
-	// ModifyResponse defines a function that allows you to alter the response.
+	// LinkLocal enables trusting all link-local IP ranges (e.g., 169.254.0.0/16, fe80::/10).
 	//
-	// Optional. Default: nil
-	ModifyResponse Handler
+	// Default: false
+	LinkLocal bool `json:"link_local"`
 
-	// Next defines a function to skip this middleware when returned true.
+	// Loopback enables trusting all loopback IP ranges (e.g., 127.0.0.0/8, ::1/128).
 	//
-	// Optional. Default: nil
-	Next func(c Ctx) bool
+	// Default: false
+	Loopback bool `json:"loopback"`
+
+	// Private enables trusting all private IP ranges (e.g., 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7).
+	//
+	// Default: false
+	Private bool `json:"private"`
+
+	// UnixSocket enables trusting Unix domain socket connections.
+	// When enabled, requests from Unix sockets are treated as trusted proxies.
+	//
+	// Default: false
+	UnixSocket bool `json:"unix_socket"`
 }
 
 // RouteMessage is some message need to be print when server starts
@@ -441,25 +485,40 @@ type RouteMessage struct {
 
 // Default Config values
 const (
-	DefaultBodyLimit            = 4 * 1024 * 1024
-	DefaultConcurrency          = 256 * 1024
-	DefaultReadBufferSize       = 4096
-	DefaultWriteBufferSize      = 4096
-	DefaultCompressedFileSuffix = ".fiber.gz"
+	DefaultBodyLimit       = 4 * 1024 * 1024
+	DefaultMaxRanges       = 16
+	DefaultConcurrency     = 256 * 1024
+	DefaultReadBufferSize  = 4096
+	DefaultWriteBufferSize = 4096
+)
+
+const (
+	methodGet = iota
+	methodHead
+	methodPost
+	methodPut
+	methodDelete
+	methodConnect
+	methodOptions
+	methodTrace
+	methodPatch
 )
 
 // HTTP methods enabled by default
 var DefaultMethods = []string{
-	MethodGet,
-	MethodHead,
-	MethodPost,
-	MethodPut,
-	MethodDelete,
-	MethodConnect,
-	MethodOptions,
-	MethodTrace,
-	MethodPatch,
+	methodGet:     MethodGet,
+	methodHead:    MethodHead,
+	methodPost:    MethodPost,
+	methodPut:     MethodPut,
+	methodDelete:  MethodDelete,
+	methodConnect: MethodConnect,
+	methodOptions: MethodOptions,
+	methodTrace:   MethodTrace,
+	methodPatch:   MethodPatch,
 }
+
+// httpReadResponse - Used for test mocking http.ReadResponse
+var httpReadResponse = http.ReadResponse
 
 // DefaultErrorHandler that process return errors from handlers
 func DefaultErrorHandler(c Ctx, err error) error {
@@ -479,7 +538,6 @@ func DefaultErrorHandler(c Ctx, err error) error {
 // You can pass optional configuration options by passing a Config struct:
 //
 //	app := fiber.New(fiber.Config{
-//	    Prefork: true,
 //	    ServerHeader: "Fiber",
 //	})
 func New(config ...Config) *App {
@@ -487,16 +545,20 @@ func New(config ...Config) *App {
 	app := &App{
 		// Create config
 		config:        Config{},
-		getBytes:      utils.UnsafeBytes,
-		getString:     utils.UnsafeString,
+		toBytes:       utils.UnsafeBytes,
+		toString:      utils.UnsafeString,
 		latestRoute:   &Route{},
 		customBinders: []CustomBinder{},
+		sendfiles:     []*sendFileStore{},
 	}
 
 	// Create Ctx pool
 	app.pool = sync.Pool{
 		New: func() any {
-			return app.newCtx()
+			if app.newCtxFunc != nil {
+				return app.newCtxFunc(app)
+			}
+			return NewDefaultCtx(app)
 		},
 	}
 
@@ -506,6 +568,9 @@ func New(config ...Config) *App {
 	// Define mountFields
 	app.mountFields = newMountFields(app)
 
+	// Define state
+	app.state = newState()
+
 	// Override config if provided
 	if len(config) > 0 {
 		app.config = config[0]
@@ -513,10 +578,16 @@ func New(config ...Config) *App {
 
 	// Initialize configured before defaults are set
 	app.configured = app.config
+	if err := app.validateConfiguredServices(); err != nil {
+		panic(err)
+	}
 
 	// Override default values
-	if app.config.BodyLimit == 0 {
+	if app.config.BodyLimit <= 0 {
 		app.config.BodyLimit = DefaultBodyLimit
+	}
+	if app.config.MaxRanges <= 0 {
+		app.config.MaxRanges = DefaultMaxRanges
 	}
 	if app.config.Concurrency <= 0 {
 		app.config.Concurrency = DefaultConcurrency
@@ -527,11 +598,16 @@ func New(config ...Config) *App {
 	if app.config.WriteBufferSize <= 0 {
 		app.config.WriteBufferSize = DefaultWriteBufferSize
 	}
-	if app.config.CompressedFileSuffix == "" {
-		app.config.CompressedFileSuffix = DefaultCompressedFileSuffix
+	if app.config.CompressedFileSuffixes == nil {
+		app.config.CompressedFileSuffixes = map[string]string{
+			"gzip": ".fiber.gz",
+			"br":   ".fiber.br",
+			"zstd": ".fiber.zst",
+		}
 	}
+
 	if app.config.Immutable {
-		app.getBytes, app.getString = getBytesImmutable, getStringImmutable
+		app.toBytes, app.toString = toBytesImmutable, toStringImmutable
 	}
 
 	if app.config.ErrorHandler == nil {
@@ -544,24 +620,39 @@ func New(config ...Config) *App {
 	if app.config.JSONDecoder == nil {
 		app.config.JSONDecoder = json.Unmarshal
 	}
+	if app.config.MsgPackEncoder == nil {
+		app.config.MsgPackEncoder = binder.UnimplementedMsgpackMarshal
+	}
+	if app.config.MsgPackDecoder == nil {
+		app.config.MsgPackDecoder = binder.UnimplementedMsgpackUnmarshal
+	}
+	if app.config.CBOREncoder == nil {
+		app.config.CBOREncoder = binder.UnimplementedCborMarshal
+	}
+	if app.config.CBORDecoder == nil {
+		app.config.CBORDecoder = binder.UnimplementedCborUnmarshal
+	}
 	if app.config.XMLEncoder == nil {
 		app.config.XMLEncoder = xml.Marshal
+	}
+	if app.config.XMLDecoder == nil {
+		app.config.XMLDecoder = xml.Unmarshal
 	}
 	if len(app.config.RequestMethods) == 0 {
 		app.config.RequestMethods = DefaultMethods
 	}
 
-	app.config.trustedProxiesMap = make(map[string]struct{}, len(app.config.TrustedProxies))
-	for _, ipAddress := range app.config.TrustedProxies {
+	app.config.TrustProxyConfig.ips = make(map[string]struct{}, len(app.config.TrustProxyConfig.Proxies))
+	for _, ipAddress := range app.config.TrustProxyConfig.Proxies {
 		app.handleTrustedProxy(ipAddress)
 	}
 
 	// Create router stack
 	app.stack = make([][]*Route, len(app.config.RequestMethods))
-	app.treeStack = make([]map[string][]*Route, len(app.config.RequestMethods))
+	app.treeStack = make([]map[int][]*Route, len(app.config.RequestMethods))
 
 	// Override colors
-	app.config.ColorScheme = defaultColors(app.config.ColorScheme)
+	app.config.ColorScheme = defaultColors(&app.config.ColorScheme)
 
 	// Init app
 	app.init()
@@ -570,24 +661,68 @@ func New(config ...Config) *App {
 	return app
 }
 
-// Adds an ip address to trustedProxyRanges or trustedProxiesMap based on whether it is an IP range or not
+// NewWithCustomCtx creates a new Fiber instance and applies the
+// provided function to generate a custom context type. It mirrors the behavior
+// of calling `New()` followed by `app.setCtxFunc(fn)`.
+func NewWithCustomCtx(newCtxFunc func(app *App) CustomCtx, config ...Config) *App {
+	app := New(config...)
+	app.setCtxFunc(newCtxFunc)
+	return app
+}
+
+// GetString returns s unchanged when Immutable is off or s is read-only (rodata).
+// Otherwise, it returns a detached copy (strings.Clone).
+func (app *App) GetString(s string) string {
+	if !app.config.Immutable || s == "" {
+		return s
+	}
+	if isReadOnly(unsafe.Pointer(unsafe.StringData(s))) { //nolint:gosec // pointer check avoids unnecessary copy
+		return s // literal / rodata → safe to return as-is
+	}
+	return strings.Clone(s) // heap-backed / aliased → detach
+}
+
+// GetBytes returns b unchanged when Immutable is off or b is read-only (rodata).
+// Otherwise, it returns a detached copy.
+func (app *App) GetBytes(b []byte) []byte {
+	if !app.config.Immutable || len(b) == 0 {
+		return b
+	}
+	if isReadOnly(unsafe.Pointer(unsafe.SliceData(b))) { //nolint:gosec // pointer check avoids unnecessary copy
+		return b // rodata → safe to return as-is
+	}
+	return utils.CopyBytes(b) // detach when backed by request/response memory
+}
+
+// Adds an ip address to TrustProxyConfig.ranges or TrustProxyConfig.ips based on whether it is an IP range or not
 func (app *App) handleTrustedProxy(ipAddress string) {
-	if strings.Contains(ipAddress, "/") {
+	if strings.IndexByte(ipAddress, '/') >= 0 {
 		_, ipNet, err := net.ParseCIDR(ipAddress)
 		if err != nil {
 			log.Warnf("IP range %q could not be parsed: %v", ipAddress, err)
 		} else {
-			app.config.trustedProxyRanges = append(app.config.trustedProxyRanges, ipNet)
+			app.config.TrustProxyConfig.ranges = append(app.config.TrustProxyConfig.ranges, ipNet)
 		}
 	} else {
-		app.config.trustedProxiesMap[ipAddress] = struct{}{}
+		ip := net.ParseIP(ipAddress)
+		if ip == nil {
+			log.Warnf("IP address %q could not be parsed", ipAddress)
+		} else {
+			app.config.TrustProxyConfig.ips[ipAddress] = struct{}{}
+		}
 	}
 }
 
-// NewCtxFunc allows to customize ctx methods as we want.
-// Note: It doesn't allow adding new methods, only customizing exist methods.
-func (app *App) NewCtxFunc(function func(app *App) CustomCtx) {
+// setCtxFunc applies the given context factory to the app.
+// It is used internally by NewWithCustomCtx. It doesn't allow adding new methods,
+// only customizing existing ones.
+func (app *App) setCtxFunc(function func(app *App) CustomCtx) {
 	app.newCtxFunc = function
+	app.hasCustomCtx = function != nil
+
+	if app.server != nil {
+		app.server.Handler = app.requestHandler
+	}
 }
 
 // RegisterCustomConstraint allows to register custom constraint.
@@ -595,13 +730,48 @@ func (app *App) RegisterCustomConstraint(constraint CustomConstraint) {
 	app.customConstraints = append(app.customConstraints, constraint)
 }
 
-// You can register custom binders to use as Bind().Custom("name").
+// RegisterCustomBinder Allows to register custom binders to use as Bind().Custom("name").
 // They should be compatible with CustomBinder interface.
-func (app *App) RegisterCustomBinder(binder CustomBinder) {
-	app.customBinders = append(app.customBinders, binder)
+func (app *App) RegisterCustomBinder(customBinder CustomBinder) {
+	app.customBinders = append(app.customBinders, customBinder)
 }
 
-// You can use SetTLSHandler to use ClientHelloInfo when using TLS with Listener.
+// ReloadViews reloads the configured view engine by invoking its Load method.
+// It returns an error if no view engine is configured or if reloading fails.
+func (app *App) ReloadViews() error {
+	app.mutex.Lock()
+	defer app.mutex.Unlock()
+
+	apps := map[string]*App{"": app}
+	if app.mountFields != nil {
+		apps = app.mountFields.appList
+	}
+
+	var reloaded bool
+	for _, targetApp := range apps {
+		if targetApp == nil || targetApp.config.Views == nil {
+			continue
+		}
+
+		if viewValue := reflect.ValueOf(targetApp.config.Views); viewValue.Kind() == reflect.Pointer && viewValue.IsNil() {
+			continue
+		}
+
+		if err := targetApp.config.Views.Load(); err != nil {
+			return fmt.Errorf("fiber: failed to reload views: %w", err)
+		}
+
+		reloaded = true
+	}
+
+	if !reloaded {
+		return ErrNoViewEngineConfigured
+	}
+
+	return nil
+}
+
+// SetTLSHandler Can be used to set ClientHelloInfo when using TLS with Listener.
 func (app *App) SetTLSHandler(tlsHandler *TLSHandler) {
 	// Attach the tlsHandler to the config
 	app.mutex.Lock()
@@ -628,7 +798,7 @@ func (app *App) Name(name string) Router {
 		}
 	}
 
-	if err := app.hooks.executeOnNameHooks(*app.latestRoute); err != nil {
+	if err := app.hooks.executeOnNameHooks(app.latestRoute); err != nil {
 		panic(err)
 	}
 
@@ -693,7 +863,7 @@ func (app *App) Use(args ...any) Router {
 	var prefixes []string
 	var handlers []Handler
 
-	for i := 0; i < len(args); i++ {
+	for i := range args {
 		switch arg := args[i].(type) {
 		case string:
 			prefix = arg
@@ -701,10 +871,12 @@ func (app *App) Use(args ...any) Router {
 			subApp = arg
 		case []string:
 			prefixes = arg
-		case Handler:
-			handlers = append(handlers, arg)
 		default:
-			panic(fmt.Sprintf("use: invalid handler %v\n", reflect.TypeOf(arg)))
+			handler, ok := toFiberHandler(arg)
+			if !ok {
+				panic(fmt.Sprintf("use: invalid handler %v\n", reflect.TypeOf(arg)))
+			}
+			handlers = append(handlers, handler)
 		}
 	}
 
@@ -714,11 +886,10 @@ func (app *App) Use(args ...any) Router {
 
 	for _, prefix := range prefixes {
 		if subApp != nil {
-			app.mount(prefix, subApp)
-			return app
+			return app.mount(prefix, subApp)
 		}
 
-		app.register([]string{methodUse}, prefix, nil, nil, handlers...)
+		app.register([]string{methodUse}, prefix, nil, handlers...)
 	}
 
 	return app
@@ -726,84 +897,80 @@ func (app *App) Use(args ...any) Router {
 
 // Get registers a route for GET methods that requests a representation
 // of the specified resource. Requests using GET should only retrieve data.
-func (app *App) Get(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodGet}, path, handler, middleware...)
+func (app *App) Get(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodGet}, path, handler, handlers...)
 }
 
 // Head registers a route for HEAD methods that asks for a response identical
 // to that of a GET request, but without the response body.
-func (app *App) Head(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodHead}, path, handler, middleware...)
+func (app *App) Head(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodHead}, path, handler, handlers...)
 }
 
 // Post registers a route for POST methods that is used to submit an entity to the
 // specified resource, often causing a change in state or side effects on the server.
-func (app *App) Post(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodPost}, path, handler, middleware...)
+func (app *App) Post(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodPost}, path, handler, handlers...)
 }
 
 // Put registers a route for PUT methods that replaces all current representations
 // of the target resource with the request payload.
-func (app *App) Put(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodPut}, path, handler, middleware...)
+func (app *App) Put(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodPut}, path, handler, handlers...)
 }
 
 // Delete registers a route for DELETE methods that deletes the specified resource.
-func (app *App) Delete(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodDelete}, path, handler, middleware...)
+func (app *App) Delete(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodDelete}, path, handler, handlers...)
 }
 
 // Connect registers a route for CONNECT methods that establishes a tunnel to the
 // server identified by the target resource.
-func (app *App) Connect(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodConnect}, path, handler, middleware...)
+func (app *App) Connect(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodConnect}, path, handler, handlers...)
 }
 
 // Options registers a route for OPTIONS methods that is used to describe the
 // communication options for the target resource.
-func (app *App) Options(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodOptions}, path, handler, middleware...)
+func (app *App) Options(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodOptions}, path, handler, handlers...)
 }
 
 // Trace registers a route for TRACE methods that performs a message loop-back
 // test along the path to the target resource.
-func (app *App) Trace(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodTrace}, path, handler, middleware...)
+func (app *App) Trace(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodTrace}, path, handler, handlers...)
 }
 
 // Patch registers a route for PATCH methods that is used to apply partial
 // modifications to a resource.
-func (app *App) Patch(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add([]string{MethodPatch}, path, handler, middleware...)
+func (app *App) Patch(path string, handler any, handlers ...any) Router {
+	return app.Add([]string{MethodPatch}, path, handler, handlers...)
 }
 
 // Add allows you to specify multiple HTTP methods to register a route.
-func (app *App) Add(methods []string, path string, handler Handler, middleware ...Handler) Router {
-	app.register(methods, path, nil, handler, middleware...)
-
-	return app
-}
-
-// Static will create a file server serving static files
-func (app *App) Static(prefix, root string, config ...Static) Router {
-	app.registerStatic(prefix, root, config...)
+// The provided handlers are executed in order, starting with `handler` and then the variadic `handlers`.
+func (app *App) Add(methods []string, path string, handler any, handlers ...any) Router {
+	converted := collectHandlers("add", append([]any{handler}, handlers...)...)
+	app.register(methods, path, nil, converted...)
 
 	return app
 }
 
 // All will register the handler on all HTTP methods
-func (app *App) All(path string, handler Handler, middleware ...Handler) Router {
-	return app.Add(app.config.RequestMethods, path, handler, middleware...)
+func (app *App) All(path string, handler any, handlers ...any) Router {
+	return app.Add(app.config.RequestMethods, path, handler, handlers...)
 }
 
 // Group is used for Routes with common prefix to define a new sub-router with optional middleware.
 //
 //	api := app.Group("/api")
 //	api.Get("/users", handler)
-func (app *App) Group(prefix string, handlers ...Handler) Router {
+func (app *App) Group(prefix string, handlers ...any) Router {
 	grp := &Group{Prefix: prefix, app: app}
 	if len(handlers) > 0 {
-		app.register([]string{methodUse}, prefix, grp, nil, handlers...)
+		converted := collectHandlers("group", handlers...)
+		app.register([]string{methodUse}, prefix, grp, converted...)
 	}
 	if err := app.hooks.executeOnGroupHooks(*grp); err != nil {
 		panic(err)
@@ -812,13 +979,33 @@ func (app *App) Group(prefix string, handlers ...Handler) Router {
 	return grp
 }
 
-// Route is used to define routes with a common prefix inside the common function.
-// Uses Group method to define new sub-router.
-func (app *App) Route(path string) Register {
+// RouteChain creates a Registering instance that lets you declare a stack of
+// handlers for the same route. Handlers defined via the returned Register are
+// scoped to the provided path.
+func (app *App) RouteChain(path string) Register {
 	// Create new route
 	route := &Registering{app: app, path: path}
 
 	return route
+}
+
+// Route is used to define routes with a common prefix inside the supplied
+// function. It mirrors the legacy helper and reuses the Group method to create
+// a sub-router.
+func (app *App) Route(prefix string, fn func(router Router), name ...string) Router {
+	if fn == nil {
+		panic("route handler 'fn' cannot be nil")
+	}
+	// Create new group
+	group := app.Group(prefix)
+	if len(name) > 0 {
+		group.Name(name[0])
+	}
+
+	// Define routes
+	fn(group)
+
+	return group
 }
 
 // Error makes it compatible with the `error` interface.
@@ -836,6 +1023,39 @@ func NewError(code int, message ...string) *Error {
 		err.Message = message[0]
 	}
 	return err
+}
+
+// NewErrorf creates a new Error instance with an optional message.
+// Additional arguments are formatted using fmt.Sprintf when provided.
+// If the first argument in the message slice is not a string, the function
+// falls back to using fmt.Sprint on the first element to generate the message.
+func NewErrorf(code int, message ...any) *Error {
+	var msg string
+
+	switch len(message) {
+	case 0:
+		// nothing to override
+		msg = utils.StatusMessage(code)
+
+	case 1:
+		// One argument → treat it like fmt.Sprint(arg)
+		if s, ok := message[0].(string); ok {
+			msg = s
+		} else {
+			msg = fmt.Sprint(message[0])
+		}
+
+	default:
+		// Two or more → first must be a format string.
+		if format, ok := message[0].(string); ok {
+			msg = fmt.Sprintf(format, message[1:]...)
+		} else {
+			// If the first arg isn’t a string, fall back.
+			msg = fmt.Sprint(message[0])
+		}
+	}
+
+	return &Error{Code: code, Message: msg}
 }
 
 // Config returns the app config as value ( read-only ).
@@ -865,6 +1085,13 @@ func (app *App) HandlersCount() uint32 {
 //
 // Make sure the program doesn't exit and waits instead for Shutdown to return.
 //
+// Important: app.Listen() must be called in a separate goroutine; otherwise, shutdown hooks will not work
+// as Listen() is a blocking operation. Example:
+//
+//	go app.Listen(":3000")
+//	// ...
+//	app.Shutdown()
+//
 // Shutdown does not close keepalive connections so its recommended to set ReadTimeout to something else than 0.
 func (app *App) Shutdown() error {
 	return app.ShutdownWithContext(context.Background())
@@ -889,17 +1116,21 @@ func (app *App) ShutdownWithTimeout(timeout time.Duration) error {
 //
 // ShutdownWithContext does not close keepalive connections so its recommended to set ReadTimeout to something else than 0.
 func (app *App) ShutdownWithContext(ctx context.Context) error {
-	if app.hooks != nil {
-		// TODO: check should be defered?
-		app.hooks.executeOnShutdownHooks()
-	}
-
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
+
+	var err error
+
 	if app.server == nil {
 		return ErrNotRunning
 	}
-	return app.server.ShutdownWithContext(ctx)
+
+	// Execute the Shutdown hook
+	app.hooks.executeOnPreShutdownHooks()
+	defer app.hooks.executeOnPostShutdownHooks(err)
+
+	err = app.server.ShutdownWithContext(ctx)
+	return err
 }
 
 // Server returns the underlying fasthttp server
@@ -912,13 +1143,40 @@ func (app *App) Hooks() *Hooks {
 	return app.hooks
 }
 
+// State returns the state struct to store global data in order to share it between handlers.
+func (app *App) State() *State {
+	return app.state
+}
+
+var ErrTestGotEmptyResponse = errors.New("test: got empty response")
+
+// TestConfig is a struct holding Test settings
+type TestConfig struct {
+	// Timeout defines the maximum duration a
+	// test can run before timing out.
+	// Default: time.Second
+	Timeout time.Duration
+
+	// FailOnTimeout specifies whether the test
+	// should return a timeout error if the HTTP response
+	// exceeds the Timeout duration.
+	// Default: true
+	FailOnTimeout bool
+}
+
 // Test is used for internal debugging by passing a *http.Request.
-// Timeout is optional and defaults to 1s, -1 will disable it completely.
-func (app *App) Test(req *http.Request, timeout ...time.Duration) (*http.Response, error) {
-	// Set timeout
-	to := 1 * time.Second
-	if len(timeout) > 0 {
-		to = timeout[0]
+// Config is optional and defaults to a 1s error on timeout,
+// 0 timeout will disable it completely.
+func (app *App) Test(req *http.Request, config ...TestConfig) (*http.Response, error) {
+	// Default config
+	cfg := TestConfig{
+		Timeout:       time.Second,
+		FailOnTimeout: true,
+	}
+
+	// Override config if provided
+	if len(config) > 0 {
+		cfg = config[0]
 	}
 
 	// Add Content-Length if not provided with body
@@ -936,14 +1194,14 @@ func (app *App) Test(req *http.Request, timeout ...time.Duration) (*http.Respons
 	conn := new(testConn)
 
 	// Write raw http request
-	if _, err := conn.r.Write(dump); err != nil {
+	if _, err = conn.r.Write(dump); err != nil {
 		return nil, fmt.Errorf("failed to write: %w", err)
 	}
 	// prepare the server for the start
 	app.startupProcess()
 
 	// Serve conn to server
-	channel := make(chan error)
+	channel := make(chan error, 1)
 	go func() {
 		var returned bool
 		defer func() {
@@ -957,12 +1215,24 @@ func (app *App) Test(req *http.Request, timeout ...time.Duration) (*http.Respons
 	}()
 
 	// Wait for callback
-	if to >= 0 {
+	if cfg.Timeout > 0 {
 		// With timeout
 		select {
 		case err = <-channel:
-		case <-time.After(to):
-			return nil, fmt.Errorf("test: timeout error after %s", to)
+		case <-time.After(cfg.Timeout):
+			if cfg.FailOnTimeout {
+				conn.Close() //nolint:errcheck // It is fine to ignore the error here
+				return nil, os.ErrDeadlineExceeded
+			}
+			// When FailOnTimeout is false, wait up to 1 additional second for the handler
+			// to complete and write a response. This prevents indefinite blocking while
+			// allowing slow handlers to finish.
+			select {
+			case err = <-channel:
+			case <-time.After(time.Second):
+				// Handler took too long even with extra time
+				conn.Close() //nolint:errcheck // It is fine to ignore the error here
+			}
 		}
 	} else {
 		// Without timeout
@@ -970,17 +1240,38 @@ func (app *App) Test(req *http.Request, timeout ...time.Duration) (*http.Respons
 	}
 
 	// Check for errors
-	if err != nil && !errors.Is(err, fasthttp.ErrGetOnly) {
+	if err != nil && !errors.Is(err, fasthttp.ErrGetOnly) && !errors.Is(err, errTestConnClosed) {
 		return nil, err
 	}
 
-	// Read response
+	// Read response(s)
 	buffer := bufio.NewReader(&conn.w)
 
-	// Convert raw http response to *http.Response
-	res, err := http.ReadResponse(buffer, req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
+	var res *http.Response
+	for {
+		// Convert raw http response to *http.Response
+		res, err = httpReadResponse(buffer, req)
+		if err != nil {
+			if errors.Is(err, io.ErrUnexpectedEOF) {
+				return nil, ErrTestGotEmptyResponse
+			}
+			return nil, fmt.Errorf("failed to read response: %w", err)
+		}
+
+		// Break if this response is non-1xx or there are no more responses
+		if res.StatusCode >= http.StatusOK || buffer.Buffered() == 0 {
+			break
+		}
+
+		// Discard interim response body before reading the next one
+		if res.Body != nil {
+			if _, errCopy := io.Copy(io.Discard, res.Body); errCopy != nil {
+				return nil, fmt.Errorf("failed to discard interim response body: %w", errCopy)
+			}
+			if errClose := res.Body.Close(); errClose != nil {
+				return nil, fmt.Errorf("failed to close interim response body: %w", errClose)
+			}
+		}
 	}
 
 	return res, nil
@@ -988,13 +1279,17 @@ func (app *App) Test(req *http.Request, timeout ...time.Duration) (*http.Respons
 
 type disableLogger struct{}
 
-func (*disableLogger) Printf(_ string, _ ...any) {
-	// fmt.Println(fmt.Sprintf(format, args...))
+// Printf implements the fasthttp Logger interface and discards log output.
+func (*disableLogger) Printf(string, ...any) {
 }
 
 func (app *App) init() *App {
 	// lock application
 	app.mutex.Lock()
+
+	// Initialize Services when needed,
+	// panics if there is an error starting them.
+	app.initServices()
 
 	// Only load templates if a view engine is specified
 	if app.config.Views != nil {
@@ -1032,13 +1327,22 @@ func (app *App) init() *App {
 
 	// unlock application
 	app.mutex.Unlock()
+
+	// Register the Services shutdown handler once the app is initialized and unlocked.
+	app.Hooks().OnPostShutdown(func(_ error) error {
+		if err := app.shutdownServices(app.servicesShutdownCtx()); err != nil {
+			log.Errorf("failed to shutdown services: %v", err)
+		}
+		return nil
+	})
+
 	return app
 }
 
 // ErrorHandler is the application's method in charge of finding the
 // appropriate handler for the given request. It searches any mounted
 // sub fibers by their prefixes and if it finds a match, it uses that
-// error handler. Otherwise it uses the configured error handler for
+// error handler. Otherwise, it uses the configured error handler for
 // the app, which if not set is the DefaultErrorHandler.
 func (app *App) ErrorHandler(ctx Ctx, err error) error {
 	var (
@@ -1046,9 +1350,15 @@ func (app *App) ErrorHandler(ctx Ctx, err error) error {
 		mountedPrefixParts int
 	)
 
-	for prefix, subApp := range app.mountFields.appList {
-		if prefix != "" && strings.HasPrefix(ctx.Path(), prefix) {
-			parts := len(strings.Split(prefix, "/"))
+	normalizedPath := utils.AddTrailingSlashString(ctx.Path())
+
+	for _, prefix := range app.mountFields.appListKeys {
+		subApp := app.mountFields.appList[prefix]
+		normalizedPrefix := utils.AddTrailingSlashString(prefix)
+
+		if prefix != "" && strings.HasPrefix(normalizedPath, normalizedPrefix) {
+			// Count slashes instead of splitting - more efficient
+			parts := strings.Count(prefix, "/") + 1
 			if mountedPrefixParts <= parts {
 				if subApp.configured.ErrorHandler != nil {
 					mountedErrHandler = subApp.config.ErrorHandler
@@ -1090,10 +1400,28 @@ func (app *App) serverErrorHandler(fctx *fasthttp.RequestCtx, err error) {
 		err = ErrRequestEntityTooLarge
 	case errors.Is(err, fasthttp.ErrGetOnly):
 		err = ErrMethodNotAllowed
+	case strings.Contains(err.Error(), "unsupported http request method"):
+		err = ErrNotImplemented
 	case strings.Contains(err.Error(), "timeout"):
 		err = ErrRequestTimeout
 	default:
 		err = NewError(StatusBadRequest, err.Error())
+	}
+
+	if c.getMethodInt() != -1 {
+		c.setSkipNonUseRoutes(true)
+		defer c.setSkipNonUseRoutes(false)
+
+		var nextErr error
+		if d, isDefault := c.(*DefaultCtx); isDefault {
+			_, nextErr = app.next(d)
+		} else {
+			_, nextErr = app.nextCustom(c)
+		}
+
+		if nextErr != nil && !errors.Is(nextErr, ErrNotFound) && !errors.Is(nextErr, ErrMethodNotAllowed) {
+			log.Errorf("serverErrorHandler: middleware traversal failed: %v", nextErr)
+		}
 	}
 
 	if catch := app.ErrorHandler(c, err); catch != nil {
@@ -1104,20 +1432,25 @@ func (app *App) serverErrorHandler(fctx *fasthttp.RequestCtx, err error) {
 }
 
 // startupProcess Is the method which executes all the necessary processes just before the start of the server.
-func (app *App) startupProcess() *App {
+func (app *App) startupProcess() {
 	app.mutex.Lock()
 	defer app.mutex.Unlock()
 
+	app.ensureAutoHeadRoutesLocked()
+	for prefix, subApp := range app.mountFields.appList {
+		if prefix == "" {
+			continue
+		}
+		subApp.ensureAutoHeadRoutes()
+	}
 	app.mountStartupProcess()
 
 	// build route tree stack
 	app.buildTree()
-
-	return app
 }
 
 // Run onListen hooks. If they return an error, panic.
-func (app *App) runOnListenHooks(listenData ListenData) {
+func (app *App) runOnListenHooks(listenData *ListenData) {
 	if err := app.hooks.executeOnListenHooks(listenData); err != nil {
 		panic(err)
 	}
