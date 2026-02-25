@@ -10,59 +10,88 @@ import (
 )
 
 const MIMEOctetStream = "application/octet-stream"
+const (
+	contentTypeApplicationJSON               = "application/json"
+	contentTypeApplicationXML                = "application/xml"
+	contentTypeApplicationFormURLEncoded     = "application/x-www-form-urlencoded"
+	contentTypePrefixApplicationWithSlashLen = len("application/")
+)
 
 // GetMIME returns the content-type of a file extension
 func GetMIME(extension string) string {
 	if len(extension) == 0 {
 		return ""
 	}
-	var foundMime string
+
+	// Normalize extension once at the start to avoid repeated checks
+	var extWithoutDot string
+	var extWithDot string
 	if extension[0] == '.' {
-		foundMime = mimeExtensions[extension[1:]]
+		extWithoutDot = extension[1:]
+		extWithDot = extension
 	} else {
-		foundMime = mimeExtensions[extension]
+		extWithoutDot = extension
+		extWithDot = "." + extension
 	}
 
-	if len(foundMime) == 0 {
-		if extension[0] != '.' {
-			foundMime = mime.TypeByExtension("." + extension)
-		} else {
-			foundMime = mime.TypeByExtension(extension)
-		}
-
-		if foundMime == "" {
-			return MIMEOctetStream
-		}
+	// Single map lookup with normalized key
+	if foundMime := mimeExtensions[extWithoutDot]; len(foundMime) > 0 {
+		return foundMime
 	}
-	return foundMime
+
+	// Fallback to mime package with pre-computed extension
+	if foundMime := mime.TypeByExtension(extWithDot); foundMime != "" {
+		return foundMime
+	}
+
+	return MIMEOctetStream
 }
 
 // ParseVendorSpecificContentType check if content type is vendor specific and
 // if it is parsable to any known types. If its not vendor specific then returns
 // the original content type.
-func ParseVendorSpecificContentType(cType string) string {
-	plusIndex := strings.Index(cType, "+")
+func ParseVendorSpecificContentType(cType string, caseInsensitive ...bool) string {
+	useLower := len(caseInsensitive) > 0 && caseInsensitive[0]
+
+	working := cType
+	if useLower {
+		// Content types are case-insensitive. Normalize if requested using the
+		// utils.ToLower function to avoid allocations when possible.
+		working = ToLower(cType)
+	}
+	plusIndex := strings.IndexByte(working, '+')
 
 	if plusIndex == -1 {
 		return cType
 	}
 
 	var parsableType string
-	if semiColonIndex := strings.Index(cType, ";"); semiColonIndex == -1 {
-		parsableType = cType[plusIndex+1:]
+	if semiColonIndex := strings.IndexByte(working, ';'); semiColonIndex == -1 {
+		parsableType = working[plusIndex+1:]
 	} else if plusIndex < semiColonIndex {
-		parsableType = cType[plusIndex+1 : semiColonIndex]
+		parsableType = working[plusIndex+1 : semiColonIndex]
 	} else {
 		return cType[:semiColonIndex]
 	}
 
-	slashIndex := strings.Index(cType, "/")
+	slashIndex := strings.IndexByte(working, '/')
 
 	if slashIndex == -1 {
 		return cType
 	}
 
-	return cType[0:slashIndex+1] + parsableType
+	if slashIndex+1 == contentTypePrefixApplicationWithSlashLen {
+		switch parsableType {
+		case "json":
+			return contentTypeApplicationJSON
+		case "xml":
+			return contentTypeApplicationXML
+		case "x-www-form-urlencoded":
+			return contentTypeApplicationFormURLEncoded
+		}
+	}
+
+	return working[:slashIndex+1] + parsableType
 }
 
 // limits for HTTP statuscodes
@@ -153,12 +182,14 @@ var statusMessage = []string{
 // MIME types were copied from https://github.com/nginx/nginx/blob/67d2a9541826ecd5db97d604f23460210fd3e517/conf/mime.types with the following updates:
 // - Use "application/xml" instead of "text/xml" as recommended per https://datatracker.ietf.org/doc/html/rfc7303#section-4.1
 // - Use "text/javascript" instead of "application/javascript" as recommended per https://www.rfc-editor.org/rfc/rfc9239#name-text-javascript
+// - Use "application/vnd.msgpack" from https://www.iana.org/assignments/media-types/application/vnd.msgpack
 var mimeExtensions = map[string]string{
 	"html":    "text/html",
 	"htm":     "text/html",
 	"shtml":   "text/html",
 	"css":     "text/css",
 	"xml":     "application/xml",
+	"cbor":    "application/cbor",
 	"gif":     "image/gif",
 	"jpeg":    "image/jpeg",
 	"jpg":     "image/jpeg",
@@ -187,6 +218,7 @@ var mimeExtensions = map[string]string{
 	"war":     "application/java-archive",
 	"ear":     "application/java-archive",
 	"json":    "application/json",
+	"msgpack": "application/vnd.msgpack",
 	"hqx":     "application/mac-binhex40",
 	"doc":     "application/msword",
 	"pdf":     "application/pdf",
@@ -232,6 +264,7 @@ var mimeExtensions = map[string]string{
 	"xhtml":   "application/xhtml+xml",
 	"xspf":    "application/xspf+xml",
 	"zip":     "application/zip",
+	"zst":     "application/zstd",
 	"bin":     "application/octet-stream",
 	"exe":     "application/octet-stream",
 	"dll":     "application/octet-stream",

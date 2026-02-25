@@ -8,8 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -22,6 +20,7 @@ const (
 	envPreforkChildKey = "FIBER_PREFORK_CHILD"
 	envPreforkChildVal = "1"
 	sleepDuration      = 100 * time.Millisecond
+	windowsOS          = "windows"
 )
 
 var (
@@ -35,7 +34,10 @@ func IsChild() bool {
 }
 
 // prefork manages child processes to make use of the OS REUSEPORT or REUSEADDR feature
-func (app *App) prefork(addr string, tlsConfig *tls.Config, cfg ListenConfig) error {
+func (app *App) prefork(addr string, tlsConfig *tls.Config, cfg *ListenConfig) error {
+	if cfg == nil {
+		cfg = &ListenConfig{}
+	}
 	var ln net.Listener
 	var err error
 
@@ -72,18 +74,18 @@ func (app *App) prefork(addr string, tlsConfig *tls.Config, cfg ListenConfig) er
 
 	// 👮 master process 👮
 	type child struct {
-		pid int
 		err error
+		pid int
 	}
 	// create variables
-	max := runtime.GOMAXPROCS(0)
-	childs := make(map[int]*exec.Cmd)
-	channel := make(chan child, max)
+	maxProcs := runtime.GOMAXPROCS(0)
+	children := make(map[int]*exec.Cmd)
+	channel := make(chan child, maxProcs)
 
 	// kill child procs when master exits
 	defer func() {
-		for _, proc := range childs {
-			if err := proc.Process.Kill(); err != nil {
+		for _, proc := range children {
+			if err = proc.Process.Kill(); err != nil {
 				if !errors.Is(err, os.ErrProcessDone) {
 					log.Errorf("prefork: failed to kill child: %v", err)
 				}
@@ -92,10 +94,10 @@ func (app *App) prefork(addr string, tlsConfig *tls.Config, cfg ListenConfig) er
 	}()
 
 	// collect child pids
-	var pids []string
+	var childPIDs []int
 
 	// launch child procs
-	for i := 0; i < max; i++ {
+	for range maxProcs {
 		cmd := exec.Command(os.Args[0], os.Args[1:]...) //nolint:gosec // It's fine to launch the same process again
 		if testPreforkMaster {
 			// When test prefork master,
@@ -117,8 +119,8 @@ func (app *App) prefork(addr string, tlsConfig *tls.Config, cfg ListenConfig) er
 
 		// store child process
 		pid := cmd.Process.Pid
-		childs[pid] = cmd
-		pids = append(pids, strconv.Itoa(pid))
+		children[pid] = cmd
+		childPIDs = append(childPIDs, pid)
 
 		// execute fork hook
 		if app.hooks != nil {
@@ -131,20 +133,18 @@ func (app *App) prefork(addr string, tlsConfig *tls.Config, cfg ListenConfig) er
 
 		// notify master if child crashes
 		go func() {
-			channel <- child{pid, cmd.Wait()}
+			channel <- child{pid: pid, err: cmd.Wait()}
 		}()
 	}
 
 	// Run onListen hooks
 	// Hooks have to be run here as different as non-prefork mode due to they should run as child or master
-	app.runOnListenHooks(app.prepareListenData(addr, tlsConfig != nil, cfg))
+	listenData := app.prepareListenData(addr, tlsConfig != nil, cfg, childPIDs)
 
-	// Print startup message
-	if !cfg.DisableStartupMessage {
-		app.startupMessage(addr, tlsConfig != nil, ","+strings.Join(pids, ","), cfg)
-	}
+	app.runOnListenHooks(listenData)
 
-	// Print routes
+	app.startupMessage(listenData, cfg)
+
 	if cfg.EnablePrintRoutes {
 		app.printRoutesMessage()
 	}
@@ -155,7 +155,7 @@ func (app *App) prefork(addr string, tlsConfig *tls.Config, cfg ListenConfig) er
 
 // watchMaster watches child procs
 func watchMaster() {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == windowsOS {
 		// finds parent process,
 		// and waits for it to exit
 		p, err := os.FindProcess(os.Getppid())
@@ -185,7 +185,7 @@ func dummyCmd() *exec.Cmd {
 	if storeCommand := dummyChildCmd.Load(); storeCommand != nil && storeCommand != "" {
 		command = storeCommand.(string) //nolint:forcetypeassert,errcheck // We always store a string in here
 	}
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == windowsOS {
 		return exec.Command("cmd", "/C", command, "version")
 	}
 	return exec.Command(command, "version")

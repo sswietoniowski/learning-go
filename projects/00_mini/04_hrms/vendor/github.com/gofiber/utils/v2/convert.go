@@ -6,39 +6,32 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
-	"unsafe"
+
+	"github.com/gofiber/utils/v2/internal/unsafeconv"
 )
 
-const MaxStringLen = 0x7fff0000 // Maximum string length for UnsafeBytes. (decimal: 2147418112)
-
-// #nosec G103
 // UnsafeString returns a string pointer without allocation
 func UnsafeString(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
+	return unsafeconv.UnsafeString(b)
 }
 
-// #nosec G103
 // UnsafeBytes returns a byte pointer without allocation.
-// String length shouldn't be more than 2147418112.
 func UnsafeBytes(s string) []byte {
-	if s == "" {
-		return nil
-	}
-
-	return (*[MaxStringLen]byte)(unsafe.Pointer(
-		(*reflect.StringHeader)(unsafe.Pointer(&s)).Data),
-	)[:len(s):len(s)]
+	return unsafeconv.UnsafeBytes(s)
 }
 
 // CopyString copies a string to make it immutable
 func CopyString(s string) string {
+	// #nosec G103
 	return string(UnsafeBytes(s))
 }
 
+// #nosec G103
 // CopyBytes copies a slice to make it immutable
 func CopyBytes(b []byte) []byte {
 	tmp := make([]byte, len(b))
@@ -58,62 +51,85 @@ const (
 
 // ByteSize returns a human-readable byte string of the form 10M, 12.5K, and so forth.
 // The unit that results in the smallest number greater than or equal to 1 is always chosen.
+// Maximum supported input is math.MaxUint64 / 10 (≈ 1844674407370955161).
 func ByteSize(bytes uint64) string {
+	const maxSafe = math.MaxUint64 / 10
 	unit := ""
-	value := float64(bytes)
+	div := uint64(1)
 	switch {
 	case bytes >= uExabyte:
 		unit = "EB"
-		value /= uExabyte
+		div = uExabyte
 	case bytes >= uPetabyte:
 		unit = "PB"
-		value /= uPetabyte
+		div = uPetabyte
 	case bytes >= uTerabyte:
 		unit = "TB"
-		value /= uTerabyte
+		div = uTerabyte
 	case bytes >= uGigabyte:
 		unit = "GB"
-		value /= uGigabyte
+		div = uGigabyte
 	case bytes >= uMegabyte:
 		unit = "MB"
-		value /= uMegabyte
+		div = uMegabyte
 	case bytes >= uKilobyte:
 		unit = "KB"
-		value /= uKilobyte
+		div = uKilobyte
 	case bytes >= uByte:
 		unit = "B"
 	default:
 		return "0B"
 	}
-	result := strconv.FormatFloat(value, 'f', 1, 64)
-	result = strings.TrimSuffix(result, ".0")
-	return result + unit
+
+	buf := make([]byte, 0, 16)
+
+	if div == 1 {
+		buf = AppendUint(buf, bytes)
+		buf = append(buf, unit...)
+		return UnsafeString(buf)
+	}
+
+	// Fix: cap bytes to maxSafe for overflow, but format as fractional
+	if bytes > maxSafe {
+		bytes = maxSafe
+	}
+
+	scaled := (bytes/div)*10 + ((bytes%div)*10+div/2)/div
+	integer := scaled / 10
+	fractional := scaled % 10
+
+	buf = AppendUint(buf, integer)
+	if fractional > 0 {
+		buf = append(buf, '.')
+		buf = AppendUint(buf, fractional)
+	}
+	buf = append(buf, unit...)
+	return UnsafeString(buf)
 }
 
 // ToString Change arg to string
 func ToString(arg any, timeFormat ...string) string {
-	var tmp = reflect.Indirect(reflect.ValueOf(arg)).Interface()
-	switch v := tmp.(type) {
+	switch v := arg.(type) {
 	case int:
-		return strconv.Itoa(v)
+		return FormatInt(int64(v))
 	case int8:
-		return strconv.FormatInt(int64(v), 10)
+		return FormatInt8(v)
 	case int16:
-		return strconv.FormatInt(int64(v), 10)
+		return FormatInt16(v)
 	case int32:
-		return strconv.FormatInt(int64(v), 10)
+		return FormatInt32(v)
 	case int64:
-		return strconv.FormatInt(v, 10)
+		return FormatInt(v)
 	case uint:
-		return strconv.Itoa(int(v))
+		return FormatUint(uint64(v))
 	case uint8:
-		return strconv.FormatInt(int64(v), 10)
+		return FormatUint8(v)
 	case uint16:
-		return strconv.FormatInt(int64(v), 10)
+		return FormatUint16(v)
 	case uint32:
-		return strconv.FormatInt(int64(v), 10)
+		return FormatUint32(v)
 	case uint64:
-		return strconv.FormatInt(int64(v), 10)
+		return FormatUint(v)
 	case string:
 		return v
 	case []byte:
@@ -133,7 +149,95 @@ func ToString(arg any, timeFormat ...string) string {
 		return ToString(v.Interface(), timeFormat...)
 	case fmt.Stringer:
 		return v.String()
-	default:
+	// Handle common pointer types directly to avoid reflection
+	case *string:
+		if v != nil {
+			return *v
+		}
 		return ""
+	case *int:
+		if v != nil {
+			return FormatInt(int64(*v))
+		}
+		return "0"
+	case *int64:
+		if v != nil {
+			return FormatInt(*v)
+		}
+		return "0"
+	case *uint64:
+		if v != nil {
+			return FormatUint(*v)
+		}
+		return "0"
+	case *float64:
+		if v != nil {
+			return strconv.FormatFloat(*v, 'f', -1, 64)
+		}
+		return "0"
+	case *bool:
+		if v != nil {
+			return strconv.FormatBool(*v)
+		}
+		return "false"
+	// Handle common slice types directly to avoid reflection
+	case []string:
+		if len(v) == 0 {
+			return "[]"
+		}
+		var buf strings.Builder
+		buf.Grow(len(v) * 8) // Pre-allocate approximate size
+		buf.WriteByte('[')
+		for i, s := range v {
+			if i > 0 {
+				buf.WriteByte(' ')
+			}
+			buf.WriteString(s)
+		}
+		buf.WriteByte(']')
+		return buf.String()
+	case []int:
+		if len(v) == 0 {
+			return "[]"
+		}
+		var buf strings.Builder
+		buf.Grow(len(v) * 4) // Pre-allocate approximate size
+		buf.WriteByte('[')
+		for i, n := range v {
+			if i > 0 {
+				buf.WriteByte(' ')
+			}
+			buf.WriteString(FormatInt(int64(n)))
+		}
+		buf.WriteByte(']')
+		return buf.String()
+	default:
+		// Check if the type is a pointer by using reflection
+		rv := reflect.ValueOf(arg)
+		kind := rv.Kind()
+		if kind == reflect.Ptr && !rv.IsNil() {
+			// Dereference the pointer and recursively call ToString
+			return ToString(rv.Elem().Interface(), timeFormat...)
+		} else if kind == reflect.Slice || kind == reflect.Array {
+			// handle slices
+			n := rv.Len()
+			if n == 0 {
+				return "[]"
+			}
+			var buf strings.Builder
+			buf.Grow(n * 8) // Pre-allocate approximate size
+			buf.WriteByte('[')
+			for i := range n {
+				if i > 0 {
+					buf.WriteByte(' ')
+				}
+				buf.WriteString(ToString(rv.Index(i).Interface()))
+			}
+			buf.WriteByte(']')
+			return buf.String()
+		}
+
+		// For types not explicitly handled, use fmt.Sprint to generate a string representation
+		return fmt.Sprint(arg)
 	}
 }

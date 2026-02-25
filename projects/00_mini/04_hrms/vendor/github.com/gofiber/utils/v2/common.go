@@ -5,74 +5,43 @@
 package utils
 
 import (
-	"bytes"
 	"crypto/rand"
-	"encoding/binary"
-	"encoding/hex"
+	"encoding/base64"
+	"fmt"
 	"math"
 	"net"
 	"os"
 	"reflect"
 	"runtime"
-	"strconv"
-	"sync"
-	"sync/atomic"
-	"unicode"
+	"slices"
+	"strings"
 
 	"github.com/google/uuid"
 )
 
 const (
-	toLowerTable = "\x00\x01\x02\x03\x04\x05\x06\a\b\t\n\v\f\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u007f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"
-	toUpperTable = "\x00\x01\x02\x03\x04\x05\x06\a\b\t\n\v\f\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~\u007f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"
+	defaultSecureTokenLength  = 32
+	maxFastTokenEncodedLength = 43 // base64.RawURLEncoding.EncodedLen(32)
 )
 
-// Copyright © 2014, Roger Peppe
-// github.com/rogpeppe/fastuuid
-// All rights reserved.
-
-var (
-	uuidSeed    [24]byte
-	uuidCounter uint64
-	uuidSetup   sync.Once
-	unitsSlice  = []byte("kmgtp")
-)
-
-// UUID generates an universally unique identifier (UUID)
-func UUID() string {
-	// Setup seed & counter once
-	uuidSetup.Do(func() {
-		if _, err := rand.Read(uuidSeed[:]); err != nil {
-			return
-		}
-		uuidCounter = binary.LittleEndian.Uint64(uuidSeed[:8])
-	})
-	if atomic.LoadUint64(&uuidCounter) <= 0 {
-		return "00000000-0000-0000-0000-000000000000"
+func readRandomOrPanic(dst []byte) {
+	if _, err := rand.Read(dst); err != nil {
+		// On supported Go versions (1.24+), crypto/rand.Read panics internally and
+		// does not return errors. This check preserves explicit panic semantics if
+		// the behavior changes or an alternate implementation is used in the future.
+		// See: https://cs.opensource.google/go/go/+/refs/tags/go1.24.0:src/crypto/rand/rand.go
+		panic(fmt.Errorf("utils: failed to read random bytes for token: %w", err))
 	}
-	// first 8 bytes differ, taking a slice of the first 16 bytes
-	x := atomic.AddUint64(&uuidCounter, 1)
-	uuid := uuidSeed
-	binary.LittleEndian.PutUint64(uuid[:8], x)
-	uuid[6], uuid[9] = uuid[9], uuid[6]
+}
 
-	// RFC4122 v4
-	uuid[6] = (uuid[6] & 0x0f) | 0x40
-	uuid[8] = uuid[8]&0x3f | 0x80
-
-	// create UUID representation of the first 128 bits
-	b := make([]byte, 36)
-	hex.Encode(b[0:8], uuid[0:4])
-	b[8] = '-'
-	hex.Encode(b[9:13], uuid[4:6])
-	b[13] = '-'
-	hex.Encode(b[14:18], uuid[6:8])
-	b[18] = '-'
-	hex.Encode(b[19:23], uuid[8:10])
-	b[23] = '-'
-	hex.Encode(b[24:], uuid[10:16])
-
-	return UnsafeString(b)
+// Lookup table for ASCII whitespace characters (true = whitespace, false = not whitespace)
+var whitespaceTable = [256]bool{
+	'\t': true, // 9 - horizontal tab
+	'\n': true, // 10 - line feed
+	'\v': true, // 11 - vertical tab
+	'\f': true, // 12 - form feed
+	'\r': true, // 13 - carriage return
+	' ':  true, // 32 - space
 }
 
 // UUIDv4 returns a Random (Version 4) UUID.
@@ -80,28 +49,71 @@ func UUID() string {
 func UUIDv4() string {
 	token, err := uuid.NewRandom()
 	if err != nil {
-		return UUID()
+		panic(fmt.Errorf("utils: failed to generate secure UUID: %w", err))
 	}
 	return token.String()
 }
 
+// UUID generates an universally unique identifier (UUID).
+// This is an alias for UUIDv4 for backward compatibility.
+func UUID() string {
+	return UUIDv4()
+}
+
+// GenerateSecureToken generates a cryptographically secure random token encoded in base64.
+// It uses crypto/rand for randomness and base64.RawURLEncoding for URL-safe output.
+// If length is less than or equal to 0, it defaults to 32 bytes (256 bits of entropy).
+// Panics if the random source fails.
+func GenerateSecureToken(length int) string {
+	if length <= 0 {
+		length = defaultSecureTokenLength
+	}
+
+	if length == defaultSecureTokenLength {
+		var randomBuf [defaultSecureTokenLength]byte
+		src := randomBuf[:]
+		readRandomOrPanic(src)
+
+		var encoded [maxFastTokenEncodedLength]byte
+		encodedLen := base64.RawURLEncoding.EncodedLen(length)
+		base64.RawURLEncoding.Encode(encoded[:encodedLen], src)
+		return string(encoded[:encodedLen])
+	}
+
+	bytes := make([]byte, length)
+	readRandomOrPanic(bytes)
+	return base64.RawURLEncoding.EncodeToString(bytes)
+}
+
+// SecureToken generates a secure token with 32 bytes of entropy.
+// Panics if the random source fails. See GenerateSecureToken for details.
+func SecureToken() string {
+	return GenerateSecureToken(defaultSecureTokenLength)
+}
+
 // FunctionName returns function name
 func FunctionName(fn any) string {
-	t := reflect.ValueOf(fn).Type()
-	if t.Kind() == reflect.Func {
-		return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
+	if fn == nil {
+		return ""
 	}
-	return t.String()
+	v := reflect.ValueOf(fn)
+	if v.Kind() == reflect.Func {
+		if v.IsNil() {
+			return ""
+		}
+		pc := v.Pointer()
+		f := runtime.FuncForPC(pc)
+		if f == nil {
+			return ""
+		}
+		return f.Name()
+	}
+	return v.Type().String()
 }
 
 // GetArgument check if key is in arguments
 func GetArgument(arg string) bool {
-	for i := range os.Args[1:] {
-		if os.Args[1:][i] == arg {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(os.Args[1:], arg)
 }
 
 // IncrementIPRange Find available next IP address
@@ -121,34 +133,90 @@ func ConvertToBytes(humanReadableString string) int {
 	if strLen == 0 {
 		return 0
 	}
-	var unitPrefixPos, lastNumberPos int
-	// loop the string
+
+	// Fast path for plain byte values (e.g. "42", "42B", "42b").
+	var sizeFast uint64
+	maxInt := uint64(math.MaxInt)
+	i := 0
+	for ; i < strLen; i++ {
+		c := humanReadableString[i]
+		if c < '0' || c > '9' {
+			break
+		}
+		d := uint64(c - '0')
+		if sizeFast > maxInt/10 || (sizeFast == maxInt/10 && d > maxInt%10) {
+			sizeFast = maxInt
+		} else if sizeFast < maxInt {
+			sizeFast = sizeFast*10 + d
+		}
+	}
+	if i > 0 {
+		if i == strLen {
+			return int(sizeFast)
+		}
+		if i+1 == strLen {
+			last := humanReadableString[i]
+			if last == 'b' || last == 'B' {
+				return int(sizeFast)
+			}
+		}
+	}
+
+	// Find the last digit position by scanning backwards
+	// Also identify the unit prefix position in the same pass
+	lastNumberPos := -1
+	unitPrefixPos := 0
 	for i := strLen - 1; i >= 0; i-- {
-		// check if the char is a number
-		if unicode.IsDigit(rune(humanReadableString[i])) {
+		c := humanReadableString[i]
+		if c >= '0' && c <= '9' {
 			lastNumberPos = i
 			break
-		} else if humanReadableString[i] != ' ' {
+		}
+		// Track the first letter position (unit prefix) from the end
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') {
 			unitPrefixPos = i
 		}
 	}
 
+	// No digits found
 	if lastNumberPos < 0 {
 		return 0
 	}
-	// fetch the number part and parse it to float
-	size, err := strconv.ParseFloat(humanReadableString[:lastNumberPos+1], 64)
-	if err != nil {
-		return 0
+
+	numPart := humanReadableString[:lastNumberPos+1]
+	var size float64
+
+	if strings.IndexByte(numPart, '.') >= 0 {
+		var err error
+		size, err = ParseFloat64(numPart)
+		if err != nil {
+			return 0
+		}
+	} else {
+		i64, err := ParseUint(numPart)
+		if err != nil {
+			return 0
+		}
+		size = float64(i64)
 	}
 
-	// check the multiplier from the string and use it
 	if unitPrefixPos > 0 {
-		// convert multiplier char to lowercase and check if exists in units slice
-		index := bytes.IndexByte(unitsSlice, toLowerTable[humanReadableString[unitPrefixPos]])
-		if index != -1 {
-			size *= math.Pow(1000, float64(index+1))
+		switch humanReadableString[unitPrefixPos] {
+		case 'k', 'K':
+			size *= 1e3
+		case 'm', 'M':
+			size *= 1e6
+		case 'g', 'G':
+			size *= 1e9
+		case 't', 'T':
+			size *= 1e12
+		case 'p', 'P':
+			size *= 1e15
 		}
+	}
+
+	if size > float64(math.MaxInt) {
+		return math.MaxInt
 	}
 
 	return int(size)

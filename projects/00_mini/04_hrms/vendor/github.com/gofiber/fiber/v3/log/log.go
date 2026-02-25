@@ -8,7 +8,16 @@ import (
 	"os"
 )
 
-var logger AllLogger = &defaultLogger{
+// baseLogger defines the minimal logger functionality required by the package.
+// It allows storing any logger implementation regardless of its generic type.
+type baseLogger interface {
+	CommonLogger
+	SetLevel(Level)
+	SetOutput(io.Writer)
+	WithContext(ctx context.Context) CommonLogger
+}
+
+var logger baseLogger = &defaultLogger{
 	stdlog: log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile|log.Lmicroseconds),
 	depth:  4,
 }
@@ -46,23 +55,35 @@ type WithLogger interface {
 	Panicw(msg string, keysAndValues ...any)
 }
 
+// CommonLogger is the set of logging operations available across Fiber's
+// logging implementations.
 type CommonLogger interface {
 	Logger
 	FormatLogger
 	WithLogger
 }
 
-// ControlLogger provides methods to config a logger.
-type ControlLogger interface {
+// ConfigurableLogger provides methods to config a logger.
+type ConfigurableLogger[T any] interface {
+	// SetLevel sets logging level.
+	//
+	// Available levels: Trace, Debug, Info, Warn, Error, Fatal, Panic.
 	SetLevel(level Level)
+
+	// SetOutput sets the logger output.
 	SetOutput(w io.Writer)
+
+	// Logger returns the logger instance. It can be used to adjust the logger configurations in case of need.
+	Logger() T
 }
 
-// AllLogger is the combination of Logger, FormatLogger, CtxLogger and ControlLogger.
+// AllLogger is the combination of Logger, FormatLogger, CtxLogger and ConfigurableLogger.
 // Custom extensions can be made through AllLogger
-type AllLogger interface {
+type AllLogger[T any] interface {
 	CommonLogger
-	ControlLogger
+	ConfigurableLogger[T]
+
+	// WithContext returns a new logger with the given context.
 	WithContext(ctx context.Context) CommonLogger
 }
 

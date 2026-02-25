@@ -1,69 +1,137 @@
 package fiber
 
 import (
+	"reflect"
+	"slices"
+	"sync"
+
 	"github.com/gofiber/fiber/v3/binder"
 	"github.com/gofiber/utils/v2"
+	utilsbytes "github.com/gofiber/utils/v2/bytes"
 )
 
-// An interface to register custom binders.
+// CustomBinder An interface to register custom binders.
 type CustomBinder interface {
 	Name() string
 	MIMETypes() []string
 	Parse(c Ctx, out any) error
 }
 
-// An interface to register custom struct validator for binding.
+// StructValidator is an interface to register custom struct validator for binding.
 type StructValidator interface {
-	Engine() any
-	ValidateStruct(out any) error
+	Validate(out any) error
 }
 
-// Bind struct
+var bindPool = sync.Pool{
+	New: func() any {
+		return &Bind{
+			dontHandleErrs: true,
+		}
+	},
+}
+
+// Bind provides helper methods for binding request data to Go values.
 type Bind struct {
-	ctx    *DefaultCtx
-	should bool
+	ctx            Ctx
+	dontHandleErrs bool
+	skipValidation bool
 }
 
-// To handle binder errors manually, you can prefer Should method.
-// It's default behavior of binder.
-func (b *Bind) Should() *Bind {
-	b.should = true
-
-	return b
-}
-
-// If you want to handle binder errors automatically, you can use Must.
-// If there's an error it'll return error and 400 as HTTP status.
-func (b *Bind) Must() *Bind {
-	b.should = false
-
-	return b
-}
-
-// Check Should/Must errors and return it by usage.
-func (b *Bind) returnErr(err error) error {
-	if !b.should {
-		b.ctx.Status(StatusBadRequest)
-		return NewError(StatusBadRequest, "Bad request: "+err.Error())
+// AcquireBind returns Bind reference from bind pool.
+func AcquireBind() *Bind {
+	b, ok := bindPool.Get().(*Bind)
+	if !ok {
+		panic(errBindPoolTypeAssertion)
 	}
 
-	return err
+	return b
+}
+
+// ReleaseBind returns b acquired via Bind to bind pool.
+func ReleaseBind(b *Bind) {
+	b.release()
+	bindPool.Put(b)
+}
+
+// releasePooledBinder resets a binder and returns it to its pool.
+// It should be used with defer to ensure proper cleanup of pooled binders.
+func releasePooledBinder[T interface{ Reset() }](pool *sync.Pool, bind T) {
+	bind.Reset()
+	binder.PutToThePool(pool, bind)
+}
+
+func (b *Bind) release() {
+	b.ctx = nil
+	b.dontHandleErrs = true
+	b.skipValidation = false
+}
+
+// WithoutAutoHandling If you want to handle binder errors manually, you can use `WithoutAutoHandling`.
+// It's default behavior of binder.
+func (b *Bind) WithoutAutoHandling() *Bind {
+	b.dontHandleErrs = true
+
+	return b
+}
+
+// WithAutoHandling If you want to handle binder errors automatically, you can use `WithAutoHandling`.
+// If there's an error, it will return the error and set HTTP status to `400 Bad Request`.
+// You must still return on error explicitly
+func (b *Bind) WithAutoHandling() *Bind {
+	b.dontHandleErrs = false
+
+	return b
+}
+
+// SkipValidation enables or disables struct validation for the current bind chain.
+func (b *Bind) SkipValidation(skip bool) *Bind {
+	b.skipValidation = skip
+
+	return b
+}
+
+// Check WithAutoHandling/WithoutAutoHandling errors and return it by usage.
+func (b *Bind) returnErr(err error) error {
+	if err == nil || b.dontHandleErrs {
+		return err
+	}
+
+	b.ctx.Status(StatusBadRequest)
+	return NewError(StatusBadRequest, "Bad request: "+err.Error())
 }
 
 // Struct validation.
 func (b *Bind) validateStruct(out any) error {
-	validator := b.ctx.app.config.StructValidator
-	if validator != nil {
-		return validator.ValidateStruct(out)
+	if b.skipValidation {
+		return nil
 	}
 
-	return nil
+	validator := b.ctx.App().config.StructValidator
+	if validator == nil {
+		return nil
+	}
+
+	t := reflect.TypeOf(out)
+	if t == nil {
+		return nil
+	}
+
+	// Unwrap pointers (e.g. *T, **T) to inspect the underlying destination type.
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	if t.Kind() != reflect.Struct {
+		return nil
+	}
+
+	return validator.Validate(out)
 }
 
-// To use custom binders, you have to use this method.
+// Custom To use custom binders, you have to use this method.
 // You can register them from RegisterCustomBinder method of Fiber instance.
 // They're checked by name, if it's not found, it will return an error.
-// NOTE: Should/Must is still valid for Custom binders.
+// NOTE: WithAutoHandling/WithAutoHandling is still valid for Custom binders.
 func (b *Bind) Custom(name string, dest any) error {
 	binders := b.ctx.App().customBinders
 	for _, customBinder := range binders {
@@ -77,7 +145,12 @@ func (b *Bind) Custom(name string, dest any) error {
 
 // Header binds the request header strings into the struct, map[string]string and map[string][]string.
 func (b *Bind) Header(out any) error {
-	if err := b.returnErr(binder.HeaderBinder.Bind(b.ctx.Request(), out)); err != nil {
+	bind := binder.GetFromThePool[*binder.HeaderBinding](&binder.HeaderBinderPool)
+	bind.EnableSplitting = b.ctx.App().config.EnableSplittingOnParsers
+
+	defer releasePooledBinder(&binder.HeaderBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(b.ctx.Request(), out)); err != nil {
 		return err
 	}
 
@@ -86,26 +159,41 @@ func (b *Bind) Header(out any) error {
 
 // RespHeader binds the response header strings into the struct, map[string]string and map[string][]string.
 func (b *Bind) RespHeader(out any) error {
-	if err := b.returnErr(binder.RespHeaderBinder.Bind(b.ctx.Response(), out)); err != nil {
+	bind := binder.GetFromThePool[*binder.RespHeaderBinding](&binder.RespHeaderBinderPool)
+	bind.EnableSplitting = b.ctx.App().config.EnableSplittingOnParsers
+
+	defer releasePooledBinder(&binder.RespHeaderBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(b.ctx.Response(), out)); err != nil {
 		return err
 	}
 
 	return b.validateStruct(out)
 }
 
-// Cookie binds the requesr cookie strings into the struct, map[string]string and map[string][]string.
-// NOTE: If your cookie is like key=val1,val2; they'll be binded as an slice if your map is map[string][]string. Else, it'll use last element of cookie.
+// Cookie binds the request cookie strings into the struct, map[string]string and map[string][]string.
+// NOTE: If your cookie is like key=val1,val2; they'll be bound as a slice if your map is map[string][]string. Else, it'll use last element of cookie.
 func (b *Bind) Cookie(out any) error {
-	if err := b.returnErr(binder.CookieBinder.Bind(b.ctx.Context(), out)); err != nil {
+	bind := binder.GetFromThePool[*binder.CookieBinding](&binder.CookieBinderPool)
+	bind.EnableSplitting = b.ctx.App().config.EnableSplittingOnParsers
+
+	defer releasePooledBinder(&binder.CookieBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(&b.ctx.RequestCtx().Request, out)); err != nil {
 		return err
 	}
 
 	return b.validateStruct(out)
 }
 
-// QueryParser binds the query string into the struct, map[string]string and map[string][]string.
+// Query binds the query string into the struct, map[string]string and map[string][]string.
 func (b *Bind) Query(out any) error {
-	if err := b.returnErr(binder.QueryBinder.Bind(b.ctx.Context(), out)); err != nil {
+	bind := binder.GetFromThePool[*binder.QueryBinding](&binder.QueryBinderPool)
+	bind.EnableSplitting = b.ctx.App().config.EnableSplittingOnParsers
+
+	defer releasePooledBinder(&binder.QueryBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(&b.ctx.RequestCtx().Request, out)); err != nil {
 		return err
 	}
 
@@ -114,16 +202,39 @@ func (b *Bind) Query(out any) error {
 
 // JSON binds the body string into the struct.
 func (b *Bind) JSON(out any) error {
-	if err := b.returnErr(binder.JSONBinder.Bind(b.ctx.Body(), b.ctx.App().Config().JSONDecoder, out)); err != nil {
+	bind := binder.GetFromThePool[*binder.JSONBinding](&binder.JSONBinderPool)
+	bind.JSONDecoder = b.ctx.App().Config().JSONDecoder
+
+	defer releasePooledBinder(&binder.JSONBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(b.ctx.Body(), out)); err != nil {
 		return err
 	}
 
 	return b.validateStruct(out)
 }
 
+// CBOR binds the body string into the struct.
+func (b *Bind) CBOR(out any) error {
+	bind := binder.GetFromThePool[*binder.CBORBinding](&binder.CBORBinderPool)
+	bind.CBORDecoder = b.ctx.App().Config().CBORDecoder
+
+	defer releasePooledBinder(&binder.CBORBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(b.ctx.Body(), out)); err != nil {
+		return err
+	}
+	return b.validateStruct(out)
+}
+
 // XML binds the body string into the struct.
 func (b *Bind) XML(out any) error {
-	if err := b.returnErr(binder.XMLBinder.Bind(b.ctx.Body(), out)); err != nil {
+	bind := binder.GetFromThePool[*binder.XMLBinding](&binder.XMLBinderPool)
+	bind.XMLDecoder = b.ctx.App().config.XMLDecoder
+
+	defer releasePooledBinder(&binder.XMLBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(b.ctx.Body(), out)); err != nil {
 		return err
 	}
 
@@ -131,8 +242,15 @@ func (b *Bind) XML(out any) error {
 }
 
 // Form binds the form into the struct, map[string]string and map[string][]string.
+// If Content-Type is "application/x-www-form-urlencoded" or "multipart/form-data", it will bind the form values.
+// Multipart file fields are supported using *multipart.FileHeader, []*multipart.FileHeader, or *[]*multipart.FileHeader.
 func (b *Bind) Form(out any) error {
-	if err := b.returnErr(binder.FormBinder.Bind(b.ctx.Context(), out)); err != nil {
+	bind := binder.GetFromThePool[*binder.FormBinding](&binder.FormBinderPool)
+	bind.EnableSplitting = b.ctx.App().config.EnableSplittingOnParsers
+
+	defer releasePooledBinder(&binder.FormBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(&b.ctx.RequestCtx().Request, out)); err != nil {
 		return err
 	}
 
@@ -141,16 +259,25 @@ func (b *Bind) Form(out any) error {
 
 // URI binds the route parameters into the struct, map[string]string and map[string][]string.
 func (b *Bind) URI(out any) error {
-	if err := b.returnErr(binder.URIBinder.Bind(b.ctx.route.Params, b.ctx.Params, out)); err != nil {
+	bind := binder.GetFromThePool[*binder.URIBinding](&binder.URIBinderPool)
+
+	defer releasePooledBinder(&binder.URIBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(b.ctx.Route().Params, b.ctx.Params, out)); err != nil {
 		return err
 	}
 
 	return b.validateStruct(out)
 }
 
-// MultipartForm binds the multipart form into the struct, map[string]string and map[string][]string.
-func (b *Bind) MultipartForm(out any) error {
-	if err := b.returnErr(binder.FormBinder.BindMultipart(b.ctx.Context(), out)); err != nil {
+// MsgPack binds the body string into the struct.
+func (b *Bind) MsgPack(out any) error {
+	bind := binder.GetFromThePool[*binder.MsgPackBinding](&binder.MsgPackBinderPool)
+	bind.MsgPackDecoder = b.ctx.App().Config().MsgPackDecoder
+
+	defer releasePooledBinder(&binder.MsgPackBinderPool, bind)
+
+	if err := b.returnErr(bind.Bind(b.ctx.Body(), out)); err != nil {
 		return err
 	}
 
@@ -161,34 +288,93 @@ func (b *Bind) MultipartForm(out any) error {
 // It supports decoding the following content types based on the Content-Type header:
 // application/json, application/xml, application/x-www-form-urlencoded, multipart/form-data
 // If none of the content types above are matched, it'll take a look custom binders by checking the MIMETypes() method of custom binder.
-// If there're no custom binder for mşme type of body, it will return a ErrUnprocessableEntity error.
+// If there is no custom binder for mime type of body, it will return a ErrUnprocessableEntity error.
 func (b *Bind) Body(out any) error {
 	// Get content-type
-	ctype := utils.ToLower(utils.UnsafeString(b.ctx.Context().Request.Header.ContentType()))
+	ctype := utils.UnsafeString(utilsbytes.UnsafeToLower(b.ctx.RequestCtx().Request.Header.ContentType()))
 	ctype = binder.FilterFlags(utils.ParseVendorSpecificContentType(ctype))
+
+	// Check custom binders
+	binders := b.ctx.App().customBinders
+	for _, customBinder := range binders {
+		if slices.Contains(customBinder.MIMETypes(), ctype) {
+			return b.returnErr(customBinder.Parse(b.ctx, out))
+		}
+	}
 
 	// Parse body accordingly
 	switch ctype {
 	case MIMEApplicationJSON:
 		return b.JSON(out)
+	case MIMEApplicationMsgPack:
+		return b.MsgPack(out)
 	case MIMETextXML, MIMEApplicationXML:
 		return b.XML(out)
-	case MIMEApplicationForm:
+	case MIMEApplicationCBOR:
+		return b.CBOR(out)
+	case MIMEApplicationForm, MIMEMultipartForm:
 		return b.Form(out)
-	case MIMEMultipartForm:
-		return b.MultipartForm(out)
-	}
-
-	// Check custom binders
-	binders := b.ctx.App().customBinders
-	for _, customBinder := range binders {
-		for _, mime := range customBinder.MIMETypes() {
-			if mime == ctype {
-				return b.returnErr(customBinder.Parse(b.ctx, out))
-			}
-		}
 	}
 
 	// No suitable content type found
 	return ErrUnprocessableEntity
+}
+
+// All binds values from URI params, the request body, the query string,
+// headers, and cookies into the provided struct in precedence order.
+func (b *Bind) All(out any) error {
+	outVal := reflect.ValueOf(out)
+	if outVal.Kind() != reflect.Ptr || outVal.Elem().Kind() != reflect.Struct {
+		return ErrUnprocessableEntity
+	}
+
+	outElem := outVal.Elem()
+
+	// Precedence: URL Params -> Body -> Query -> Headers -> Cookies
+	sources := []func(any) error{b.URI}
+
+	// Check if both Body and Content-Type are set
+	if len(b.ctx.Request().Body()) > 0 && len(b.ctx.RequestCtx().Request.Header.ContentType()) > 0 {
+		sources = append(sources, b.Body)
+	}
+	sources = append(sources, b.Query, b.Header, b.Cookie)
+	prevSkip := b.skipValidation
+	b.skipValidation = true
+
+	// TODO: Support custom precedence with an optional binding_source tag
+	// TODO: Create WithOverrideEmptyValues
+	// Bind from each source, but only update unset fields
+	for _, bindFunc := range sources {
+		tempStruct := reflect.New(outElem.Type()).Interface()
+		if err := bindFunc(tempStruct); err != nil {
+			b.skipValidation = prevSkip
+			return err
+		}
+
+		tempStructVal := reflect.ValueOf(tempStruct).Elem()
+		mergeStruct(outElem, tempStructVal)
+	}
+
+	b.skipValidation = prevSkip
+	return b.returnErr(b.validateStruct(out))
+}
+
+func mergeStruct(dst, src reflect.Value) {
+	dstFields := dst.NumField()
+	for i := range dstFields {
+		dstField := dst.Field(i)
+		srcField := src.Field(i)
+
+		// Skip if the destination field is already set
+		if isZero(dstField.Interface()) {
+			if dstField.CanSet() && srcField.IsValid() {
+				dstField.Set(srcField)
+			}
+		}
+	}
+}
+
+func isZero(value any) bool {
+	v := reflect.ValueOf(value)
+	return v.IsZero()
 }

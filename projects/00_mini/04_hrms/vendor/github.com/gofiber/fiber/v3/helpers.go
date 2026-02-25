@@ -1,11 +1,12 @@
 // ⚡️ Fiber is an Express inspired web framework written in Go with ☕️
-// 🤖 Github Repository: https://github.com/gofiber/fiber
+// 🤖 GitHub Repository: https://github.com/gofiber/fiber
 // 📌 API Documentation: https://docs.gofiber.io
 
 package fiber
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -14,63 +15,143 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 	"unsafe"
 
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/utils/v2"
+	utilsbytes "github.com/gofiber/utils/v2/bytes"
+
+	"github.com/gofiber/fiber/v3/log"
 
 	"github.com/valyala/bytebufferpool"
 	"github.com/valyala/fasthttp"
 )
 
-// acceptType is a struct that holds the parsed value of an Accept header
+// acceptedType is a struct that holds the parsed value of an Accept header
 // along with quality, specificity, parameters, and order.
 // Used for sorting accept headers.
 type acceptedType struct {
+	params      headerParams
 	spec        string
 	quality     float64
 	specificity int
 	order       int
-	params      headerParams
 }
+
+const noCacheValue = "no-cache"
+
+// Pre-allocated byte slices for accept header parsing
+var (
+	semicolonQEquals = []byte(";q=")
+	wildcardAll      = []byte("*/*")
+	wildcardSuffix   = []byte("/*")
+)
 
 type headerParams map[string][]byte
 
+// ValueFromContext retrieves a value stored under key from supported context types.
+//
+// Supported context types:
+//   - Ctx (including CustomCtx implementations)
+//   - *fasthttp.RequestCtx
+//   - context.Context
+func ValueFromContext[T any](ctx, key any) (T, bool) {
+	switch typed := ctx.(type) {
+	case Ctx:
+		val, ok := typed.Locals(key).(T)
+		return val, ok
+	case *fasthttp.RequestCtx:
+		val, ok := typed.UserValue(key).(T)
+		return val, ok
+	case context.Context:
+		val, ok := typed.Value(key).(T)
+		return val, ok
+	default:
+		var zero T
+		return zero, false
+	}
+}
+
+// StoreInContext stores key/value in both Fiber locals and request context.
+//
+// This is useful when values need to be available via both c.Locals() and
+// context.Context lookups throughout middleware and handlers.
+func StoreInContext(c Ctx, key, value any) {
+	c.Locals(key, value)
+
+	if c.App().config.PassLocalsToContext {
+		c.SetContext(context.WithValue(c.Context(), key, value))
+	}
+}
+
 // getTLSConfig returns a net listener's tls config
 func getTLSConfig(ln net.Listener) *tls.Config {
-	// Get listener type
-	pointer := reflect.ValueOf(ln)
-
-	// Is it a tls.listener?
-	if pointer.String() != "<*tls.listener Value>" {
+	if ln == nil {
 		return nil
 	}
 
-	// Copy value from pointer
-	if val := reflect.Indirect(pointer); val.Type() != nil {
-		// Get private field from value
-		if field := val.FieldByName("config"); field.Type() != nil {
-			// Copy value from pointer field (unsafe)
-			newval := reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())) //nolint:gosec // Probably the only way to extract the *tls.Config from a net.Listener. TODO: Verify there really is no easier way without using unsafe.
-			if newval.Type() == nil {
-				return nil
-			}
-			// Get element from pointer
-			if elem := newval.Elem(); elem.Type() != nil {
-				// Cast value to *tls.Config
-				c, ok := elem.Interface().(*tls.Config)
-				if !ok {
-					panic(errors.New("failed to type-assert to *tls.Config"))
-				}
-				return c
-			}
-		}
+	type tlsConfigProvider interface {
+		TLSConfig() *tls.Config
 	}
 
-	return nil
+	type configProvider interface {
+		Config() *tls.Config
+	}
+
+	if provider, ok := ln.(tlsConfigProvider); ok {
+		return provider.TLSConfig()
+	}
+
+	if provider, ok := ln.(configProvider); ok {
+		return provider.Config()
+	}
+
+	pointer := reflect.ValueOf(ln)
+	if !pointer.IsValid() {
+		return nil
+	}
+
+	// Reflection fallback for listeners that do not expose a TLS config method.
+	val := reflect.Indirect(pointer)
+	if !val.IsValid() {
+		return nil
+	}
+
+	field := val.FieldByName("config")
+	if !field.IsValid() {
+		return nil
+	}
+
+	if field.Type() != reflect.TypeFor[*tls.Config]() {
+		return nil
+	}
+
+	if field.CanInterface() {
+		if cfg, ok := field.Interface().(*tls.Config); ok {
+			return cfg
+		}
+		return nil
+	}
+
+	if !field.CanAddr() {
+		return nil
+	}
+
+	value := reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem() //nolint:gosec // Access to unexported field is required for listeners that don't expose TLS config methods.
+	if !value.IsValid() {
+		return nil
+	}
+
+	cfg, ok := value.Interface().(*tls.Config)
+	if !ok {
+		return nil
+	}
+
+	return cfg
 }
 
 // readContent opens a named file and read content from it
@@ -85,119 +166,73 @@ func readContent(rf io.ReaderFrom, name string) (int64, error) {
 			log.Errorf("Error closing file: %s", err)
 		}
 	}()
-	if n, err := rf.ReadFrom(f); err != nil {
-		return n, fmt.Errorf("failed to read: %w", err)
+	n, readErr := rf.ReadFrom(f)
+	if readErr != nil {
+		return n, fmt.Errorf("failed to read: %w", readErr)
 	}
-	return 0, nil
+	return n, nil
 }
 
-// quoteString escape special characters in a given string
+// quoteString escapes special characters using percent-encoding.
+// Non-ASCII bytes are encoded as well so the result is always ASCII.
 func (app *App) quoteString(raw string) string {
 	bb := bytebufferpool.Get()
-	// quoted := string(fasthttp.AppendQuotedArg(bb.B, getBytes(raw)))
-	quoted := app.getString(fasthttp.AppendQuotedArg(bb.B, app.getBytes(raw)))
+	quoted := app.toString(fasthttp.AppendQuotedArg(bb.B, app.toBytes(raw)))
 	bytebufferpool.Put(bb)
 	return quoted
 }
 
-// Scan stack if other methods match the request
-func (app *App) methodExist(c *DefaultCtx) bool {
-	var exists bool
+// quoteRawString escapes only characters that need quoting according to
+// https://www.rfc-editor.org/rfc/rfc9110#section-5.6.4 so the result may
+// contain non-ASCII bytes.
+func (app *App) quoteRawString(raw string) string {
+	const hex = "0123456789ABCDEF"
+	bb := bytebufferpool.Get()
+	defer bytebufferpool.Put(bb)
 
-	methods := app.config.RequestMethods
-	for i := 0; i < len(methods); i++ {
-		// Skip original method
-		if c.getMethodINT() == i {
-			continue
-		}
-		// Reset stack index
-		c.setIndexRoute(-1)
-
-		tree, ok := c.App().treeStack[i][c.getTreePath()]
-		if !ok {
-			tree = c.App().treeStack[i][""]
-		}
-		// Get stack length
-		lenr := len(tree) - 1
-		// Loop over the route stack starting from previous index
-		for c.getIndexRoute() < lenr {
-			// Increment route index
-			c.setIndexRoute(c.getIndexRoute() + 1)
-			// Get *Route
-			route := tree[c.getIndexRoute()]
-			// Skip use routes
-			if route.use {
-				continue
-			}
-			// Check if it matches the request path
-			match := route.match(c.getDetectionPath(), c.Path(), c.getValues())
-			// No match, next route
-			if match {
-				// We matched
-				exists = true
-				// Add method to Allow header
-				c.Append(HeaderAllow, methods[i])
-				// Break stack loop
-				break
-			}
+	for i := 0; i < len(raw); i++ {
+		c := raw[i]
+		switch {
+		case c == '\\' || c == '"':
+			// escape backslash and quote
+			bb.B = append(bb.B, '\\', c)
+		case c == '\n':
+			bb.B = append(bb.B, '\\', 'n')
+		case c == '\r':
+			bb.B = append(bb.B, '\\', 'r')
+		case c < 0x20 || c == 0x7f:
+			// percent-encode control and DEL
+			bb.B = append(bb.B,
+				'%',
+				hex[c>>4],
+				hex[c&0x0f],
+			)
+		default:
+			bb.B = append(bb.B, c)
 		}
 	}
-	return exists
+
+	return app.toString(bb.B)
 }
 
-// Scan stack if other methods match the request
-func (app *App) methodExistCustom(c CustomCtx) bool {
-	var exists bool
-	methods := app.config.RequestMethods
-	for i := 0; i < len(methods); i++ {
-		// Skip original method
-		if c.getMethodINT() == i {
-			continue
-		}
-		// Reset stack index
-		c.setIndexRoute(-1)
-
-		tree, ok := c.App().treeStack[i][c.getTreePath()]
-		if !ok {
-			tree = c.App().treeStack[i][""]
-		}
-		// Get stack length
-		lenr := len(tree) - 1
-		// Loop over the route stack starting from previous index
-		for c.getIndexRoute() < lenr {
-			// Increment route index
-			c.setIndexRoute(c.getIndexRoute() + 1)
-			// Get *Route
-			route := tree[c.getIndexRoute()]
-			// Skip use routes
-			if route.use {
-				continue
-			}
-			// Check if it matches the request path
-			match := route.match(c.getDetectionPath(), c.Path(), c.getValues())
-			// No match, next route
-			if match {
-				// We matched
-				exists = true
-				// Add method to Allow header
-				c.Append(HeaderAllow, methods[i])
-				// Break stack loop
-				break
-			}
+// isASCII reports whether the provided string contains only ASCII characters.
+// See: https://www.rfc-editor.org/rfc/rfc0020
+func (*App) isASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] > 127 {
+			return false
 		}
 	}
-	return exists
+	return true
 }
 
 // uniqueRouteStack drop all not unique routes from the slice
 func uniqueRouteStack(stack []*Route) []*Route {
-	var unique []*Route
-	m := make(map[*Route]int)
+	m := make(map[*Route]struct{}, len(stack))
+	unique := make([]*Route, 0, len(stack))
 	for _, v := range stack {
 		if _, ok := m[v]; !ok {
-			// Unique key found. Record position and collect
-			// in result.
-			m[v] = len(unique)
+			m[v] = struct{}{}
 			unique = append(unique, v)
 		}
 	}
@@ -207,14 +242,14 @@ func uniqueRouteStack(stack []*Route) []*Route {
 
 // defaultString returns the value or a default value if it is set
 func defaultString(value string, defaultValue []string) string {
-	if len(value) == 0 && len(defaultValue) > 0 {
+	if value == "" && len(defaultValue) > 0 {
 		return defaultValue[0]
 	}
 	return value
 }
 
 func getGroupPath(prefix, path string) string {
-	if len(path) == 0 {
+	if path == "" {
 		return prefix
 	}
 
@@ -222,19 +257,101 @@ func getGroupPath(prefix, path string) string {
 		path = "/" + path
 	}
 
-	return strings.TrimRight(prefix, "/") + path
+	return utils.TrimRight(prefix, '/') + path
 }
 
-// acceptsOffer This function determines if an offer matches a given specification.
-// It checks if the specification ends with a '*' or if the offer has the prefix of the specification.
+// acceptsOffer determines if an offer matches a given specification.
+// It supports a trailing '*' wildcard and performs case-insensitive exact matching.
 // Returns true if the offer matches the specification, false otherwise.
 func acceptsOffer(spec, offer string, _ headerParams) bool {
 	if len(spec) >= 1 && spec[len(spec)-1] == '*' {
-		return true
-	} else if strings.HasPrefix(spec, offer) {
+		prefix := spec[:len(spec)-1]
+		if len(offer) < len(prefix) {
+			return false
+		}
+		return utils.EqualFold(prefix, offer[:len(prefix)])
+	}
+
+	return utils.EqualFold(spec, offer)
+}
+
+// acceptsLanguageOfferBasic determines if a language tag offer matches a range
+// according to RFC 4647 Basic Filtering.
+// A match occurs if the range exactly equals the tag or is a prefix of the tag
+// followed by a hyphen. The comparison is case-insensitive. Only a single "*"
+// as the entire range is allowed. Any "*" appearing after a hyphen renders the
+// range invalid and will not match.
+func acceptsLanguageOfferBasic(spec, offer string, _ headerParams) bool {
+	if spec == "*" {
 		return true
 	}
-	return false
+	if strings.IndexByte(spec, '*') >= 0 {
+		return false
+	}
+	if utils.EqualFold(spec, offer) {
+		return true
+	}
+	return len(offer) > len(spec) &&
+		utils.EqualFold(offer[:len(spec)], spec) &&
+		offer[len(spec)] == '-'
+}
+
+// acceptsLanguageOfferExtended determines if a language tag offer matches a
+// range according to RFC 4647 Extended Filtering (§3.3.2).
+// - Case-insensitive comparisons
+// - '*' matches zero or more subtags (can "slide")
+// - Unspecified subtags are treated like '*' (so trailing/extraneous tag subtags are fine)
+// - Matching fails if sliding encounters a singleton (incl. 'x')
+func acceptsLanguageOfferExtended(spec, offer string, _ headerParams) bool {
+	if spec == "*" {
+		return true
+	}
+	if spec == "" || offer == "" {
+		return false
+	}
+
+	// Use stack-allocated arrays to avoid heap allocations for typical language tags
+	var rsBuf, tsBuf [8]string
+	rs := rsBuf[:0]
+	ts := tsBuf[:0]
+
+	// Parse spec subtags without allocation for typical cases
+	for s := range strings.SplitSeq(spec, "-") {
+		rs = append(rs, s)
+	}
+	// Parse offer subtags without allocation for typical cases
+	for s := range strings.SplitSeq(offer, "-") {
+		ts = append(ts, s)
+	}
+
+	// Step 2: first subtag must match (or be '*')
+	if rs[0] != "*" && !utils.EqualFold(rs[0], ts[0]) {
+		return false
+	}
+
+	i, j := 1, 1 // i = range index, j = tag index
+	for i < len(rs) {
+		if rs[i] == "*" { // 3.A: '*' matches zero or more subtags
+			i++
+			continue
+		}
+		if j >= len(ts) { // 3.B: ran out of tag subtags
+			return false
+		}
+		if utils.EqualFold(rs[i], ts[j]) { // 3.C: exact subtag match
+			i++
+			j++
+			continue
+		}
+		// 3.D: singleton barrier (one letter or digit, incl. 'x')
+		if len(ts[j]) == 1 {
+			return false
+		}
+		// 3.E: slide forward in the tag and try again
+		j++
+	}
+	// 4: matched all range subtags
+	return true
 }
 
 // acceptsOfferType This function determines if an offer type matches a given specification.
@@ -271,16 +388,19 @@ func acceptsOfferType(spec, offerType string, specParams headerParams) bool {
 	}
 
 	s := strings.IndexByte(mimetype, '/')
+	specSlash := strings.IndexByte(spec, '/')
 	// Accept: <MIME_type>/*
-	if strings.HasPrefix(spec, mimetype[:s]) && (spec[s:] == "/*" || mimetype[s:] == "/*") {
-		return paramsMatch(specParams, offerParams)
+	if s != -1 && specSlash != -1 {
+		if utils.EqualFold(spec[:specSlash], mimetype[:s]) && (spec[specSlash:] == "/*" || mimetype[s:] == "/*") {
+			return paramsMatch(specParams, offerParams)
+		}
 	}
 
 	return false
 }
 
 // paramsMatch returns whether offerParams contains all parameters present in specParams.
-// Matching is case insensitive, and surrounding quotes are stripped.
+// Matching is case-insensitive, and surrounding quotes are stripped.
 // To align with the behavior of res.format from Express, the order of parameters is
 // ignored, and if a parameter is specified twice in the incoming Accept, the last
 // provided value is given precedence.
@@ -298,9 +418,14 @@ func paramsMatch(specParamStr headerParams, offerParams string) bool {
 	for specParam, specVal := range specParamStr {
 		foundParam := false
 		fasthttp.VisitHeaderParams(utils.UnsafeBytes(offerParams), func(key, value []byte) bool {
-			if utils.EqualFold(specParam, string(key)) {
+			if utils.EqualFold(specParam, utils.UnsafeString(key)) {
 				foundParam = true
-				allSpecParamsMatch = utils.EqualFold(specVal, value)
+				unescaped, err := unescapeHeaderValue(value)
+				if err != nil {
+					allSpecParamsMatch = false
+					return false
+				}
+				allSpecParamsMatch = utils.EqualFold(specVal, unescaped)
 				return false
 			}
 			return true
@@ -323,29 +448,56 @@ func getSplicedStrList(headerValue string, dst []string) []string {
 		return nil
 	}
 
-	var (
-		index             int
-		character         rune
-		lastElementEndsAt uint8
-		insertIndex       int
-	)
-	for index, character = range headerValue + "$" {
-		if character == ',' || index == len(headerValue) {
-			if insertIndex >= len(dst) {
-				oldSlice := dst
-				dst = make([]string, len(dst)+(len(dst)>>1)+2)
-				copy(dst, oldSlice)
-			}
-			dst[insertIndex] = strings.TrimLeft(headerValue[lastElementEndsAt:index], " ")
-			lastElementEndsAt = uint8(index + 1)
-			insertIndex++
+	dst = dst[:0]
+	segmentStart := 0
+	for i := 0; i < len(headerValue); i++ {
+		if headerValue[i] == ',' {
+			dst = append(dst, utils.TrimSpace(headerValue[segmentStart:i]))
+			segmentStart = i + 1
 		}
 	}
+	dst = append(dst, utils.TrimSpace(headerValue[segmentStart:]))
 
-	if len(dst) > insertIndex {
-		dst = dst[:insertIndex]
-	}
 	return dst
+}
+
+func joinHeaderValues(headers [][]byte) []byte {
+	switch len(headers) {
+	case 0:
+		return nil
+	case 1:
+		return headers[0]
+	default:
+		return bytes.Join(headers, []byte{','})
+	}
+}
+
+func unescapeHeaderValue(v []byte) ([]byte, error) {
+	if bytes.IndexByte(v, '\\') == -1 {
+		return v, nil
+	}
+	res := make([]byte, 0, len(v))
+	escaping := false
+	for i, c := range v {
+		if escaping {
+			res = append(res, c)
+			escaping = false
+			continue
+		}
+		if c == '\\' {
+			// invalid escape at end of string
+			if i == len(v)-1 {
+				return nil, errInvalidEscapeSequence
+			}
+			escaping = true
+			continue
+		}
+		res = append(res, c)
+	}
+	if escaping {
+		return nil, errInvalidEscapeSequence
+	}
+	return res, nil
 }
 
 // forEachMediaRange parses an Accept or Content-Type header, calling functor
@@ -356,7 +508,7 @@ func forEachMediaRange(header []byte, functor func([]byte)) {
 
 	for len(header) > 0 {
 		n := 0
-		header = bytes.TrimLeft(header, " ")
+		header = utils.TrimLeft(header, ' ')
 		quotes := 0
 		escaping := false
 
@@ -377,6 +529,8 @@ func forEachMediaRange(header []byte, functor func([]byte)) {
 					if quotes%2 == 1 {
 						escaping = !escaping
 					}
+				default:
+					// all other characters are ignored
 				}
 				n++
 			}
@@ -405,8 +559,6 @@ var headerParamPool = sync.Pool{
 }
 
 // getOffer return valid offer for header negotiation.
-// Do not pass header using utils.UnsafeBytes - this can cause a panic due
-// to the use of utils.ToLowerBytes.
 func getOffer(header []byte, isAccepted func(spec, offer string, specParams headerParams) bool, offers ...string) string {
 	if len(offers) == 0 {
 		return ""
@@ -423,29 +575,35 @@ func getOffer(header []byte, isAccepted func(spec, offer string, specParams head
 	forEachMediaRange(header, func(accept []byte) {
 		order++
 		spec, quality := accept, 1.0
-
 		var params headerParams
 
 		if i := bytes.IndexByte(accept, ';'); i != -1 {
 			spec = accept[:i]
 
-			// The vast majority of requests will have only the q parameter with
-			// no whitespace. Check this first to see if we can skip
-			// the more involved parsing.
-			if bytes.HasPrefix(accept[i:], []byte(";q=")) && bytes.IndexByte(accept[i+3:], ';') == -1 {
-				if q, err := fasthttp.ParseUfloat(bytes.TrimRight(accept[i+3:], " ")); err == nil {
+			// Optimized quality parsing
+			qIndex := i + 3
+			if bytes.HasPrefix(accept[i:], semicolonQEquals) && bytes.IndexByte(accept[qIndex:], ';') == -1 {
+				if q, err := fasthttp.ParseUfloat(accept[qIndex:]); err == nil {
 					quality = q
 				}
 			} else {
 				params, _ = headerParamPool.Get().(headerParams) //nolint:errcheck // only contains headerParams
+				for k := range params {
+					delete(params, k)
+				}
 				fasthttp.VisitHeaderParams(accept[i:], func(key, value []byte) bool {
-					if string(key) == "q" {
+					if len(key) == 1 && key[0] == 'q' {
 						if q, err := fasthttp.ParseUfloat(value); err == nil {
 							quality = q
 						}
 						return false
 					}
-					params[utils.UnsafeString(utils.ToLowerBytes(key))] = value
+					lowerKey := utils.UnsafeString(utilsbytes.UnsafeToLower(key))
+					val, err := unescapeHeaderValue(value)
+					if err != nil {
+						return true
+					}
+					params[lowerKey] = val
 					return true
 				})
 			}
@@ -457,74 +615,73 @@ func getOffer(header []byte, isAccepted func(spec, offer string, specParams head
 			}
 		}
 
-		spec = bytes.TrimRight(spec, " ")
+		spec = utils.TrimSpace(spec)
 
-		// Get specificity
+		// Determine specificity
 		var specificity int
+
 		// check for wildcard this could be a mime */* or a wildcard character *
-		if string(spec) == "*/*" || string(spec) == "*" {
+		switch {
+		case len(spec) == 1 && spec[0] == '*':
 			specificity = 1
-		} else if bytes.HasSuffix(spec, []byte("/*")) {
+		case bytes.Equal(spec, wildcardAll):
+			specificity = 1
+		case bytes.HasSuffix(spec, wildcardSuffix):
 			specificity = 2
-		} else if bytes.IndexByte(spec, '/') != -1 {
+		case bytes.IndexByte(spec, '/') != -1:
 			specificity = 3
-		} else {
+		default:
 			specificity = 4
 		}
 
 		// Add to accepted types
-		acceptedTypes = append(acceptedTypes, acceptedType{utils.UnsafeString(spec), quality, specificity, order, params})
+		acceptedTypes = append(acceptedTypes, acceptedType{
+			spec:        utils.UnsafeString(spec),
+			quality:     quality,
+			specificity: specificity,
+			order:       order,
+			params:      params,
+		})
 	})
 
 	if len(acceptedTypes) > 1 {
 		// Sort accepted types by quality and specificity, preserving order of equal elements
-		sortAcceptedTypes(&acceptedTypes)
+		sortAcceptedTypes(acceptedTypes)
 	}
 
 	// Find the first offer that matches the accepted types
-	ret := ""
-	done := false
 	for _, acceptedType := range acceptedTypes {
-		if !done {
-			for _, offer := range offers {
-				if offer == "" {
-					continue
+		for _, offer := range offers {
+			if offer == "" {
+				continue
+			}
+			if isAccepted(acceptedType.spec, offer, acceptedType.params) {
+				if acceptedType.params != nil {
+					headerParamPool.Put(acceptedType.params)
 				}
-				if isAccepted(acceptedType.spec, offer, acceptedType.params) {
-					ret = offer
-					done = true
-					break
-				}
+				return offer
 			}
 		}
 		if acceptedType.params != nil {
-			for p := range acceptedType.params {
-				delete(acceptedType.params, p)
-			}
 			headerParamPool.Put(acceptedType.params)
 		}
 	}
 
-	return ret
+	return ""
 }
 
 // sortAcceptedTypes sorts accepted types by quality and specificity, preserving order of equal elements
 // A type with parameters has higher priority than an equivalent one without parameters.
 // e.g., text/html;a=1;b=2 comes before text/html;a=1
 // See: https://www.rfc-editor.org/rfc/rfc9110#name-content-negotiation-fields
-func sortAcceptedTypes(acceptedTypes *[]acceptedType) {
-	if acceptedTypes == nil || len(*acceptedTypes) < 2 {
-		return
-	}
-	at := *acceptedTypes
-
+func sortAcceptedTypes(at []acceptedType) {
 	for i := 1; i < len(at); i++ {
 		lo, hi := 0, i-1
 		for lo <= hi {
 			mid := (lo + hi) / 2
 			if at[i].quality < at[mid].quality ||
 				(at[i].quality == at[mid].quality && at[i].specificity < at[mid].specificity) ||
-				(at[i].quality == at[mid].quality && at[i].specificity < at[mid].specificity && len(at[i].params) < len(at[mid].params)) ||
+				(at[i].quality == at[mid].quality && at[i].specificity == at[mid].specificity && len(at[i].params) < len(at[mid].params)) ||
 				(at[i].quality == at[mid].quality && at[i].specificity == at[mid].specificity && len(at[i].params) == len(at[mid].params) && at[i].order > at[mid].order) {
 				lo = mid + 1
 			} else {
@@ -537,19 +694,60 @@ func sortAcceptedTypes(acceptedTypes *[]acceptedType) {
 	}
 }
 
-func matchEtag(s, etag string) bool {
-	if s == etag || s == "W/"+etag || "W/"+s == etag {
-		return true
+// normalizeEtag validates an entity tag and returns the
+// value without quotes. weak is true if the tag has the "W/" prefix.
+func normalizeEtag(t string) (value string, weak, ok bool) { //nolint:nonamedreturns // gocritic unnamedResult requires naming the parsed ETag components
+	weak = strings.HasPrefix(t, "W/")
+	if weak {
+		t = t[2:]
 	}
 
-	return false
+	if len(t) < 2 || t[0] != '"' || t[len(t)-1] != '"' {
+		return "", weak, false
+	}
+	return t[1 : len(t)-1], weak, true
 }
 
+// matchEtag performs a weak comparison of entity tags according to
+// RFC 9110 §8.8.3.2. The weak indicator ("W/") is ignored, but both tags must
+// be properly quoted. Invalid tags result in a mismatch.
+func matchEtag(s, etag string) bool {
+	n1, _, ok1 := normalizeEtag(s)
+	n2, _, ok2 := normalizeEtag(etag)
+	if !ok1 || !ok2 {
+		return false
+	}
+
+	return n1 == n2
+}
+
+// matchEtagStrong performs a strong entity-tag comparison following
+// RFC 9110 §8.8.3.1. A weak tag never matches a strong one, even if the quoted
+// values are identical.
+func matchEtagStrong(s, etag string) bool {
+	n1, w1, ok1 := normalizeEtag(s)
+	n2, w2, ok2 := normalizeEtag(etag)
+	if !ok1 || !ok2 || w1 || w2 {
+		return false
+	}
+
+	return n1 == n2
+}
+
+// isEtagStale reports whether a response with the given ETag would be considered
+// stale when presented with the raw If-None-Match header value. Comparison is
+// weak as defined by RFC 9110 §8.8.3.2.
 func (app *App) isEtagStale(etag string, noneMatchBytes []byte) bool {
 	var start, end int
+	header := utils.TrimSpace(app.toString(noneMatchBytes))
+
+	// Short-circuit the wildcard case: "*" never counts as stale.
+	if header == "*" {
+		return false
+	}
 
 	// Adapted from:
-	// https://github.com/jshttp/fresh/blob/10e0471669dbbfbfd8de65bc6efac2ddd0bfa057/index.js#L110
+	// https://github.com/jshttp/fresh/blob/master/index.js#L110
 	for i := range noneMatchBytes {
 		switch noneMatchBytes[i] {
 		case 0x20:
@@ -558,7 +756,7 @@ func (app *App) isEtagStale(etag string, noneMatchBytes []byte) bool {
 				end = i + 1
 			}
 		case 0x2c:
-			if matchEtag(app.getString(noneMatchBytes[start:end]), etag) {
+			if matchEtag(app.toString(noneMatchBytes[start:end]), etag) {
 				return false
 			}
 			start = i + 1
@@ -568,64 +766,156 @@ func (app *App) isEtagStale(etag string, noneMatchBytes []byte) bool {
 		}
 	}
 
-	return !matchEtag(app.getString(noneMatchBytes[start:end]), etag)
+	return !matchEtag(app.toString(noneMatchBytes[start:end]), etag)
 }
 
-func parseAddr(raw string) (string, string) { //nolint:revive // Returns (host, port)
-	if i := strings.LastIndex(raw, ":"); i != -1 {
-		return raw[:i], raw[i+1:]
+func parseAddr(raw string) (host, port string) { //nolint:nonamedreturns // gocritic unnamedResult requires naming host and port parts for clarity
+	if raw == "" {
+		return "", ""
 	}
+
+	raw = utils.TrimSpace(raw)
+
+	// Handle IPv6 addresses enclosed in brackets as defined by RFC 3986
+	if strings.HasPrefix(raw, "[") {
+		if end := strings.IndexByte(raw, ']'); end != -1 {
+			host = raw[:end+1] // keep the closing ]
+			if len(raw) > end+1 && raw[end+1] == ':' {
+				return host, raw[end+2:]
+			}
+			return host, ""
+		}
+	}
+
+	// Everything else with a colon
+	if i := strings.LastIndexByte(raw, ':'); i != -1 {
+		host, port = raw[:i], raw[i+1:]
+
+		// If “host” still contains ':', we must have hit an un-bracketed IPv6
+		// literal. In that form a port is impossible, so treat the whole thing
+		// as host.
+		if strings.IndexByte(host, ':') >= 0 {
+			return raw, ""
+		}
+		return host, port
+	}
+
+	// No colon, nothing to split
 	return raw, ""
 }
 
-const noCacheValue = "no-cache"
-
-// isNoCache checks if the cacheControl header value is a `no-cache`.
+// isNoCache checks if the cacheControl header value contains a `no-cache` directive.
+// Per RFC 9111 §5.2.2.4, no-cache can appear as either:
+// - "no-cache" (applies to entire response)
+// - "no-cache=field-name" (applies to specific header field)
+// Both forms indicate the response should not be served from cache without revalidation.
 func isNoCache(cacheControl string) bool {
-	i := strings.Index(cacheControl, noCacheValue)
-	if i == -1 {
+	n := len(cacheControl)
+	if n < len(noCacheValue) {
 		return false
 	}
 
-	// Xno-cache
-	if i > 0 && !(cacheControl[i-1] == ' ' || cacheControl[i-1] == ',') {
-		return false
+	const noCacheLen = len(noCacheValue)
+	const asciiCaseFold = byte(0x20)
+	for i := 0; i <= n-noCacheLen; i++ {
+		if (cacheControl[i] | asciiCaseFold) != 'n' {
+			continue
+		}
+		if !matchNoCacheToken(cacheControl, i) {
+			continue
+		}
+		if i > 0 && !isNoCacheDelimiter(cacheControl[i-1]) {
+			continue
+		}
+
+		// Handle: "no-cache", "no-cache, ...", "no-cache=...", "no-cache ,"
+		if i+noCacheLen == n {
+			return true
+		}
+		if isNoCacheDelimiter(cacheControl[i+noCacheLen]) || cacheControl[i+noCacheLen] == '=' {
+			return true
+		}
 	}
 
-	// bla bla, no-cache
-	if i+len(noCacheValue) == len(cacheControl) {
-		return true
-	}
-
-	// bla bla, no-cacheX
-	if cacheControl[i+len(noCacheValue)] != ',' {
-		return false
-	}
-
-	// OK
-	return true
+	return false
 }
+
+func isNoCacheDelimiter(c byte) bool {
+	return c == ' ' || c == '\t' || c == ','
+}
+
+func matchNoCacheToken(s string, i int) bool {
+	// ASCII-only case-insensitive compare for "no-cache".
+	const asciiCaseFold = byte(0x20)
+	b := s[i:]
+
+	return (b[0]|asciiCaseFold) == 'n' &&
+		(b[1]|asciiCaseFold) == 'o' &&
+		b[2] == '-' &&
+		(b[3]|asciiCaseFold) == 'c' &&
+		(b[4]|asciiCaseFold) == 'a' &&
+		(b[5]|asciiCaseFold) == 'c' &&
+		(b[6]|asciiCaseFold) == 'h' &&
+		(b[7]|asciiCaseFold) == 'e'
+}
+
+var errTestConnClosed = errors.New("testConn is closed")
 
 type testConn struct {
-	r bytes.Buffer
-	w bytes.Buffer
+	r        bytes.Buffer
+	w        bytes.Buffer
+	isClosed bool
+	sync.Mutex
 }
 
-func (c *testConn) Read(b []byte) (int, error)  { return c.r.Read(b) }  //nolint:wrapcheck // This must not be wrapped
-func (c *testConn) Write(b []byte) (int, error) { return c.w.Write(b) } //nolint:wrapcheck // This must not be wrapped
-func (*testConn) Close() error                  { return nil }
+// Read implements net.Conn by reading from the buffered input.
+func (c *testConn) Read(b []byte) (int, error) {
+	c.Lock()
+	defer c.Unlock()
 
-func (*testConn) LocalAddr() net.Addr                { return &net.TCPAddr{Port: 0, Zone: "", IP: net.IPv4zero} }
-func (*testConn) RemoteAddr() net.Addr               { return &net.TCPAddr{Port: 0, Zone: "", IP: net.IPv4zero} }
-func (*testConn) SetDeadline(_ time.Time) error      { return nil }
-func (*testConn) SetReadDeadline(_ time.Time) error  { return nil }
+	return c.r.Read(b) //nolint:wrapcheck // This must not be wrapped
+}
+
+// Write implements net.Conn by appending to the buffered output.
+func (c *testConn) Write(b []byte) (int, error) {
+	c.Lock()
+	defer c.Unlock()
+
+	if c.isClosed {
+		return 0, errTestConnClosed
+	}
+	return c.w.Write(b) //nolint:wrapcheck // This must not be wrapped
+}
+
+// Close marks the connection as closed and prevents further writes.
+func (c *testConn) Close() error {
+	c.Lock()
+	defer c.Unlock()
+
+	c.isClosed = true
+	return nil
+}
+
+// LocalAddr implements net.Conn and returns a placeholder address.
+func (*testConn) LocalAddr() net.Addr { return &net.TCPAddr{Port: 0, Zone: "", IP: net.IPv4zero} }
+
+// RemoteAddr implements net.Conn and returns a placeholder address.
+func (*testConn) RemoteAddr() net.Addr { return &net.TCPAddr{Port: 0, Zone: "", IP: net.IPv4zero} }
+
+// SetDeadline implements net.Conn but is a no-op for the in-memory connection.
+func (*testConn) SetDeadline(_ time.Time) error { return nil }
+
+// SetReadDeadline implements net.Conn but is a no-op for the in-memory connection.
+func (*testConn) SetReadDeadline(_ time.Time) error { return nil }
+
+// SetWriteDeadline implements net.Conn but is a no-op for the in-memory connection.
 func (*testConn) SetWriteDeadline(_ time.Time) error { return nil }
 
-func getStringImmutable(b []byte) string {
+func toStringImmutable(b []byte) string {
 	return string(b)
 }
 
-func getBytesImmutable(s string) []byte {
+func toBytesImmutable(s string) []byte {
 	return []byte(s)
 }
 
@@ -633,39 +923,35 @@ func getBytesImmutable(s string) []byte {
 func (app *App) methodInt(s string) int {
 	// For better performance
 	if len(app.configured.RequestMethods) == 0 {
-		// TODO: Use iota instead
 		switch s {
 		case MethodGet:
-			return 0
+			return methodGet
 		case MethodHead:
-			return 1
+			return methodHead
 		case MethodPost:
-			return 2
+			return methodPost
 		case MethodPut:
-			return 3
+			return methodPut
 		case MethodDelete:
-			return 4
+			return methodDelete
 		case MethodConnect:
-			return 5
+			return methodConnect
 		case MethodOptions:
-			return 6
+			return methodOptions
 		case MethodTrace:
-			return 7
+			return methodTrace
 		case MethodPatch:
-			return 8
+			return methodPatch
 		default:
 			return -1
 		}
 	}
-
 	// For method customization
-	for i, v := range app.config.RequestMethods {
-		if s == v {
-			return i
-		}
-	}
+	return slices.Index(app.config.RequestMethods, s)
+}
 
-	return -1
+func (app *App) method(methodInt int) string {
+	return app.config.RequestMethods[methodInt]
 }
 
 // IsMethodSafe reports whether the HTTP method is considered safe.
@@ -697,339 +983,144 @@ func IsMethodIdempotent(m string) bool {
 	}
 }
 
-// HTTP methods were copied from net/http.
-const (
-	MethodGet     = "GET"     // RFC 7231, 4.3.1
-	MethodHead    = "HEAD"    // RFC 7231, 4.3.2
-	MethodPost    = "POST"    // RFC 7231, 4.3.3
-	MethodPut     = "PUT"     // RFC 7231, 4.3.4
-	MethodPatch   = "PATCH"   // RFC 5789
-	MethodDelete  = "DELETE"  // RFC 7231, 4.3.5
-	MethodConnect = "CONNECT" // RFC 7231, 4.3.6
-	MethodOptions = "OPTIONS" // RFC 7231, 4.3.7
-	MethodTrace   = "TRACE"   // RFC 7231, 4.3.8
-	methodUse     = "USE"
-)
-
-// MIME types that are commonly used
-const (
-	MIMETextXML         = "text/xml"
-	MIMETextHTML        = "text/html"
-	MIMETextPlain       = "text/plain"
-	MIMETextJavaScript  = "text/javascript"
-	MIMEApplicationXML  = "application/xml"
-	MIMEApplicationJSON = "application/json"
-	// Deprecated: use MIMETextJavaScript instead
-	MIMEApplicationJavaScript = "application/javascript"
-	MIMEApplicationForm       = "application/x-www-form-urlencoded"
-	MIMEOctetStream           = "application/octet-stream"
-	MIMEMultipartForm         = "multipart/form-data"
-
-	MIMETextXMLCharsetUTF8         = "text/xml; charset=utf-8"
-	MIMETextHTMLCharsetUTF8        = "text/html; charset=utf-8"
-	MIMETextPlainCharsetUTF8       = "text/plain; charset=utf-8"
-	MIMETextJavaScriptCharsetUTF8  = "text/javascript; charset=utf-8"
-	MIMEApplicationXMLCharsetUTF8  = "application/xml; charset=utf-8"
-	MIMEApplicationJSONCharsetUTF8 = "application/json; charset=utf-8"
-	// Deprecated: use MIMETextJavaScriptCharsetUTF8 instead
-	MIMEApplicationJavaScriptCharsetUTF8 = "application/javascript; charset=utf-8"
-)
-
-// HTTP status codes were copied from net/http with the following updates:
-// - Rename StatusNonAuthoritativeInfo to StatusNonAuthoritativeInformation
-// - Add StatusSwitchProxy (306)
-// NOTE: Keep this list in sync with statusMessage
-const (
-	StatusContinue           = 100 // RFC 9110, 15.2.1
-	StatusSwitchingProtocols = 101 // RFC 9110, 15.2.2
-	StatusProcessing         = 102 // RFC 2518, 10.1
-	StatusEarlyHints         = 103 // RFC 8297
-
-	StatusOK                          = 200 // RFC 9110, 15.3.1
-	StatusCreated                     = 201 // RFC 9110, 15.3.2
-	StatusAccepted                    = 202 // RFC 9110, 15.3.3
-	StatusNonAuthoritativeInformation = 203 // RFC 9110, 15.3.4
-	StatusNoContent                   = 204 // RFC 9110, 15.3.5
-	StatusResetContent                = 205 // RFC 9110, 15.3.6
-	StatusPartialContent              = 206 // RFC 9110, 15.3.7
-	StatusMultiStatus                 = 207 // RFC 4918, 11.1
-	StatusAlreadyReported             = 208 // RFC 5842, 7.1
-	StatusIMUsed                      = 226 // RFC 3229, 10.4.1
-
-	StatusMultipleChoices   = 300 // RFC 9110, 15.4.1
-	StatusMovedPermanently  = 301 // RFC 9110, 15.4.2
-	StatusFound             = 302 // RFC 9110, 15.4.3
-	StatusSeeOther          = 303 // RFC 9110, 15.4.4
-	StatusNotModified       = 304 // RFC 9110, 15.4.5
-	StatusUseProxy          = 305 // RFC 9110, 15.4.6
-	StatusSwitchProxy       = 306 // RFC 9110, 15.4.7 (Unused)
-	StatusTemporaryRedirect = 307 // RFC 9110, 15.4.8
-	StatusPermanentRedirect = 308 // RFC 9110, 15.4.9
-
-	StatusBadRequest                   = 400 // RFC 9110, 15.5.1
-	StatusUnauthorized                 = 401 // RFC 9110, 15.5.2
-	StatusPaymentRequired              = 402 // RFC 9110, 15.5.3
-	StatusForbidden                    = 403 // RFC 9110, 15.5.4
-	StatusNotFound                     = 404 // RFC 9110, 15.5.5
-	StatusMethodNotAllowed             = 405 // RFC 9110, 15.5.6
-	StatusNotAcceptable                = 406 // RFC 9110, 15.5.7
-	StatusProxyAuthRequired            = 407 // RFC 9110, 15.5.8
-	StatusRequestTimeout               = 408 // RFC 9110, 15.5.9
-	StatusConflict                     = 409 // RFC 9110, 15.5.10
-	StatusGone                         = 410 // RFC 9110, 15.5.11
-	StatusLengthRequired               = 411 // RFC 9110, 15.5.12
-	StatusPreconditionFailed           = 412 // RFC 9110, 15.5.13
-	StatusRequestEntityTooLarge        = 413 // RFC 9110, 15.5.14
-	StatusRequestURITooLong            = 414 // RFC 9110, 15.5.15
-	StatusUnsupportedMediaType         = 415 // RFC 9110, 15.5.16
-	StatusRequestedRangeNotSatisfiable = 416 // RFC 9110, 15.5.17
-	StatusExpectationFailed            = 417 // RFC 9110, 15.5.18
-	StatusTeapot                       = 418 // RFC 9110, 15.5.19 (Unused)
-	StatusMisdirectedRequest           = 421 // RFC 9110, 15.5.20
-	StatusUnprocessableEntity          = 422 // RFC 9110, 15.5.21
-	StatusLocked                       = 423 // RFC 4918, 11.3
-	StatusFailedDependency             = 424 // RFC 4918, 11.4
-	StatusTooEarly                     = 425 // RFC 8470, 5.2.
-	StatusUpgradeRequired              = 426 // RFC 9110, 15.5.22
-	StatusPreconditionRequired         = 428 // RFC 6585, 3
-	StatusTooManyRequests              = 429 // RFC 6585, 4
-	StatusRequestHeaderFieldsTooLarge  = 431 // RFC 6585, 5
-	StatusUnavailableForLegalReasons   = 451 // RFC 7725, 3
-
-	StatusInternalServerError           = 500 // RFC 9110, 15.6.1
-	StatusNotImplemented                = 501 // RFC 9110, 15.6.2
-	StatusBadGateway                    = 502 // RFC 9110, 15.6.3
-	StatusServiceUnavailable            = 503 // RFC 9110, 15.6.4
-	StatusGatewayTimeout                = 504 // RFC 9110, 15.6.5
-	StatusHTTPVersionNotSupported       = 505 // RFC 9110, 15.6.6
-	StatusVariantAlsoNegotiates         = 506 // RFC 2295, 8.1
-	StatusInsufficientStorage           = 507 // RFC 4918, 11.5
-	StatusLoopDetected                  = 508 // RFC 5842, 7.2
-	StatusNotExtended                   = 510 // RFC 2774, 7
-	StatusNetworkAuthenticationRequired = 511 // RFC 6585, 6
-)
-
-// Errors
-var (
-	ErrBadRequest                   = NewError(StatusBadRequest)                   // 400
-	ErrUnauthorized                 = NewError(StatusUnauthorized)                 // 401
-	ErrPaymentRequired              = NewError(StatusPaymentRequired)              // 402
-	ErrForbidden                    = NewError(StatusForbidden)                    // 403
-	ErrNotFound                     = NewError(StatusNotFound)                     // 404
-	ErrMethodNotAllowed             = NewError(StatusMethodNotAllowed)             // 405
-	ErrNotAcceptable                = NewError(StatusNotAcceptable)                // 406
-	ErrProxyAuthRequired            = NewError(StatusProxyAuthRequired)            // 407
-	ErrRequestTimeout               = NewError(StatusRequestTimeout)               // 408
-	ErrConflict                     = NewError(StatusConflict)                     // 409
-	ErrGone                         = NewError(StatusGone)                         // 410
-	ErrLengthRequired               = NewError(StatusLengthRequired)               // 411
-	ErrPreconditionFailed           = NewError(StatusPreconditionFailed)           // 412
-	ErrRequestEntityTooLarge        = NewError(StatusRequestEntityTooLarge)        // 413
-	ErrRequestURITooLong            = NewError(StatusRequestURITooLong)            // 414
-	ErrUnsupportedMediaType         = NewError(StatusUnsupportedMediaType)         // 415
-	ErrRequestedRangeNotSatisfiable = NewError(StatusRequestedRangeNotSatisfiable) // 416
-	ErrExpectationFailed            = NewError(StatusExpectationFailed)            // 417
-	ErrTeapot                       = NewError(StatusTeapot)                       // 418
-	ErrMisdirectedRequest           = NewError(StatusMisdirectedRequest)           // 421
-	ErrUnprocessableEntity          = NewError(StatusUnprocessableEntity)          // 422
-	ErrLocked                       = NewError(StatusLocked)                       // 423
-	ErrFailedDependency             = NewError(StatusFailedDependency)             // 424
-	ErrTooEarly                     = NewError(StatusTooEarly)                     // 425
-	ErrUpgradeRequired              = NewError(StatusUpgradeRequired)              // 426
-	ErrPreconditionRequired         = NewError(StatusPreconditionRequired)         // 428
-	ErrTooManyRequests              = NewError(StatusTooManyRequests)              // 429
-	ErrRequestHeaderFieldsTooLarge  = NewError(StatusRequestHeaderFieldsTooLarge)  // 431
-	ErrUnavailableForLegalReasons   = NewError(StatusUnavailableForLegalReasons)   // 451
-
-	ErrInternalServerError           = NewError(StatusInternalServerError)           // 500
-	ErrNotImplemented                = NewError(StatusNotImplemented)                // 501
-	ErrBadGateway                    = NewError(StatusBadGateway)                    // 502
-	ErrServiceUnavailable            = NewError(StatusServiceUnavailable)            // 503
-	ErrGatewayTimeout                = NewError(StatusGatewayTimeout)                // 504
-	ErrHTTPVersionNotSupported       = NewError(StatusHTTPVersionNotSupported)       // 505
-	ErrVariantAlsoNegotiates         = NewError(StatusVariantAlsoNegotiates)         // 506
-	ErrInsufficientStorage           = NewError(StatusInsufficientStorage)           // 507
-	ErrLoopDetected                  = NewError(StatusLoopDetected)                  // 508
-	ErrNotExtended                   = NewError(StatusNotExtended)                   // 510
-	ErrNetworkAuthenticationRequired = NewError(StatusNetworkAuthenticationRequired) // 511
-)
-
-// HTTP Headers were copied from net/http.
-const (
-	HeaderAuthorization                   = "Authorization"
-	HeaderProxyAuthenticate               = "Proxy-Authenticate"
-	HeaderProxyAuthorization              = "Proxy-Authorization"
-	HeaderWWWAuthenticate                 = "WWW-Authenticate"
-	HeaderAge                             = "Age"
-	HeaderCacheControl                    = "Cache-Control"
-	HeaderClearSiteData                   = "Clear-Site-Data"
-	HeaderExpires                         = "Expires"
-	HeaderPragma                          = "Pragma"
-	HeaderWarning                         = "Warning"
-	HeaderAcceptCH                        = "Accept-CH"
-	HeaderAcceptCHLifetime                = "Accept-CH-Lifetime"
-	HeaderContentDPR                      = "Content-DPR"
-	HeaderDPR                             = "DPR"
-	HeaderEarlyData                       = "Early-Data"
-	HeaderSaveData                        = "Save-Data"
-	HeaderViewportWidth                   = "Viewport-Width"
-	HeaderWidth                           = "Width"
-	HeaderETag                            = "ETag"
-	HeaderIfMatch                         = "If-Match"
-	HeaderIfModifiedSince                 = "If-Modified-Since"
-	HeaderIfNoneMatch                     = "If-None-Match"
-	HeaderIfUnmodifiedSince               = "If-Unmodified-Since"
-	HeaderLastModified                    = "Last-Modified"
-	HeaderVary                            = "Vary"
-	HeaderConnection                      = "Connection"
-	HeaderKeepAlive                       = "Keep-Alive"
-	HeaderAccept                          = "Accept"
-	HeaderAcceptCharset                   = "Accept-Charset"
-	HeaderAcceptEncoding                  = "Accept-Encoding"
-	HeaderAcceptLanguage                  = "Accept-Language"
-	HeaderCookie                          = "Cookie"
-	HeaderExpect                          = "Expect"
-	HeaderMaxForwards                     = "Max-Forwards"
-	HeaderSetCookie                       = "Set-Cookie"
-	HeaderAccessControlAllowCredentials   = "Access-Control-Allow-Credentials"
-	HeaderAccessControlAllowHeaders       = "Access-Control-Allow-Headers"
-	HeaderAccessControlAllowMethods       = "Access-Control-Allow-Methods"
-	HeaderAccessControlAllowOrigin        = "Access-Control-Allow-Origin"
-	HeaderAccessControlExposeHeaders      = "Access-Control-Expose-Headers"
-	HeaderAccessControlMaxAge             = "Access-Control-Max-Age"
-	HeaderAccessControlRequestHeaders     = "Access-Control-Request-Headers"
-	HeaderAccessControlRequestMethod      = "Access-Control-Request-Method"
-	HeaderOrigin                          = "Origin"
-	HeaderTimingAllowOrigin               = "Timing-Allow-Origin"
-	HeaderXPermittedCrossDomainPolicies   = "X-Permitted-Cross-Domain-Policies"
-	HeaderDNT                             = "DNT"
-	HeaderTk                              = "Tk"
-	HeaderContentDisposition              = "Content-Disposition"
-	HeaderContentEncoding                 = "Content-Encoding"
-	HeaderContentLanguage                 = "Content-Language"
-	HeaderContentLength                   = "Content-Length"
-	HeaderContentLocation                 = "Content-Location"
-	HeaderContentType                     = "Content-Type"
-	HeaderForwarded                       = "Forwarded"
-	HeaderVia                             = "Via"
-	HeaderXForwardedFor                   = "X-Forwarded-For"
-	HeaderXForwardedHost                  = "X-Forwarded-Host"
-	HeaderXForwardedProto                 = "X-Forwarded-Proto"
-	HeaderXForwardedProtocol              = "X-Forwarded-Protocol"
-	HeaderXForwardedSsl                   = "X-Forwarded-Ssl"
-	HeaderXUrlScheme                      = "X-Url-Scheme"
-	HeaderLocation                        = "Location"
-	HeaderFrom                            = "From"
-	HeaderHost                            = "Host"
-	HeaderReferer                         = "Referer"
-	HeaderReferrerPolicy                  = "Referrer-Policy"
-	HeaderUserAgent                       = "User-Agent"
-	HeaderAllow                           = "Allow"
-	HeaderServer                          = "Server"
-	HeaderAcceptRanges                    = "Accept-Ranges"
-	HeaderContentRange                    = "Content-Range"
-	HeaderIfRange                         = "If-Range"
-	HeaderRange                           = "Range"
-	HeaderContentSecurityPolicy           = "Content-Security-Policy"
-	HeaderContentSecurityPolicyReportOnly = "Content-Security-Policy-Report-Only"
-	HeaderCrossOriginResourcePolicy       = "Cross-Origin-Resource-Policy"
-	HeaderExpectCT                        = "Expect-CT"
-	HeaderPermissionsPolicy               = "Permissions-Policy"
-	HeaderPublicKeyPins                   = "Public-Key-Pins"
-	HeaderPublicKeyPinsReportOnly         = "Public-Key-Pins-Report-Only"
-	HeaderStrictTransportSecurity         = "Strict-Transport-Security"
-	HeaderUpgradeInsecureRequests         = "Upgrade-Insecure-Requests"
-	HeaderXContentTypeOptions             = "X-Content-Type-Options"
-	HeaderXDownloadOptions                = "X-Download-Options"
-	HeaderXFrameOptions                   = "X-Frame-Options"
-	HeaderXPoweredBy                      = "X-Powered-By"
-	HeaderXXSSProtection                  = "X-XSS-Protection"
-	HeaderLastEventID                     = "Last-Event-ID"
-	HeaderNEL                             = "NEL"
-	HeaderPingFrom                        = "Ping-From"
-	HeaderPingTo                          = "Ping-To"
-	HeaderReportTo                        = "Report-To"
-	HeaderTE                              = "TE"
-	HeaderTrailer                         = "Trailer"
-	HeaderTransferEncoding                = "Transfer-Encoding"
-	HeaderSecWebSocketAccept              = "Sec-WebSocket-Accept"
-	HeaderSecWebSocketExtensions          = "Sec-WebSocket-Extensions"
-	HeaderSecWebSocketKey                 = "Sec-WebSocket-Key"
-	HeaderSecWebSocketProtocol            = "Sec-WebSocket-Protocol"
-	HeaderSecWebSocketVersion             = "Sec-WebSocket-Version"
-	HeaderAcceptPatch                     = "Accept-Patch"
-	HeaderAcceptPushPolicy                = "Accept-Push-Policy"
-	HeaderAcceptSignature                 = "Accept-Signature"
-	HeaderAltSvc                          = "Alt-Svc"
-	HeaderDate                            = "Date"
-	HeaderIndex                           = "Index"
-	HeaderLargeAllocation                 = "Large-Allocation"
-	HeaderLink                            = "Link"
-	HeaderPushPolicy                      = "Push-Policy"
-	HeaderRetryAfter                      = "Retry-After"
-	HeaderServerTiming                    = "Server-Timing"
-	HeaderSignature                       = "Signature"
-	HeaderSignedHeaders                   = "Signed-Headers"
-	HeaderSourceMap                       = "SourceMap"
-	HeaderUpgrade                         = "Upgrade"
-	HeaderXDNSPrefetchControl             = "X-DNS-Prefetch-Control"
-	HeaderXPingback                       = "X-Pingback"
-	HeaderXRequestID                      = "X-Request-ID"
-	HeaderXRequestedWith                  = "X-Requested-With"
-	HeaderXRobotsTag                      = "X-Robots-Tag"
-	HeaderXUACompatible                   = "X-UA-Compatible"
-)
-
-// Network types that are commonly used
-const (
-	NetworkTCP  = "tcp"
-	NetworkTCP4 = "tcp4"
-	NetworkTCP6 = "tcp6"
-)
-
-// Compression types
-const (
-	StrGzip    = "gzip"
-	StrBr      = "br"
-	StrDeflate = "deflate"
-	StrBrotli  = "brotli"
-)
-
-// Cookie SameSite
-// https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1.2.7
-const (
-	CookieSameSiteDisabled   = "disabled" // not in RFC, just control "SameSite" attribute will not be set.
-	CookieSameSiteLaxMode    = "lax"
-	CookieSameSiteStrictMode = "strict"
-	CookieSameSiteNoneMode   = "none"
-)
-
-// Route Constraints
-const (
-	ConstraintInt             = "int"
-	ConstraintBool            = "bool"
-	ConstraintFloat           = "float"
-	ConstraintAlpha           = "alpha"
-	ConstraintGUID            = "guid"
-	ConstraintMinLen          = "minLen"
-	ConstraintMaxLen          = "maxLen"
-	ConstraintLen             = "len"
-	ConstraintBetweenLen      = "betweenLen"
-	ConstraintMinLenLower     = "minlen"
-	ConstraintMaxLenLower     = "maxlen"
-	ConstraintBetweenLenLower = "betweenlen"
-	ConstraintMin             = "min"
-	ConstraintMax             = "max"
-	ConstraintRange           = "range"
-	ConstraintDatetime        = "datetime"
-	ConstraintRegex           = "regex"
-)
-
-func IndexRune(str string, needle int32) bool {
-	for _, b := range str {
-		if b == needle {
-			return true
+// Convert a string value to a specified type, handling errors and optional default values.
+func Convert[T any](value string, converter func(string) (T, error), defaultValue ...T) (T, error) {
+	converted, err := converter(value)
+	if err != nil {
+		if len(defaultValue) > 0 {
+			return defaultValue[0], nil
 		}
+
+		return converted, fmt.Errorf("failed to convert: %w", err)
 	}
-	return false
+
+	return converted, nil
+}
+
+var (
+	errParsedEmptyString = errors.New("parsed result is empty string")
+	errParsedEmptyBytes  = errors.New("parsed result is empty bytes")
+	errParsedType        = errors.New("unsupported generic type")
+)
+
+func genericParseType[V GenericType](str string) (V, error) {
+	var v V
+	switch any(v).(type) {
+	case int:
+		result, err := utils.ParseInt(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse int: %w", err)
+		}
+		return any(int(result)).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case int8:
+		result, err := utils.ParseInt8(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse int8: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case int16:
+		result, err := utils.ParseInt16(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse int16: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case int32:
+		result, err := utils.ParseInt32(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse int32: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case int64:
+		result, err := utils.ParseInt(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse int64: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case uint:
+		result, err := utils.ParseUint(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse uint: %w", err)
+		}
+		return any(uint(result)).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case uint8:
+		result, err := utils.ParseUint8(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse uint8: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case uint16:
+		result, err := utils.ParseUint16(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse uint16: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case uint32:
+		result, err := utils.ParseUint32(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse uint32: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case uint64:
+		result, err := utils.ParseUint(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse uint64: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case float32:
+		result, err := utils.ParseFloat32(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse float32: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case float64:
+		result, err := utils.ParseFloat64(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse float64: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case bool:
+		result, err := strconv.ParseBool(str)
+		if err != nil {
+			return v, fmt.Errorf("failed to parse bool: %w", err)
+		}
+		return any(result).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case string:
+		if str == "" {
+			return v, errParsedEmptyString
+		}
+		return any(str).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	case []byte:
+		if str == "" {
+			return v, errParsedEmptyBytes
+		}
+		return any([]byte(str)).(V), nil //nolint:errcheck,forcetypeassert // not needed
+	default:
+		return v, errParsedType
+	}
+}
+
+// GenericType enumerates the values that can be parsed from strings by the
+// generic helper functions.
+type GenericType interface {
+	GenericTypeInteger | GenericTypeFloat | bool | string | []byte
+}
+
+// GenericTypeInteger is the union of all supported integer types.
+type GenericTypeInteger interface {
+	GenericTypeIntegerSigned | GenericTypeIntegerUnsigned
+}
+
+// GenericTypeIntegerSigned is the union of supported signed integer types.
+type GenericTypeIntegerSigned interface {
+	int | int8 | int16 | int32 | int64
+}
+
+// GenericTypeIntegerUnsigned is the union of supported unsigned integer types.
+type GenericTypeIntegerUnsigned interface {
+	uint | uint8 | uint16 | uint32 | uint64
+}
+
+// GenericTypeFloat is the union of supported floating-point types.
+type GenericTypeFloat interface {
+	float32 | float64
 }
