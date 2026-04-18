@@ -83,7 +83,7 @@ I also used these (paid) courses & books:
 - ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25) :+1:,
 - ▶️ 📖 [Learn Go In One Evening](https://threedots.tech/go-in-one-evening/) :+1:,
 - ▶️ 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
-- ▶️ 📖 [Dive Into Backend with Go](https://threedots.tech/go-backend/),
+- ▶️ 📖 [Dive Into Backend With Go](https://threedots.tech/go-backend/),
 - 📖 [Learn Concurrent Programming with Go](https://learning.oreilly.com/library/view/learn-concurrent-programming/9781633438385/) [:file_folder:](https://github.com/cutajarj/ConcurrentProgrammingWithGo),
 - 📖 [Test-Driven Development in Go](https://learning.oreilly.com/library/view/test-driven-development-in/9781803247878/) [:file_folder:](https://github.com/PacktPublishing/Test-Driven-Development-in-Go),
 - 🎥 [Advanced Testing and Debugging in Go](https://learning.oreilly.com/course/advanced-testing-and/1100111TESTINGINGO/),
