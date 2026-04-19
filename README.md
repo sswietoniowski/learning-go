@@ -19,13 +19,8 @@ This repository contains the following sub-directories:
 
 - [basics](basics/) basic examples,
 - [projects](projects/) demo project(-s) created using Go,
-- [starters](starters/) starter templates for Go projects,
 - [hyperskill](hyperskill/) my solutions to [Hyperskill](https://hyperskill.org) projects from the [Go Core](https://hyperskill.org/tracks/25) track,
-- [threedots](threedots/) my solutions to [Three Dots](https://threedots.tech) courses:
-  - [go-in-one-evening](threedots/go-in-one-evening/) - my solutions to the [Learn Go In One Evening](https://threedots.tech/go-in-one-evening/) course,
-  - [go-backend](threedots/go-backend/) - my solutions to the [Dive Into Backend With Go](https://threedots.tech/go-backend/) course,
-  - [watermill](threedots/watermill/) - my solutions to the [Watermill Quickstart](https://watermill.io/learn/quickstart/) course,
-  - [the-domain-engineer](threedots/the-domain-engineer/) - my solutions to the [The Domain Engineer](https://threedots.tech/the-domain-engineer/) course.
+- [threedots](threedots/) my solutions to [Three Dots](https://threedots.tech) courses.
 
 ## Learning Resources
 
