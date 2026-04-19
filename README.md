@@ -17,10 +17,8 @@ _I like to learn (a bit) a new programming language each year, not necessarily t
 
 This repository contains the following sub-directories:
 
-- [basics](basics/) basic examples,
-- [projects](projects/) demo project(-s) created using Go,
-- [hyperskill](hyperskill/) my solutions to [Hyperskill](https://hyperskill.org) projects from the [Go Core](https://hyperskill.org/tracks/25) track,
-- [threedots](threedots/) my solutions to [Three Dots](https://threedots.tech) courses.
+- [docs](docs/) documentation, notes, and other learning materials,
+- [projects](projects/) demo project(-s) created using Go.
 
 ## Learning Resources
 
