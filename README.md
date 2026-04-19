@@ -20,7 +20,12 @@ This repository contains the following sub-directories:
 - [basics](basics/) basic examples,
 - [projects](projects/) demo project(-s) created using Go,
 - [starters](starters/) starter templates for Go projects,
-- [hyperskill](hyperskill/) my solutions to [Hyperskill](https://hyperskill.org) projects from the [Go Core](https://hyperskill.org/tracks/25) track.
+- [hyperskill](hyperskill/) my solutions to [Hyperskill](https://hyperskill.org) projects from the [Go Core](https://hyperskill.org/tracks/25) track,
+- [threedots](threedots/) my solutions to [Three Dots](https://threedots.tech) courses:
+  - [go-in-one-evening](threedots/go-in-one-evening/) - my solutions to the [Learn Go In One Evening](https://threedots.tech/go-in-one-evening/) course,
+  - [go-backend](threedots/go-backend/) - my solutions to the [Dive Into Backend With Go](https://threedots.tech/go-backend/) course,
+  - [watermill](threedots/watermill/) - my solutions to the [Watermill Quickstart](https://watermill.io/learn/quickstart/) course,
+  - [the-domain-engineer](threedots/the-domain-engineer/) - my solutions to the [The Domain Engineer](https://threedots.tech/the-domain-engineer/) course.
 
 ## Learning Resources
 
@@ -81,7 +86,7 @@ Based on these (free) courses & articles:
 I also used these (paid) courses & books:
 
 - ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25) :+1:,
-- ▶️ 📖 [Learn Go In One Evening](https://threedots.tech/go-in-one-evening/) :+1:,
+- ✅ 📖 [Learn Go In One Evening](https://threedots.tech/go-in-one-evening/) :+1:,
 - ▶️ 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
 - ▶️ 📖 [Dive Into Backend With Go](https://threedots.tech/go-backend/),
 - 📖 [Learn Concurrent Programming with Go](https://learning.oreilly.com/library/view/learn-concurrent-programming/9781633438385/) [:file_folder:](https://github.com/cutajarj/ConcurrentProgrammingWithGo),
@@ -96,7 +101,7 @@ I also used these (paid) courses & books:
 - 📖 [Hands-On Software Engineering with Golang](https://learning.oreilly.com/library/view/hands-on-software-engineering/9781838554491/) [:file_folder:](https://github.com/PacktPublishing/Hands-On-Software-Engineering-with-Golang),
 - 📖 [Hands-On Software Architecture with Golang](https://learning.oreilly.com/library/view/hands-on-software-architecture/9781788622592/) [:file_folder:](https://github.com/packtpublishing/hands-on-software-architecture-with-golang),
 - ✅ 📖 [Domain-Driven Design with Golang](https://learning.oreilly.com/library/view/domain-driven-design-with/9781804613450/) [:file_folder:](https://github.com/PacktPublishing/Domain-Driven-Design-with-GoLang),
-- ▶️ 📖 [The Domain Engineer](https://threedots.tech/go-backend/),
+- ▶️ 📖 [The Domain Engineer](https://threedots.tech/the-domain-engineer/),
 - 📖 [Event-Driven Architecture in Golang](https://learning.oreilly.com/library/view/event-driven-architecture-in/9781803238012/) [:file_folder:](https://github.com/PacktPublishing/Event-Driven-Architecture-in-Golang),
 - ▶️ 📖 [Watermill Quickstart](https://watermill.io/learn/quickstart/),
 - 📖 [Microservices with Go](https://learning.oreilly.com/library/view/microservices-with-go/9781804617007/) [:file_folder:](https://github.com/PacktPublishing/microservices-with-go),
