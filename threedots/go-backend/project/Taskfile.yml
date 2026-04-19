@@ -1,0 +1,63 @@
+version: '3'
+
+output: prefixed
+
+env:
+  POSTGRES_URL: "postgresql://user:password@localhost:5432/eats"
+
+tasks:
+  up:
+    cmds:
+      - docker compose up {{.CLI_ARGS}}
+    env:
+      COMPOSE_MENU: "false"
+
+  up-clean:
+    cmds:
+      - task: down
+        vars:
+          CLI_ARGS: ""
+      - task: up
+
+  down:
+    cmds:
+      - docker compose down {{.CLI_ARGS}}
+
+  down-volumes:
+    cmds:
+      - docker compose down -v {{.CLI_ARGS}}
+
+  test:
+    cmds:
+      - task: test-unit
+
+  test-unit:
+    cmds:
+      - go test ./... {{.CLI_ARGS}}
+
+  gen:
+    cmds:
+      - go generate ./...
+      - task: fmt
+
+  lint:
+    cmds:
+      - golangci-lint run ./...
+
+  tidy:
+    cmds:
+      - go mod tidy
+
+  fmt:
+    cmds:
+      - go tool gofumpt -l -w .
+
+  go-mod-update:
+    desc: Update Go module dependencies
+    cmds:
+      - go get -u ./...
+
+  pgcli:
+    cmds:
+      - pgcli postgresql://user:password@localhost:5432/eats
+    interactive: true
