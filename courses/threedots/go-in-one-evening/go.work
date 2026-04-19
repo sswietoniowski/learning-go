@@ -1,0 +1,7 @@
+go 1.26.2
+
+use (
+	./14-packages/02-packages
+	./14-packages/03-exported-symbols
+	./project-http-twitter
+)

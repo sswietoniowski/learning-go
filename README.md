@@ -18,9 +18,9 @@ _I like to learn (a bit) a new programming language each year, not necessarily t
 This repository contains the following sub-directories:
 
 - [basics](basics/) basic examples,
-- [projects](projects/) demo project(-s) created using Go,
-- [starters](starters/) starter templates for Go projects,
-- [hyperskill](hyperskill/) my solutions to [Hyperskill](https://hyperskill.org) projects from the [Go Core](https://hyperskill.org/tracks/25) track.
+- [docs](docs/) documentation, notes, and other learning materials,
+- [courses](courses/) courses and tutorials (with code) that I followed to learn Go,
+- [projects](projects/) demo project(-s) created using Go.
 
 ## Learning Resources
 
@@ -42,19 +42,19 @@ Based on these (free) courses & articles:
     - ✅ 🎥 AWS Complete Serverless Stack [:file_folder:](https://github.com/AkhilSharma90/Golang-Serverless-Project),
     - ✅ 🎥 AI Bot with Wolfram, Wit.ai [:file_folder:](https://github.com/AkhilSharma90/AI-Bot-GOlang-Wit.ai-Wolfram-Slack),
   - ✅ 🎥 [Go + GRPC](https://youtu.be/a6G5-LUlFO4?si=0WeAPYWBNHGupNiK) [:file_folder:](https://github.com/AkhilSharma90/GO-grpc-demo),
-  - 🎥 [Event Driven Programming with GO and Kafka](https://youtu.be/j6bqJKxb2w0?si=bymeGvTf6fk_vsuU) [:file_folder:](https://github.com/AkhilSharma90/GO-Kafka-Example) [:file_folder:](https://github.com/AkhilSharma90/Kafka-GO-Real-Time-Feed) [:file_folder:](https://github.com/AkhilSharma90/GO-Fafka-Grafana-Prometheus-Watermill),
-  - ▶️ 🎥 [GO + React Chat App](https://youtube.com/playlist?list=PL5dTjWUk_cPbn5duL8qdIncitZ9FDp3RA&si=V3uQ2dkeLw4ZUg6Y) [:file_folder:](https://github.com/AkhilSharma90/GO-React-Fullstack-Chat),
-  - ▶️ 🎥 [Video Calling Project - Golang + Docker + WebRTC](https://youtube.com/playlist?list=PL5dTjWUk_cPY3_IWNDPTPPfo_OZLPPRi0&si=jJ6VA-Yp5pcWPt6G) [:file_folder:](https://github.com/AkhilSharma90/Videocall-Chat-GO-Project),
+  - ✅ 🎥 [Event Driven Programming with GO and Kafka](https://youtu.be/j6bqJKxb2w0?si=bymeGvTf6fk_vsuU) [:file_folder:](https://github.com/AkhilSharma90/GO-Kafka-Example) [:file_folder:](https://github.com/AkhilSharma90/Kafka-GO-Real-Time-Feed) [:file_folder:](https://github.com/AkhilSharma90/GO-Fafka-Grafana-Prometheus-Watermill),
+  - ✅ 🎥 [GO + React Chat App](https://youtube.com/playlist?list=PL5dTjWUk_cPbn5duL8qdIncitZ9FDp3RA&si=V3uQ2dkeLw4ZUg6Y) [:file_folder:](https://github.com/AkhilSharma90/GO-React-Fullstack-Chat),
+  - ✅ 🎥 [Video Calling Project - Golang + Docker + WebRTC](https://youtube.com/playlist?list=PL5dTjWUk_cPY3_IWNDPTPPfo_OZLPPRi0&si=jJ6VA-Yp5pcWPt6G) [:file_folder:](https://github.com/AkhilSharma90/Videocall-Chat-GO-Project),
   - ✅ 🎥 [GO Discord Bot Project](https://youtu.be/i4nX0s8WHEE?si=-eoHOfcTN3Qcc8R0) [:file_folder:](https://github.com/AkhilSharma90/go-simple-discordbot) [:file_folder:](https://github.com/AkhilSharma90/go-openai-discord-bot),
-  - 🎥 [GraphQL + GO + MongoDB](https://youtu.be/Yzh23D31Kq8?si=8yAAChoUCj_ZAq2X) [:file_folder:](https://github.com/AkhilSharma90/GO-GraphQL-MongoDB-CRUD-Project),
-  - 🎥 [GO Project - GO + ECHO (Framework) API](https://youtu.be/VSeO9Z026hc?si=1fkIZPmPgVSDzG1p) [:file_folder:](https://github.com/AkhilSharma90/go-echo-CRUD),
-  - 🎥 [GO JWT Authentication with Gin Gonic](https://youtu.be/Cr3BiwGN2Tg?si=vxLLx2KddWc-Bwl5) [:file_folder:](https://github.com/AkhilSharma90/Golang-JWT-Gin-Authentication-project),
-  - 🎥 [URL Shortener Go+Redis](https://youtu.be/3ExDEeSnyvE?si=2jbfH7Pn8sMPxSM2) [:file_folder:](https://github.com/AkhilSharma90/Redis-GO-URL-Shortener),
-  - 🎥 [Docker For Golang - How To Containerize A Golang Project](https://youtu.be/hjOXKmgilTo?si=TdsMCZ62034O38Qy),
-  - 🎥 [Golang On AWS EC2 - How To Deploy A Golang App On Amazon Web Services (AWS)](https://youtu.be/DEfmfWGg9js?si=-nS13X5Gkf7wi8rH),
-  - 🎥 [FULL Introduction To HTMX Using Golang](https://youtu.be/x7v6SNIgJpE?si=9ivyEbxtn59dGb08) [:file_folder:](https://github.com/ThePrimeagen/htmx_golang),
-  - 🎥 [Learn By Building: Language Server Protocol](https://youtu.be/YsdlcQoHqPY?si=TNQpB2AOeepfEvWn) 🎥 [LSP Explained (in 5 Minutes)](https://youtu.be/LaS32vctfOY?si=HMykFCbHfeMDUxjK) [:file_folder:](https://github.com/tjdevries/educationalsp),
-  - 🎥 [How To Structure Your Go App - Full Course (Hex Arch + Tests)](https://youtu.be/MpFog2kZsHk?si=lnFj5tdgHS7yvfU9),
+  - ✅ 🎥 [GraphQL + GO + MongoDB](https://youtu.be/Yzh23D31Kq8?si=8yAAChoUCj_ZAq2X) [:file_folder:](https://github.com/AkhilSharma90/GO-GraphQL-MongoDB-CRUD-Project),
+  - ✅ 🎥 [GO Project - GO + ECHO (Framework) API](https://youtu.be/VSeO9Z026hc?si=1fkIZPmPgVSDzG1p) [:file_folder:](https://github.com/AkhilSharma90/go-echo-CRUD),
+  - ✅ 🎥 [GO JWT Authentication with Gin Gonic](https://youtu.be/Cr3BiwGN2Tg?si=vxLLx2KddWc-Bwl5) [:file_folder:](https://github.com/AkhilSharma90/Golang-JWT-Gin-Authentication-project),
+  - ✅ 🎥 [URL Shortener Go+Redis](https://youtu.be/3ExDEeSnyvE?si=2jbfH7Pn8sMPxSM2) [:file_folder:](https://github.com/AkhilSharma90/Redis-GO-URL-Shortener),
+  - ✅ 🎥 [Docker For Golang - How To Containerize A Golang Project](https://youtu.be/hjOXKmgilTo?si=TdsMCZ62034O38Qy),
+  - ✅ 🎥 [Golang On AWS EC2 - How To Deploy A Golang App On Amazon Web Services (AWS)](https://youtu.be/DEfmfWGg9js?si=-nS13X5Gkf7wi8rH),
+  - ✅ 🎥 [FULL Introduction To HTMX Using Golang](https://youtu.be/x7v6SNIgJpE?si=9ivyEbxtn59dGb08) [:file_folder:](https://github.com/ThePrimeagen/htmx_golang),
+  - ✅ 🎥 [Learn By Building: Language Server Protocol](https://youtu.be/YsdlcQoHqPY?si=TNQpB2AOeepfEvWn) 🎥 [LSP Explained (in 5 Minutes)](https://youtu.be/LaS32vctfOY?si=HMykFCbHfeMDUxjK) [:file_folder:](https://github.com/tjdevries/educationalsp),
+  - ✅ 🎥 [How To Structure Your Go App - Full Course (Hex Arch + Tests)](https://youtu.be/MpFog2kZsHk?si=lnFj5tdgHS7yvfU9),
   - ✅ 🎥 [Mastering Go With GoLand](https://www.bytesizego.com/courses/a508e491-8e7b-4f29-9cbb-a374126cecac/view),
 - documentation:
   - ✅ 📖 [Effective Go](https://go.dev/doc/effective_go),
@@ -64,8 +64,8 @@ Based on these (free) courses & articles:
 - others:
   - ✅ 📖 **[Go Developer Roadmap](https://roadmap.sh/golang)**,
   - ✅ 📖 [Learning Go in 2024; From Beginner to Senior](https://www.bytesizego.com/blog/learning-golang-2024),
-  - 🎥 [GopherConAU 2023](https://youtube.com/playlist?list=PLN_36A3Rw5hFsJqqs7olOAxxU-WJGlXS0&si=HxF5aiRd-abSMu89):
-  - ▶️ 🎥 [Rob Pike - What We Got Right, What We Got Wrong](https://youtu.be/yE5Tpp2BSGw?si=wTZPk8VwXTjZ-kgh),
+  - ✅ 🎥 [GopherConAU 2023](https://youtube.com/playlist?list=PLN_36A3Rw5hFsJqqs7olOAxxU-WJGlXS0&si=HxF5aiRd-abSMu89):
+  - ✅ 🎥 [Rob Pike - What We Got Right, What We Got Wrong](https://youtu.be/yE5Tpp2BSGw?si=wTZPk8VwXTjZ-kgh),
   - ✅ 📖 [Surprises and Gotchas When Working With JSON](https://www.alexedwards.net/blog/json-surprises-and-gotchas),
   - ✅ 📖 [How to Sort Strings With Go Alphabetically in Any Language](https://webdevstation.com/posts/how-to-sort-strings-with-go-alphabetically-in-any-language/),
   - ✅ 🎥 [Go vs Rust: Which To Learn In 2024?](https://youtu.be/LjIe4w_-vzk?si=RHX5mpoQQkcI2VNo) :+1:,
@@ -74,14 +74,14 @@ Based on these (free) courses & articles:
   - ✅ 📖 [How to Use go:embed in Go](https://blog.jetbrains.com/go/2021/06/09/how-to-use-go-embed-in-go-1-16/),
   - ✅ 📖 [What are UUIDs, and are they better than regular IDs?](https://blog.boot.dev/clean-code/what-are-uuids-and-should-you-use-them/),
   - ✅ 📖 [Introducing sqlc - Compile SQL queries to type-safe Go](https://conroy.org/introducing-sqlc),
-  - ▶️ 🎥 [Software Architecture and System Design in Go/Golang](https://youtube.com/playlist?list=PL7yAAGMOat_GCd12Lrv_evJ3Zhv1dl8B-&si=rxvuR0-MRgfHi4rk),
-  - ▶️ 🎥 [Synchronous vs Asynchronous Architecture - NO SILVER BULLET](https://www.youtube.com/live/SRjTQCDpXVo?si=sk72lFCY272F0JKm),
-  - ▶️ 🎥 [Event-Driven Architecture: The Hard Parts - NO SILVER BULLET](https://www.youtube.com/live/iMZpPNQ6ynU?si=OY9JFBNhRJfCq7Gb).
+  - ✅ 🎥 [Software Architecture and System Design in Go/Golang](https://youtube.com/playlist?list=PL7yAAGMOat_GCd12Lrv_evJ3Zhv1dl8B-&si=rxvuR0-MRgfHi4rk),
+  - ✅ 🎥 [Synchronous vs Asynchronous Architecture - NO SILVER BULLET](https://www.youtube.com/live/SRjTQCDpXVo?si=sk72lFCY272F0JKm),
+  - ✅ 🎥 [Event-Driven Architecture: The Hard Parts - NO SILVER BULLET](https://www.youtube.com/live/iMZpPNQ6ynU?si=OY9JFBNhRJfCq7Gb).
 
 I also used these (paid) courses & books:
 
 - ✅ 📖 [Hyperskill: Go Core](https://hyperskill.org/tracks/25) :+1:,
-- ▶️ 📖 [Learn Go In One Evening](https://threedots.tech/go-in-one-evening/) :+1:,
+- ✅ 📖 [Learn Go In One Evening](https://threedots.tech/go-in-one-evening/) :+1:,
 - ▶️ 📖 [Learning Go, 2nd Edition](https://learning.oreilly.com/library/view/learning-go-2nd/9781098139285/) [:file_folder:](https://github.com/learning-go-book-2e),
 - ▶️ 📖 [Dive Into Backend With Go](https://threedots.tech/go-backend/),
 - 📖 [Learn Concurrent Programming with Go](https://learning.oreilly.com/library/view/learn-concurrent-programming/9781633438385/) [:file_folder:](https://github.com/cutajarj/ConcurrentProgrammingWithGo),
@@ -96,7 +96,7 @@ I also used these (paid) courses & books:
 - 📖 [Hands-On Software Engineering with Golang](https://learning.oreilly.com/library/view/hands-on-software-engineering/9781838554491/) [:file_folder:](https://github.com/PacktPublishing/Hands-On-Software-Engineering-with-Golang),
 - 📖 [Hands-On Software Architecture with Golang](https://learning.oreilly.com/library/view/hands-on-software-architecture/9781788622592/) [:file_folder:](https://github.com/packtpublishing/hands-on-software-architecture-with-golang),
 - ✅ 📖 [Domain-Driven Design with Golang](https://learning.oreilly.com/library/view/domain-driven-design-with/9781804613450/) [:file_folder:](https://github.com/PacktPublishing/Domain-Driven-Design-with-GoLang),
-- ▶️ 📖 [The Domain Engineer](https://threedots.tech/go-backend/),
+- ▶️ 📖 [The Domain Engineer](https://threedots.tech/the-domain-engineer/),
 - 📖 [Event-Driven Architecture in Golang](https://learning.oreilly.com/library/view/event-driven-architecture-in/9781803238012/) [:file_folder:](https://github.com/PacktPublishing/Event-Driven-Architecture-in-Golang),
 - ▶️ 📖 [Watermill Quickstart](https://watermill.io/learn/quickstart/),
 - 📖 [Microservices with Go](https://learning.oreilly.com/library/view/microservices-with-go/9781804617007/) [:file_folder:](https://github.com/PacktPublishing/microservices-with-go),
@@ -113,7 +113,7 @@ I also used these (paid) courses & books:
 - 📖 [Bootstrapping Microservices with Docker, Kubernetes, and Terraform](https://learning.oreilly.com/library/view/bootstrapping-microservices-with/9781617297212/) [:file_folder:](https://github.com/bootstrapping-microservices/),
 - 📖 [Kubernetes Programming with Go: Programming Kubernetes Clients and Operators Using Go and the Kubernetes API](https://learning.oreilly.com/library/view/kubernetes-programming-with/9781484290262/),
 - 📖 [Designing Microservices Platforms with NATS](https://learning.oreilly.com/library/view/designing-microservices-platforms/9781801072212/),
-- 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
+- ✅ 🎥 [Pluralsight: Go Path](https://app.pluralsight.com/paths/skill/go):
   - ✅ 🎥 [Go: The Big Picture](https://app.pluralsight.com/library/courses/big-picture-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/big-picture-go/exercise-files) :+1:,
   - ✅ 🎥 [Go Fundamentals](https://app.pluralsight.com/library/courses/fundamentals-go/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/fundamentals-go/exercise-files) :+1:,
   - ✅ 🎥 [Debugging in Go](https://app.pluralsight.com/library/courses/go-debugging/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-debugging/exercise-files),
@@ -121,12 +121,12 @@ I also used these (paid) courses & books:
   - ✅ 🎥 [Concurrent Programming in Go](https://app.pluralsight.com/library/courses/go-programming-concurrent/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-programming-concurrent/exercise-files),
   - ✅ 🎥 [Accessing Relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-relational-databases/exercise-files),
   - ✅ 🎥 [Accessing Non-relational Databases in Go](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-accessing-non-relational-databases/exercise-files),
-  - 🎥 [Testing in Go](https://app.pluralsight.com/library/courses/go-testing/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-testing/exercise-files),
+  - ✅ 🎥 [Testing in Go](https://app.pluralsight.com/library/courses/go-testing/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-testing/exercise-files),
   - ✅ 🎥 [Go CLI Playbook](https://app.pluralsight.com/library/courses/go-playbook-cli/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-playbook-cli/exercise-files) :+1:,
   - ✅ 🎥 [Building Go Web Services and Applications](https://app.pluralsight.com/library/courses/go-building-web-services-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-building-web-services-applications/exercise-files),
-  - 🎥 [Secure Coding in Go](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/exercise-files),
+  - ✅ 🎥 [Secure Coding in Go](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-secure-coding-owasp/exercise-files),
   - ✅ 🎥 [Managing Errors in Go](https://app.pluralsight.com/library/courses/go-managing-errors/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-managing-errors/exercise-files),
-  - 🎥 [Profiling Go Applications](https://app.pluralsight.com/library/courses/go-profiling-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-profiling-applications/exercise-files).
+  - ✅ 🎥 [Profiling Go Applications](https://app.pluralsight.com/library/courses/go-profiling-applications/table-of-contents) [:file_folder:](https://app.pluralsight.com/library/courses/go-profiling-applications/exercise-files).
 
 ## Useful Tools & Other Resources
 
