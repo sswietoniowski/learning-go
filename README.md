@@ -215,7 +215,8 @@ Some useful tools & other resources:
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/),
-  - [podinfo](https://github.com/stefanprodan/podinfo) - Go microservice template for Kubernetes.
+  - [podinfo](https://github.com/stefanprodan/podinfo) - Go microservice template for Kubernetes,
+  - [Gonum](https://www.gonum.org/) - a set of numeric libraries for Go.
 
 ## Extras
 
