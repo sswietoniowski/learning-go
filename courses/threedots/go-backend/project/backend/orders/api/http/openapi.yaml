@@ -1,0 +1,179 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Orders
+  contact:
+    name: Three Dots Labs
+    url: https://threedots.tech/
+servers:
+  - url: http://{hostname}/orders
+    variables:
+      hostname:
+        default: localhost:8080
+paths:
+  /orders/register-customer:
+    post:
+      summary: Register a new customer
+      operationId: registerCustomer
+      tags:
+        - customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCustomer'
+      responses:
+        '201':
+          description: Customer registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterCustomerResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Customer already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    RegisterCustomer:
+      type: object
+      required:
+        - name
+        - email
+        - address
+        - phone_number
+      properties:
+        name:
+          type: string
+          description: Customer's full name
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          description: Customer's email address
+          maxLength: 255
+        address:
+          $ref: '#/components/schemas/Address'
+        phone_number:
+          type: string
+          description: Customer's phone number
+          minLength: 1
+          maxLength: 50
+
+    RegisterCustomerResponse:
+      type: object
+      required:
+        - customer_uuid
+      properties:
+        customer_uuid:
+          $ref: '#/components/schemas/CustomerUUID'
+
+    CustomerUUID:
+      type: string
+      format: uuid
+      description: UUID of a customer
+
+    Address:
+      type: object
+      required:
+        - line1
+        - line2
+        - postal_code
+        - city
+        - country_code
+      properties:
+        line1:
+          type: string
+          description: First line of the address
+        line2:
+          type: string
+          description: Second line of the address
+        postal_code:
+          type: string
+          description: Postal code of the address
+        city:
+          type: string
+          description: City of the address
+        country_code:
+          $ref: '#/components/schemas/CountryCode'
+
+    CountryCode:
+      type: string
+      description: Country code in ISO 3166-1 alpha-2 format
+
+    ErrorResponse:
+      type: object
+      required:
+        - slug
+        - message
+        - details
+      properties:
+        slug:
+          type: string
+          description: Error slug
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: array
+          description: Detailed error information
+          items:
+            $ref: '#/components/schemas/ErrorDetails'
+
+    ErrorDetails:
+      type: object
+      required:
+        - error_slug
+        - message
+      properties:
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+        error_slug:
+          type: string
+        message:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Gone:
+      description: Order offer has expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

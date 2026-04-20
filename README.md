@@ -155,6 +155,9 @@ Some useful tools & other resources:
     - **[Go Doc](https://marketplace.visualstudio.com/items?itemName=msyrus.go-doc)**,
 - tools:
   - [delve](https://github.com/go-delve/delve) [📖](https://github.com/golang/vscode-go/blob/master/docs/debugging.md) - a debugger for Go,
+  - [Task](https://taskfile.dev/) - a task runner / build tool that aims to be simpler and easier to use than Make,
+  - [reflex](https://github.com/cespare/reflex) - a small tool to watch a directory and rerun commands when files change,
+  - [Air](https://github.com/cosmtrek/air) - a live reload tool for Go applications,
 - frameworks & libraries:
   - **[awesome-go](https://github.com/avelino/awesome-go)** - a curated list of awesome Go frameworks, libraries and software,
   - general:
@@ -214,7 +217,8 @@ Some useful tools & other resources:
 - others:
   - [JSON to Go Map](https://rodrigo-brito.github.io/json-to-go-map/),
   - [JSON to Go Struct](https://mholt.github.io/json-to-go/),
-  - [podinfo](https://github.com/stefanprodan/podinfo) - Go microservice template for Kubernetes.
+  - [podinfo](https://github.com/stefanprodan/podinfo) - Go microservice template for Kubernetes,
+  - [Gonum](https://www.gonum.org/) - a set of numeric libraries for Go.
 
 ## Extras
 
