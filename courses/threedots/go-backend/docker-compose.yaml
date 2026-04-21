@@ -1,0 +1,37 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      POSTGRES_URL: "postgres://user:password@postgres:5432/eats?sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    volumes:
+      - ./:/src
+      - go_pkg:/go/pkg
+      - go_cache:/go-cache
+
+  postgres:
+    image: postgres:17.6-alpine3.22
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: eats
+    healthcheck:
+      test: pg_isready -U user -d eats
+      interval: 1s
+      retries: 120
+      start_period: 2s
+    ports:
+      - "5432:5432"
+
+volumes:
+  go_pkg:
+  go_cache:

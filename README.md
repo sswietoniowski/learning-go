@@ -179,6 +179,7 @@ Some useful tools & other resources:
     - [GORM MySQL Driver](https://gorm.io/docs/connecting_to_the_database.html#MySQL) [:file_folder:](gorm.io/driver/mysql) - a MySQL driver for GORM,
     - [sqlc](https://sqlc.dev/) [:file_folder:](https://github.com/sqlc-dev/sqlc) - a compiler that generates Go code from SQL,
     - [goose](https://pressly.github.io/goose/) [:file_folder:](https://github.com/pressly/goose) - a database migration tool for Go,
+    - [migrate](https://github.com/golang-migrate/migrate) - a database migration tool for Go,
     - [MongoDB Go Driver](https://github.com/mongodb/mongo-go-driver) - the official Go driver for MongoDB,
   - network services:
     - [Gin Web Framework](https://github.com/gin-gonic/gin) - a web framework written in Go,
