@@ -1,0 +1,6 @@
+package: http
+generate:
+  echo-server: true
+  strict-server: true
+  models: true
+output: openapi.gen.go
