@@ -37,7 +37,13 @@ sql:
               import: "eats/backend/common"
               type: "NullUUID"
 
+          - column: "orders.customers.customer_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CustomerUUID"
+
           - column: "orders.customers.address"
             go_type:
               import: "eats/backend/common/shared"
               type: "Address"
+

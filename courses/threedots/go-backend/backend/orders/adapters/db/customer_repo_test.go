@@ -11,7 +11,6 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/require"
 
 	"eats/backend/common"
@@ -19,7 +18,7 @@ import (
 	"eats/backend/common/testutils"
 	"eats/backend/orders/adapters/db"
 	"eats/backend/orders/adapters/db/dbmodels"
-	"eats/backend/orders/api/http"
+	"eats/backend/orders/app"
 )
 
 func TestRegisterCustomer(t *testing.T) {
@@ -30,11 +29,12 @@ func TestRegisterCustomer(t *testing.T) {
 	customerRepo := db.NewCustomerRepository(dbPool)
 
 	// Create a customer
-	customerUUID := common.NewUUIDv7()
-	customer := http.RegisterCustomer{
-		Name:  gofakeit.Name(),
-		Email: openapi_types.Email(gofakeit.Email()),
-		Address: http.Address{
+	customerUUID := app.CustomerUUID{UUID: common.NewUUIDv7()}
+	customer := app.Customer{
+		CustomerUUID: customerUUID,
+		Name:         gofakeit.Name(),
+		Email:        gofakeit.Email(),
+		Address: shared.Address{
 			Line1:       gofakeit.Street(),
 			Line2:       "10",
 			PostalCode:  gofakeit.Zip(),
@@ -44,7 +44,7 @@ func TestRegisterCustomer(t *testing.T) {
 		PhoneNumber: gofakeit.Phone(),
 	}
 
-	err := customerRepo.RegisterCustomer(ctx, customerUUID, customer)
+	err := customerRepo.RegisterCustomer(ctx, customer)
 	require.NoError(t, err)
 
 	queries := dbmodels.New(dbPool)
@@ -56,15 +56,9 @@ func TestRegisterCustomer(t *testing.T) {
 		dbmodels.OrdersCustomer{
 			CustomerUuid: customerUUID,
 			Name:         customer.Name,
-			Email:        string(customer.Email),
-			Address: shared.Address{
-				Line1:       customer.Address.Line1,
-				Line2:       customer.Address.Line2,
-				PostalCode:  customer.Address.PostalCode,
-				City:        customer.Address.City,
-				CountryCode: customer.Address.CountryCode,
-			},
-			PhoneNumber: customer.PhoneNumber,
+			Email:        customer.Email,
+			Address:      customer.Address,
+			PhoneNumber:  customer.PhoneNumber,
 		},
 		dbCustomer,
 		cmpopts.EquateComparable(shared.SharedTypes...),

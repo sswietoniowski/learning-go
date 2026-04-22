@@ -2,35 +2,42 @@ package http
 
 import (
 	"context"
+	"fmt"
 
 	"eats/backend/common"
+	"eats/backend/common/shared"
+	"eats/backend/orders/app"
 )
 
-type CustomerRepository interface {
-	RegisterCustomer(ctx context.Context, customerUUID common.UUID, customer RegisterCustomer) error
-}
-
 type Handler struct {
-	customerRepository CustomerRepository
+	service *app.Service
 }
 
-func NewHandler(
-	customerRepository CustomerRepository,
-) Handler {
-	if customerRepository == nil {
-		panic("customerRepository cannot be nil")
+func NewHandler(service *app.Service) Handler {
+	if service == nil {
+		panic("service cannot be nil")
 	}
 
 	return Handler{
-		customerRepository: customerRepository,
+		service: service,
 	}
 }
 
 func (h Handler) RegisterCustomer(ctx context.Context, request RegisterCustomerRequestObject) (RegisterCustomerResponseObject, error) {
-	customerUUID := common.NewUUIDv7()
+	commonAddress, err := openapiAddressToSharedAddress(request.Body.Address)
+	if err != nil {
+		return nil, fmt.Errorf("invalid address: %w", err)
+	}
 
-	err := h.customerRepository.RegisterCustomer(ctx, customerUUID, *request.Body)
+	customerUUID := app.CustomerUUID{UUID: common.NewUUIDv7()}
 
+	err = h.service.RegisterCustomer(ctx, app.Customer{
+		CustomerUUID: customerUUID,
+		Name:         request.Body.Name,
+		Email:        string(request.Body.Email),
+		Address:      commonAddress,
+		PhoneNumber:  request.Body.PhoneNumber,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -44,4 +51,19 @@ func Register(ctx context.Context, e common.EchoRouter, handler Handler) error {
 	RegisterHandlers(e, NewStrictHandler(handler, nil))
 
 	return nil
+}
+
+func openapiAddressToSharedAddress(addr Address) (shared.Address, error) {
+	sharedAddr, err := shared.NewAddress(
+		addr.Line1,
+		addr.Line2,
+		addr.PostalCode,
+		addr.City,
+		addr.CountryCode,
+	)
+	if err != nil {
+		return shared.Address{}, err
+	}
+
+	return sharedAddr, nil
 }
