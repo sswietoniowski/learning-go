@@ -31,6 +31,7 @@ tasks:
     cmds:
       - task: test-unit
       - task: test-integration
+      - task: test-component
 
   test-unit:
     cmds:
@@ -39,6 +40,10 @@ tasks:
   test-integration:
     cmds:
       - go test -tags integration ./... -count=1 {{.CLI_ARGS}}
+
+  test-component:
+    cmds:
+      - go test ./backend/tests/... -count=1 {{.CLI_ARGS}}
 
   gen:
     cmds:

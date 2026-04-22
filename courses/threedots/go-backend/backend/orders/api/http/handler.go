@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 
 	"eats/backend/common"
 	"eats/backend/common/shared"
@@ -26,7 +25,7 @@ func NewHandler(service *app.Service) Handler {
 func (h Handler) RegisterCustomer(ctx context.Context, request RegisterCustomerRequestObject) (RegisterCustomerResponseObject, error) {
 	commonAddress, err := openapiAddressToSharedAddress(request.Body.Address)
 	if err != nil {
-		return nil, fmt.Errorf("invalid address: %w", err)
+		return nil, common.NewInvalidInputError("invalid-address", "invalid address: %s", err)
 	}
 
 	customerUUID := app.CustomerUUID{UUID: common.NewUUIDv7()}

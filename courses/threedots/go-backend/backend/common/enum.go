@@ -62,7 +62,7 @@ func (e *Enum[T]) UnmarshalText(text []byte) error {
 		}
 	}
 	if !valid {
-		return fmt.Errorf("invalid enum value for %T: '%s', expected values %q", enum, string(text), expectedValues)
+		return NewInvalidInputError("invalid-enum-value", "invalid enum value for %T: '%s', expected values %q", enum, string(text), expectedValues)
 	}
 	return nil
 }
