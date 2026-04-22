@@ -5,12 +5,12 @@
 package dbmodels
 
 import (
-	"eats/backend/common"
 	"eats/backend/common/shared"
+	"eats/backend/orders/app"
 )
 
 type OrdersCustomer struct {
-	CustomerUuid common.UUID
+	CustomerUuid app.CustomerUUID
 	Name         string
 	Email        string
 	Address      shared.Address

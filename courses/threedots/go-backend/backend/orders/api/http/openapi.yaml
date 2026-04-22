@@ -79,9 +79,9 @@ components:
       type: string
       format: uuid
       description: UUID of a customer
-      x-go-type: common.UUID
+      x-go-type: app.CustomerUUID
       x-go-type-import:
-        path: eats/backend/common
+        path: eats/backend/orders/app
 
     Address:
       type: object

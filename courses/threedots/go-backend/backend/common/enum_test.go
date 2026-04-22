@@ -59,7 +59,7 @@ func TestEnum_UnmarshalText(t *testing.T) {
 			Name:             "invalid_value",
 			Input:            []byte("invalid"),
 			ExpectError:      true,
-			ExpectErrorMatch: `invalid enum value for common_test.TestStatus: 'invalid', expected values ["pending" "active" "completed"]`,
+			ExpectErrorMatch: `invalid enum value for common_test.TestStatus: 'invalid', expected values ["pending" "active" "completed"], Slug: invalid-enum-value`,
 		},
 		{
 			Name:        "empty_string",
@@ -71,7 +71,7 @@ func TestEnum_UnmarshalText(t *testing.T) {
 			Name:             "case_sensitive",
 			Input:            []byte("PENDING"),
 			ExpectError:      true,
-			ExpectErrorMatch: `invalid enum value for common_test.TestStatus: 'PENDING', expected values ["pending" "active" "completed"]`,
+			ExpectErrorMatch: `invalid enum value for common_test.TestStatus: 'PENDING', expected values ["pending" "active" "completed"], Slug: invalid-enum-value`,
 		},
 	}
 
@@ -172,7 +172,7 @@ func TestEnum_Scan(t *testing.T) {
 			Name:             "scan_invalid_enum_value",
 			Input:            "invalid",
 			ExpectError:      true,
-			ExpectErrorMatch: `invalid enum value for common_test.TestStatus: 'invalid', expected values ["pending" "active" "completed"]`,
+			ExpectErrorMatch: `invalid enum value for common_test.TestStatus: 'invalid', expected values ["pending" "active" "completed"], Slug: invalid-enum-value`,
 		},
 		{
 			Name:             "scan_int_type",

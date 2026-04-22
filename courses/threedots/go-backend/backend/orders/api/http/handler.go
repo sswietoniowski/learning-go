@@ -2,51 +2,43 @@ package http
 
 import (
 	"context"
-	"fmt"
 
 	"eats/backend/common"
 	"eats/backend/common/shared"
-	"eats/backend/orders/adapters/db/dbmodels"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	"eats/backend/orders/app"
 )
 
 type Handler struct {
-	db *pgxpool.Pool
+	service *app.Service
 }
 
-func NewHandler(
-	db *pgxpool.Pool,
-) Handler {
-	if db == nil {
-		panic("db cannot be nil")
+func NewHandler(service *app.Service) Handler {
+	if service == nil {
+		panic("service cannot be nil")
 	}
 
 	return Handler{
-		db: db,
+		service: service,
 	}
 }
 
 func (h Handler) RegisterCustomer(ctx context.Context, request RegisterCustomerRequestObject) (RegisterCustomerResponseObject, error) {
-	customer := request.Body
-	customerUUID := common.NewUUIDv7()
-
-	queries := dbmodels.New(h.db)
-
-	commonAddress, err := openapiAddressToSharedAddress(customer.Address)
+	commonAddress, err := openapiAddressToSharedAddress(request.Body.Address)
 	if err != nil {
-		return nil, fmt.Errorf("convert address failed: %w", err)
+		return nil, common.NewInvalidInputError("invalid-address", "invalid address: %s", err)
 	}
 
-	err = queries.InsertCustomer(ctx, dbmodels.InsertCustomerParams{
-		CustomerUuid: customerUUID,
-		Name:         customer.Name,
-		Email:        string(customer.Email),
+	customerUUID := app.CustomerUUID{UUID: common.NewUUIDv7()}
+
+	err = h.service.RegisterCustomer(ctx, app.Customer{
+		CustomerUUID: customerUUID,
+		Name:         request.Body.Name,
+		Email:        string(request.Body.Email),
 		Address:      commonAddress,
-		PhoneNumber:  customer.PhoneNumber,
+		PhoneNumber:  request.Body.PhoneNumber,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("insert customer failed: %w", err)
+		return nil, err
 	}
 
 	return RegisterCustomer201JSONResponse{

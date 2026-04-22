@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"eats/backend/common"
 	"eats/backend/common/shared"
+	"eats/backend/orders/app"
 
 	"github.com/labstack/echo/v4"
 	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
@@ -39,7 +39,7 @@ type Address struct {
 type CountryCode = shared.CountryCode
 
 // CustomerUUID UUID of a customer
-type CustomerUUID = common.UUID
+type CustomerUUID = app.CustomerUUID
 
 // ErrorDetails defines model for ErrorDetails.
 type ErrorDetails struct {

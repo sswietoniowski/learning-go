@@ -2,11 +2,12 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"eats/backend/common"
-	"eats/backend/orders/api/http"
+	"eats/backend/orders/adapters/db/dbmodels"
+	"eats/backend/orders/app"
 )
 
 type CustomerRepository struct {
@@ -23,7 +24,19 @@ func NewCustomerRepository(db *pgxpool.Pool) *CustomerRepository {
 	}
 }
 
-func (r *CustomerRepository) RegisterCustomer(ctx context.Context, customerUUID common.UUID, customer http.RegisterCustomer) error {
-	// TODO: implement me
+func (r *CustomerRepository) RegisterCustomer(ctx context.Context, customer app.Customer) error {
+	queries := dbmodels.New(r.db)
+
+	err := queries.InsertCustomer(ctx, dbmodels.InsertCustomerParams{
+		CustomerUuid: customer.CustomerUUID,
+		Name:         customer.Name,
+		Email:        customer.Email,
+		Address:      customer.Address,
+		PhoneNumber:  customer.PhoneNumber,
+	})
+	if err != nil {
+		return fmt.Errorf("insert customer failed: %w", err)
+	}
+
 	return nil
 }
