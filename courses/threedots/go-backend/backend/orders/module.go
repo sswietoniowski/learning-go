@@ -9,6 +9,7 @@ import (
 	"eats/backend/common"
 	"eats/backend/common/module"
 	"eats/backend/common/module/contracts"
+	"eats/backend/orders/adapters/db"
 	http2 "eats/backend/orders/api/http"
 	ordersModule "eats/backend/orders/api/module"
 )
@@ -35,7 +36,11 @@ func (m *Module) Name() module.Name {
 var embedMigrations embed.FS
 
 func (m *Module) Init(ctx context.Context) error {
-	httpHandler := http2.NewHandler(m.pgxDb)
+	customerRepository := db.NewCustomerRepository(m.pgxDb)
+	httpHandler := http2.NewHandler(
+		customerRepository,
+	)
+
 	m.httpHandler = httpHandler
 
 	if err := common.MigrateDatabaseUp(
