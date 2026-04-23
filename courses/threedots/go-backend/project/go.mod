@@ -1,10 +1,10 @@
 module eats
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/ThreeDotsLabs/humanslog v0.1.0
-	github.com/jackc/pgx/v5 v5.7.6
+	github.com/jackc/pgx/v5 v5.9.2
 	github.com/labstack/echo/v4 v4.15.1
 	github.com/labstack/gommon v0.4.2
 	github.com/lithammer/shortuuid/v3 v3.0.7
