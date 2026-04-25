@@ -2,14 +2,17 @@ package orders
 
 import (
 	"context"
+	"embed"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"eats/backend/common"
 	"eats/backend/common/module"
 	"eats/backend/common/module/contracts"
+	"eats/backend/orders/adapters/db"
 	http2 "eats/backend/orders/api/http"
 	ordersModule "eats/backend/orders/api/module"
+	"eats/backend/orders/app"
 )
 
 type Module struct {
@@ -30,9 +33,32 @@ func (m *Module) Name() module.Name {
 	return "orders"
 }
 
+//go:embed adapters/db/migrations/*.sql
+var embedMigrations embed.FS
+
 func (m *Module) Init(ctx context.Context) error {
-	httpHandler := http2.NewHandler()
+	restaurantRepo := db.NewRestaurantRepository(m.pgxDb)
+	ordersRepo := db.NewOrdersRepository(m.pgxDb)
+	customerRepo := db.NewCustomerRepository(m.pgxDb)
+	readModel := db.NewReadModel(m.pgxDb)
+
+	appService := app.NewService(restaurantRepo, customerRepo, ordersRepo, m.modules)
+
+	httpHandler := http2.NewHandler(
+		appService,
+		readModel,
+	)
 	m.httpHandler = httpHandler
+
+	if err := common.MigrateDatabaseUp(
+		ctx,
+		string(m.Name()),
+		m.pgxDb,
+		embedMigrations,
+		"adapters/db/migrations",
+	); err != nil {
+		return err
+	}
 
 	return nil
 }
