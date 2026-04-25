@@ -12,7 +12,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/shopspring/decimal"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"eats/backend/common"
@@ -56,13 +55,23 @@ func TestCreateQuote(t *testing.T) {
 	quote, err := ordersRepo.CreateQuote(ctx, restaurantUUID, quoteMenuItems, func(
 		ctx context.Context,
 		menuItems map[app.RestaurantMenuItemUUID]app.MenuItem,
-		restaurantCurrency shared.Currency,
-		restaurantAddress shared.Address,
+		r app.Restaurant,
 	) (app.Quote, []app.QuoteMenuItem, error) {
 		// Verify menu positions were fetched correctly
 		require.Len(t, menuItems, 2)
-		assert.Equal(t, restaurant.Currency, restaurantCurrency)
-		assert.Equal(t, restaurant.Address, restaurantAddress)
+		if diff := cmp.Diff(
+			app.Restaurant{
+				RestaurantUUID: restaurantUUID,
+				Name:           restaurant.Name,
+				Description:    restaurant.Description,
+				Address:        restaurant.Address,
+				Currency:       restaurant.Currency,
+			},
+			r,
+			cmpopts.EquateComparable(shared.SharedTypes...),
+		); diff != "" {
+			t.Errorf("restaurant mismatch (-want +got):\n%s", diff)
+		}
 
 		// Calculate totals
 		itemsSubtotal := decimal.Zero
@@ -95,7 +104,7 @@ func TestCreateQuote(t *testing.T) {
 			DeliveryFeeGross:   deliveryFee,
 			TotalAmountGross:   totalAmount,
 			TotalTax:           totalTax,
-			Currency:           restaurantCurrency,
+			Currency:           r.Currency,
 			CreatedAt:          time.Now(),
 		}
 
