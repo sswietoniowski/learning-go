@@ -21,6 +21,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Defines values for ListMenuItemsParamsOrderBy.
+const (
+	NameAsc   ListMenuItemsParamsOrderBy = "name_asc"
+	NameDesc  ListMenuItemsParamsOrderBy = "name_desc"
+	PriceAsc  ListMenuItemsParamsOrderBy = "price_asc"
+	PriceDesc ListMenuItemsParamsOrderBy = "price_desc"
+	Relevance ListMenuItemsParamsOrderBy = "relevance"
+)
+
 // Address defines model for Address.
 type Address struct {
 	// City City of the address
@@ -214,6 +223,21 @@ type OnboardRestaurantParams struct {
 	OperatorUUID OperatorUUID `json:"Operator-UUID"`
 }
 
+// ListMenuItemsParams defines parameters for ListMenuItems.
+type ListMenuItemsParams struct {
+	// RestaurantName Filter by restaurant name (case-insensitive partial match)
+	RestaurantName *string `form:"restaurant_name,omitempty" json:"restaurant_name,omitempty"`
+
+	// Search Full-text search across menu item names and restaurant names
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// OrderBy Order results by price, name, or relevance (when searching)
+	OrderBy *ListMenuItemsParamsOrderBy `form:"order_by,omitempty" json:"order_by,omitempty"`
+}
+
+// ListMenuItemsParamsOrderBy defines parameters for ListMenuItems.
+type ListMenuItemsParamsOrderBy string
+
 // CustomerCreateQuoteJSONRequestBody defines body for CustomerCreateQuote for application/json ContentType.
 type CustomerCreateQuoteJSONRequestBody = CreateQuoteRequest
 
@@ -236,7 +260,7 @@ type ServerInterface interface {
 	OnboardRestaurant(ctx echo.Context, restaurantUuid RestaurantUUID, params OnboardRestaurantParams) error
 	// List all menu items with restaurant info
 	// (GET /orders/restaurants/menu-items)
-	ListMenuItems(ctx echo.Context) error
+	ListMenuItems(ctx echo.Context, params ListMenuItemsParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -326,8 +350,31 @@ func (w *ServerInterfaceWrapper) OnboardRestaurant(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) ListMenuItems(ctx echo.Context) error {
 	var err error
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListMenuItemsParams
+	// ------------- Optional query parameter "restaurant_name" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "restaurant_name", ctx.QueryParams(), &params.RestaurantName)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter restaurant_name: %s", err))
+	}
+
+	// ------------- Optional query parameter "search" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "search", ctx.QueryParams(), &params.Search)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter search: %s", err))
+	}
+
+	// ------------- Optional query parameter "order_by" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order_by", ctx.QueryParams(), &params.OrderBy)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter order_by: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListMenuItems(ctx)
+	err = w.Handler.ListMenuItems(ctx, params)
 	return err
 }
 
@@ -520,6 +567,7 @@ func (response OnboardRestaurant403JSONResponse) VisitOnboardRestaurantResponse(
 }
 
 type ListMenuItemsRequestObject struct {
+	Params ListMenuItemsParams
 }
 
 type ListMenuItemsResponseObject interface {
@@ -656,8 +704,10 @@ func (sh *strictHandler) OnboardRestaurant(ctx echo.Context, restaurantUuid Rest
 }
 
 // ListMenuItems operation middleware
-func (sh *strictHandler) ListMenuItems(ctx echo.Context) error {
+func (sh *strictHandler) ListMenuItems(ctx echo.Context, params ListMenuItemsParams) error {
 	var request ListMenuItemsRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.ListMenuItems(ctx.Request().Context(), request.(ListMenuItemsRequestObject))

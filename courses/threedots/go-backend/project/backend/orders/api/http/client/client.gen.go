@@ -23,6 +23,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Defines values for ListMenuItemsParamsOrderBy.
+const (
+	NameAsc   ListMenuItemsParamsOrderBy = "name_asc"
+	NameDesc  ListMenuItemsParamsOrderBy = "name_desc"
+	PriceAsc  ListMenuItemsParamsOrderBy = "price_asc"
+	PriceDesc ListMenuItemsParamsOrderBy = "price_desc"
+	Relevance ListMenuItemsParamsOrderBy = "relevance"
+)
+
 // Address defines model for Address.
 type Address struct {
 	// City City of the address
@@ -216,6 +225,21 @@ type OnboardRestaurantParams struct {
 	OperatorUUID OperatorUUID `json:"Operator-UUID"`
 }
 
+// ListMenuItemsParams defines parameters for ListMenuItems.
+type ListMenuItemsParams struct {
+	// RestaurantName Filter by restaurant name (case-insensitive partial match)
+	RestaurantName *string `form:"restaurant_name,omitempty" json:"restaurant_name,omitempty"`
+
+	// Search Full-text search across menu item names and restaurant names
+	Search *string `form:"search,omitempty" json:"search,omitempty"`
+
+	// OrderBy Order results by price, name, or relevance (when searching)
+	OrderBy *ListMenuItemsParamsOrderBy `form:"order_by,omitempty" json:"order_by,omitempty"`
+}
+
+// ListMenuItemsParamsOrderBy defines parameters for ListMenuItems.
+type ListMenuItemsParamsOrderBy string
+
 // CustomerCreateQuoteJSONRequestBody defines body for CustomerCreateQuote for application/json ContentType.
 type CustomerCreateQuoteJSONRequestBody = CreateQuoteRequest
 
@@ -314,7 +338,7 @@ type ClientInterface interface {
 	OnboardRestaurant(ctx context.Context, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, body OnboardRestaurantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListMenuItems request
-	ListMenuItems(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListMenuItems(ctx context.Context, params *ListMenuItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) CustomerCreateQuoteWithBody(ctx context.Context, params *CustomerCreateQuoteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -389,8 +413,8 @@ func (c *Client) OnboardRestaurant(ctx context.Context, restaurantUuid Restauran
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListMenuItems(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListMenuItemsRequest(c.Server)
+func (c *Client) ListMenuItems(ctx context.Context, params *ListMenuItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListMenuItemsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -555,7 +579,7 @@ func NewOnboardRestaurantRequestWithBody(server string, restaurantUuid Restauran
 }
 
 // NewListMenuItemsRequest generates requests for ListMenuItems
-func NewListMenuItemsRequest(server string) (*http.Request, error) {
+func NewListMenuItemsRequest(server string, params *ListMenuItemsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -571,6 +595,60 @@ func NewListMenuItemsRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.RestaurantName != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "restaurant_name", runtime.ParamLocationQuery, *params.RestaurantName); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Search != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "search", runtime.ParamLocationQuery, *params.Search); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.OrderBy != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_by", runtime.ParamLocationQuery, *params.OrderBy); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -640,7 +718,7 @@ type ClientWithResponsesInterface interface {
 	OnboardRestaurantWithResponse(ctx context.Context, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, body OnboardRestaurantJSONRequestBody, reqEditors ...RequestEditorFn) (*OnboardRestaurantClientResponse, error)
 
 	// ListMenuItemsWithResponse request
-	ListMenuItemsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListMenuItemsClientResponse, error)
+	ListMenuItemsWithResponse(ctx context.Context, params *ListMenuItemsParams, reqEditors ...RequestEditorFn) (*ListMenuItemsClientResponse, error)
 }
 
 type CustomerCreateQuoteClientResponse struct {
@@ -792,8 +870,8 @@ func (c *ClientWithResponses) OnboardRestaurantWithResponse(ctx context.Context,
 }
 
 // ListMenuItemsWithResponse request returning *ListMenuItemsClientResponse
-func (c *ClientWithResponses) ListMenuItemsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListMenuItemsClientResponse, error) {
-	rsp, err := c.ListMenuItems(ctx, reqEditors...)
+func (c *ClientWithResponses) ListMenuItemsWithResponse(ctx context.Context, params *ListMenuItemsParams, reqEditors ...RequestEditorFn) (*ListMenuItemsClientResponse, error) {
+	rsp, err := c.ListMenuItems(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

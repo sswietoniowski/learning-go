@@ -74,8 +74,8 @@ func TestReadModel_ListMenuItemsWithRestaurant(t *testing.T) {
 	err = restaurantRepo.UpsertRestaurant(ctx, restaurant2UUID, restaurant2)
 	require.NoError(t, err)
 
-	// Call the read model
-	items, err := readModel.ListMenuItemsWithRestaurant(ctx)
+	// Call the read model with empty filter
+	items, err := readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{})
 	require.NoError(t, err)
 
 	// Build expected results
@@ -165,7 +165,7 @@ func TestReadModel_ListMenuItemsWithRestaurant_ExcludesArchived(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify both items are returned initially
-	items, err := readModel.ListMenuItemsWithRestaurant(ctx)
+	items, err := readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{})
 	require.NoError(t, err)
 
 	countBefore := 0
@@ -182,7 +182,7 @@ func TestReadModel_ListMenuItemsWithRestaurant_ExcludesArchived(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify only active item is returned
-	items, err = readModel.ListMenuItemsWithRestaurant(ctx)
+	items, err = readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{})
 	require.NoError(t, err)
 
 	countAfter := 0
@@ -193,4 +193,251 @@ func TestReadModel_ListMenuItemsWithRestaurant_ExcludesArchived(t *testing.T) {
 		}
 	}
 	require.Equal(t, 1, countAfter, "should have 1 item after archiving")
+}
+
+func TestReadModel_ListMenuItemsWithRestaurant_FilterByRestaurantName(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	dbPool := testutils.NewDB(t)
+
+	restaurantRepo := db.NewRestaurantRepository(dbPool)
+	readModel := db.NewReadModel(dbPool)
+
+	// Create two restaurants with distinct names
+	pizzaUUID := app.RestaurantUUID{common.NewUUIDv7()}
+	pizzaRestaurant := app.OnboardRestaurant{
+		Name:        "Pizza Palace",
+		Address:     testutils.GenerateRandomAddress(testutils.GenerateRandomCountry()),
+		Currency:    shared.MustNewCurrency("USD"),
+		Description: gofakeit.LoremIpsumSentence(5),
+		MenuItems: []app.MenuItem{
+			{
+				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+				Name:         "Margherita",
+				GrossPrice:   decimal.NewFromFloat(12.99),
+				Ordering:     1,
+			},
+		},
+	}
+	err := restaurantRepo.UpsertRestaurant(ctx, pizzaUUID, pizzaRestaurant)
+	require.NoError(t, err)
+
+	burgerUUID := app.RestaurantUUID{common.NewUUIDv7()}
+	burgerRestaurant := app.OnboardRestaurant{
+		Name:        "Burger Barn",
+		Address:     testutils.GenerateRandomAddress(testutils.GenerateRandomCountry()),
+		Currency:    shared.MustNewCurrency("USD"),
+		Description: gofakeit.LoremIpsumSentence(5),
+		MenuItems: []app.MenuItem{
+			{
+				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+				Name:         "Classic Burger",
+				GrossPrice:   decimal.NewFromFloat(9.99),
+				Ordering:     1,
+			},
+		},
+	}
+	err = restaurantRepo.UpsertRestaurant(ctx, burgerUUID, burgerRestaurant)
+	require.NoError(t, err)
+
+	// Filter by "Pizza" - should only return Pizza Palace items
+	pizzaFilter := "Pizza"
+	items, err := readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{
+		RestaurantName: &pizzaFilter,
+	})
+	require.NoError(t, err)
+
+	// Check that all returned items belong to Pizza Palace
+	for _, item := range items {
+		if item.RestaurantUuid == pizzaUUID || item.RestaurantUuid == burgerUUID {
+			require.Equal(t, pizzaUUID, item.RestaurantUuid, "filter should only return Pizza Palace items")
+			require.Contains(t, item.RestaurantName, "Pizza")
+		}
+	}
+
+	// Filter by "burger" (lowercase) - should still match due to case-insensitive search
+	burgerFilter := "burger"
+	items, err = readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{
+		RestaurantName: &burgerFilter,
+	})
+	require.NoError(t, err)
+
+	for _, item := range items {
+		if item.RestaurantUuid == pizzaUUID || item.RestaurantUuid == burgerUUID {
+			require.Equal(t, burgerUUID, item.RestaurantUuid, "case-insensitive filter should match Burger Barn")
+			require.Contains(t, item.RestaurantName, "Burger")
+		}
+	}
+}
+
+func TestReadModel_ListMenuItemsWithRestaurant_OrderByPrice(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	dbPool := testutils.NewDB(t)
+
+	restaurantRepo := db.NewRestaurantRepository(dbPool)
+	readModel := db.NewReadModel(dbPool)
+
+	// Create a restaurant with menu items at various prices
+	restaurantUUID := app.RestaurantUUID{common.NewUUIDv7()}
+	restaurantName := "Price Test Restaurant " + gofakeit.UUID()
+	restaurant := app.OnboardRestaurant{
+		Name:        restaurantName,
+		Address:     testutils.GenerateRandomAddress(testutils.GenerateRandomCountry()),
+		Currency:    shared.MustNewCurrency("USD"),
+		Description: gofakeit.LoremIpsumSentence(5),
+		MenuItems: []app.MenuItem{
+			{
+				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+				Name:         "Expensive",
+				GrossPrice:   decimal.NewFromFloat(50.00),
+				Ordering:     1,
+			},
+			{
+				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+				Name:         "Cheap",
+				GrossPrice:   decimal.NewFromFloat(5.00),
+				Ordering:     2,
+			},
+			{
+				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+				Name:         "Medium",
+				GrossPrice:   decimal.NewFromFloat(25.00),
+				Ordering:     3,
+			},
+		},
+	}
+	err := restaurantRepo.UpsertRestaurant(ctx, restaurantUUID, restaurant)
+	require.NoError(t, err)
+
+	// Order by price ascending
+	orderByPriceAsc := "price_asc"
+	nameFilter := restaurantName
+	items, err := readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{
+		RestaurantName: &nameFilter,
+		OrderBy:        &orderByPriceAsc,
+	})
+	require.NoError(t, err)
+
+	// Filter to our test restaurant's items
+	var testItems []http.MenuItemWithRestaurant
+	for _, item := range items {
+		if item.RestaurantUuid == restaurantUUID {
+			testItems = append(testItems, item)
+		}
+	}
+	require.Len(t, testItems, 3, "should have all 3 menu items")
+
+	// Verify ascending price order
+	require.Equal(t, "Cheap", testItems[0].MenuItemName)
+	require.Equal(t, "Medium", testItems[1].MenuItemName)
+	require.Equal(t, "Expensive", testItems[2].MenuItemName)
+
+	// Order by price descending
+	orderByPriceDesc := "price_desc"
+	items, err = readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{
+		RestaurantName: &nameFilter,
+		OrderBy:        &orderByPriceDesc,
+	})
+	require.NoError(t, err)
+
+	testItems = nil
+	for _, item := range items {
+		if item.RestaurantUuid == restaurantUUID {
+			testItems = append(testItems, item)
+		}
+	}
+	require.Len(t, testItems, 3)
+
+	// Verify descending price order
+	require.Equal(t, "Expensive", testItems[0].MenuItemName)
+	require.Equal(t, "Medium", testItems[1].MenuItemName)
+	require.Equal(t, "Cheap", testItems[2].MenuItemName)
+}
+
+func TestReadModel_ListMenuItemsWithRestaurant_OrderByName(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	dbPool := testutils.NewDB(t)
+
+	restaurantRepo := db.NewRestaurantRepository(dbPool)
+	readModel := db.NewReadModel(dbPool)
+
+	// Create a restaurant with menu items with various names
+	restaurantUUID := app.RestaurantUUID{common.NewUUIDv7()}
+	restaurantName := "Name Test Restaurant " + gofakeit.UUID()
+	restaurant := app.OnboardRestaurant{
+		Name:        restaurantName,
+		Address:     testutils.GenerateRandomAddress(testutils.GenerateRandomCountry()),
+		Currency:    shared.MustNewCurrency("USD"),
+		Description: gofakeit.LoremIpsumSentence(5),
+		MenuItems: []app.MenuItem{
+			{
+				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+				Name:         "Zebra Cake",
+				GrossPrice:   decimal.NewFromFloat(10.00),
+				Ordering:     1,
+			},
+			{
+				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+				Name:         "Apple Pie",
+				GrossPrice:   decimal.NewFromFloat(10.00),
+				Ordering:     2,
+			},
+			{
+				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+				Name:         "Mango Smoothie",
+				GrossPrice:   decimal.NewFromFloat(10.00),
+				Ordering:     3,
+			},
+		},
+	}
+	err := restaurantRepo.UpsertRestaurant(ctx, restaurantUUID, restaurant)
+	require.NoError(t, err)
+
+	// Order by name ascending
+	orderByNameAsc := "name_asc"
+	nameFilter := restaurantName
+	items, err := readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{
+		RestaurantName: &nameFilter,
+		OrderBy:        &orderByNameAsc,
+	})
+	require.NoError(t, err)
+
+	var testItems []http.MenuItemWithRestaurant
+	for _, item := range items {
+		if item.RestaurantUuid == restaurantUUID {
+			testItems = append(testItems, item)
+		}
+	}
+	require.Len(t, testItems, 3, "should have all 3 menu items")
+
+	// Verify ascending name order
+	require.Equal(t, "Apple Pie", testItems[0].MenuItemName)
+	require.Equal(t, "Mango Smoothie", testItems[1].MenuItemName)
+	require.Equal(t, "Zebra Cake", testItems[2].MenuItemName)
+
+	// Order by name descending
+	orderByNameDesc := "name_desc"
+	items, err = readModel.ListMenuItemsWithRestaurant(ctx, http.ListMenuItemsFilter{
+		RestaurantName: &nameFilter,
+		OrderBy:        &orderByNameDesc,
+	})
+	require.NoError(t, err)
+
+	testItems = nil
+	for _, item := range items {
+		if item.RestaurantUuid == restaurantUUID {
+			testItems = append(testItems, item)
+		}
+	}
+	require.Len(t, testItems, 3)
+
+	// Verify descending name order
+	require.Equal(t, "Zebra Cake", testItems[0].MenuItemName)
+	require.Equal(t, "Mango Smoothie", testItems[1].MenuItemName)
+	require.Equal(t, "Apple Pie", testItems[2].MenuItemName)
 }
