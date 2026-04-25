@@ -109,3 +109,40 @@ func onboardRestaurant(ctx context.Context, t *testing.T, clients testClients, c
 
 	return restaurantUUID, menuItems
 }
+
+func onboardRestaurantWithItems(ctx context.Context, t *testing.T, clients testClients, country shared.CountryCode, name string, itemNames []string) (ordersclient.RestaurantUUID, []ordersclient.MenuItem) {
+	t.Helper()
+
+	restaurantUUID := app.RestaurantUUID{UUID: common.NewUUIDv7()}
+
+	menuItems := make([]ordersclient.MenuItem, 0, len(itemNames))
+	for i, itemName := range itemNames {
+		menuItems = append(menuItems, ordersclient.MenuItem{
+			Uuid:       app.RestaurantMenuItemUUID{UUID: common.NewUUIDv7()},
+			Name:       itemName,
+			GrossPrice: decimal.NewFromFloat(10.00 + float64(i)),
+			Ordering:   float32(i + 1),
+		})
+	}
+
+	currency := shared.MustNewCurrency("USD")
+
+	resp, err := clients.Orders.OnboardRestaurantWithResponse(
+		ctx,
+		restaurantUUID,
+		&ordersclient.OnboardRestaurantParams{
+			OperatorUUID: common.NewUUIDv7(),
+		},
+		ordersclient.OnboardRestaurant{
+			Name:        name,
+			Address:     testutils.GenerateRandomOpenapiAddress(country),
+			Currency:    currency,
+			Description: gofakeit.Sentence(10),
+			MenuItems:   menuItems,
+		},
+	)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNoContent, resp.StatusCode())
+
+	return restaurantUUID, menuItems
+}

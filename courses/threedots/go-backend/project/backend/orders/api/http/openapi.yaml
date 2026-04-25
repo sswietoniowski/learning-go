@@ -83,8 +83,30 @@ paths:
       description: |
         Returns a list of all active menu items joined with their restaurant information.
         This is a read model endpoint - it returns denormalized data optimized for display.
+        Supports filtering by restaurant name, full-text search, and ordering by price or name.
       tags:
         - read-model
+      parameters:
+        - name: restaurant_name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by restaurant name (case-insensitive partial match)
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Full-text search across menu item names and restaurant names
+        - name: order_by
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [price_asc, price_desc, name_asc, name_desc, relevance]
+            default: name_asc
+          description: Order results by price, name, or relevance (when searching)
       responses:
         '200':
           description: List of menu items with restaurant info

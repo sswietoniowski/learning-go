@@ -8,10 +8,17 @@ import (
 	"eats/backend/orders/app"
 )
 
+// ListMenuItemsFilter contains optional filters for the menu items query.
+type ListMenuItemsFilter struct {
+	RestaurantName *string
+	Search         *string
+	OrderBy        *string
+}
+
 // ReadModel is an interface for the read model that lists menu items.
 // It is defined here (consumer side) to allow for easy testing and decoupling.
 type ReadModel interface {
-	ListMenuItemsWithRestaurant(ctx context.Context) ([]MenuItemWithRestaurant, error)
+	ListMenuItemsWithRestaurant(ctx context.Context, filter ListMenuItemsFilter) ([]MenuItemWithRestaurant, error)
 }
 
 type Handler struct {
@@ -156,8 +163,21 @@ func (h Handler) OnboardRestaurant(ctx context.Context, request OnboardRestauran
 }
 
 // ListMenuItems returns all active menu items with their restaurant information.
-func (h Handler) ListMenuItems(ctx context.Context, _ ListMenuItemsRequestObject) (ListMenuItemsResponseObject, error) {
-	items, err := h.readModel.ListMenuItemsWithRestaurant(ctx)
+// Supports optional filtering by restaurant name and ordering.
+func (h Handler) ListMenuItems(ctx context.Context, request ListMenuItemsRequestObject) (ListMenuItemsResponseObject, error) {
+	var orderBy *string
+	if request.Params.OrderBy != nil {
+		s := string(*request.Params.OrderBy)
+		orderBy = &s
+	}
+
+	filter := ListMenuItemsFilter{
+		RestaurantName: request.Params.RestaurantName,
+		Search:         request.Params.Search,
+		OrderBy:        orderBy,
+	}
+
+	items, err := h.readModel.ListMenuItemsWithRestaurant(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
