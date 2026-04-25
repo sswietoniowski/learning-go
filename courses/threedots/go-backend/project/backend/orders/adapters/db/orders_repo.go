@@ -26,6 +26,27 @@ func NewOrdersRepository(db *pgxpool.Pool) *OrdersRepo {
 	return &OrdersRepo{db: db}
 }
 
+func (r *OrdersRepo) GetRestaurant(
+	ctx context.Context,
+	restaurantID app.RestaurantUUID,
+) (app.Restaurant, error) {
+	queries := dbmodels.New(r.db)
+	dbRestaurant, err := queries.GetRestaurant(ctx, restaurantID)
+	if err != nil {
+		return app.Restaurant{}, fmt.Errorf("failed to get restaurant %s: %w", restaurantID, err)
+	}
+	return appRestaurantFromDB(dbRestaurant), nil
+}
+
+func appRestaurantFromDB(dbRestaurant dbmodels.OrdersRestaurant) app.Restaurant {
+	return app.Restaurant{
+		RestaurantUUID: dbRestaurant.RestaurantUuid,
+		Name:           dbRestaurant.Name,
+		Currency:       dbRestaurant.Currency,
+		Address:        dbRestaurant.Address,
+	}
+}
+
 func (r *OrdersRepo) CreateQuote(
 	ctx context.Context,
 	restaurantID app.RestaurantUUID,

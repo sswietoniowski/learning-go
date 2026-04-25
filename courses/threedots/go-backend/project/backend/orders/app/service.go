@@ -1,6 +1,14 @@
 package app
 
-type ModulesContract interface{}
+import (
+	"context"
+
+	"eats/backend/delivery/api/module/client"
+)
+
+type ModulesContract interface {
+	CalculateDeliveryFee(ctx context.Context, req client.CalculateDeliveryFeeRequest) (client.CalculateDeliveryFeeResponse, error)
+}
 
 type Service struct {
 	restaurantRepository RestaurantRepository
