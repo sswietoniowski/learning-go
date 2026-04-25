@@ -8,13 +8,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
+	"eats/backend/common"
 	"eats/backend/common/shared"
 	"eats/backend/orders/app"
 
 	"github.com/labstack/echo/v4"
+	"github.com/oapi-codegen/runtime"
 	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/shopspring/decimal"
 )
 
 // Address defines model for Address.
@@ -38,8 +42,40 @@ type Address struct {
 // CountryCode Country code in ISO 3166-1 alpha-2 format
 type CountryCode = shared.CountryCode
 
+// CreateQuoteRequest defines model for CreateQuoteRequest.
+type CreateQuoteRequest struct {
+	DeliveryAddress Address     `json:"delivery_address"`
+	Items           []OrderItem `json:"items"`
+
+	// RestaurantUuid UUID of a restaurant
+	RestaurantUuid RestaurantUUID `json:"restaurant_uuid"`
+}
+
+// CreateQuoteResponse defines model for CreateQuoteResponse.
+type CreateQuoteResponse struct {
+	// Currency Currency code in ISO 4217 format
+	Currency         Currency `json:"currency"`
+	DeliveryFeeGross Decimal  `json:"delivery_fee_gross"`
+
+	// ExpiresAt When the offer expires
+	ExpiresAt          time.Time `json:"expires_at"`
+	ItemsSubtotalGross Decimal   `json:"items_subtotal_gross"`
+
+	// QuoteUuid UUID of an quote
+	QuoteUuid       QuoteUUID `json:"quote_uuid"`
+	ServiceFeeGross Decimal   `json:"service_fee_gross"`
+	TotalGross      Decimal   `json:"total_gross"`
+	TotalTax        Decimal   `json:"total_tax"`
+}
+
+// Currency Currency code in ISO 4217 format
+type Currency = shared.Currency
+
 // CustomerUUID UUID of a customer
 type CustomerUUID = app.CustomerUUID
+
+// Decimal defines model for Decimal.
+type Decimal = decimal.Decimal
 
 // ErrorDetails defines model for ErrorDetails.
 type ErrorDetails struct {
@@ -61,6 +97,74 @@ type ErrorResponse struct {
 	Slug string `json:"slug"`
 }
 
+// MenuItem defines model for MenuItem.
+type MenuItem struct {
+	GrossPrice Decimal `json:"gross_price"`
+
+	// Name Item name
+	Name string `json:"name"`
+
+	// Ordering Ordering index for display
+	Ordering float32 `json:"ordering"`
+
+	// Uuid UUID of a menu item
+	Uuid MenuItemUUID `json:"uuid"`
+}
+
+// MenuItemUUID UUID of a menu item
+type MenuItemUUID = app.RestaurantMenuItemUUID
+
+// MenuItemWithRestaurant defines model for MenuItemWithRestaurant.
+type MenuItemWithRestaurant struct {
+	// Currency Currency code in ISO 4217 format
+	Currency   Currency `json:"currency"`
+	GrossPrice Decimal  `json:"gross_price"`
+
+	// MenuItemName Name of the menu item
+	MenuItemName string `json:"menu_item_name"`
+
+	// MenuItemUuid UUID of a menu item
+	MenuItemUuid MenuItemUUID `json:"menu_item_uuid"`
+
+	// RestaurantName Name of the restaurant
+	RestaurantName string `json:"restaurant_name"`
+
+	// RestaurantUuid UUID of a restaurant
+	RestaurantUuid RestaurantUUID `json:"restaurant_uuid"`
+}
+
+// OnboardRestaurant defines model for OnboardRestaurant.
+type OnboardRestaurant struct {
+	Address Address `json:"address"`
+
+	// Currency Currency code in ISO 4217 format
+	Currency Currency `json:"currency"`
+
+	// Description Restaurant description
+	Description string `json:"description"`
+
+	// MenuItems Menu items for the restaurant
+	MenuItems []MenuItem `json:"menu_items"`
+
+	// Name Restaurant name
+	Name string `json:"name"`
+}
+
+// OperatorUUID UUID of an operator
+type OperatorUUID = common.UUID
+
+// OrderItem defines model for OrderItem.
+type OrderItem struct {
+	// MenuItemUuid UUID of a menu item
+	MenuItemUuid MenuItemUUID `json:"menu_item_uuid"`
+
+	// Quantity Quantity of the item
+	Quantity int `json:"quantity"`
+}
+
+// QuoteUUID UUID of an quote
+type QuoteUUID = app.QuoteUUID
+
 // RegisterCustomer defines model for RegisterCustomer.
 type RegisterCustomer struct {
 	Address Address `json:"address"`
@@ -81,22 +185,94 @@ type RegisterCustomerResponse struct {
 	CustomerUuid CustomerUUID `json:"customer_uuid"`
 }
 
+// RestaurantUUID UUID of a restaurant
+type RestaurantUUID = app.RestaurantUUID
+
 // BadRequest defines model for BadRequest.
 type BadRequest = ErrorResponse
+
+// Forbidden defines model for Forbidden.
+type Forbidden = ErrorResponse
+
+// Gone defines model for Gone.
+type Gone = ErrorResponse
+
+// NotFound defines model for NotFound.
+type NotFound = ErrorResponse
+
+// Unauthorized defines model for Unauthorized.
+type Unauthorized = ErrorResponse
+
+// CustomerCreateQuoteParams defines parameters for CustomerCreateQuote.
+type CustomerCreateQuoteParams struct {
+	// CustomerUUID Customer UUID
+	CustomerUUID CustomerUUID `json:"Customer-UUID"`
+}
+
+// OnboardRestaurantParams defines parameters for OnboardRestaurant.
+type OnboardRestaurantParams struct {
+	OperatorUUID OperatorUUID `json:"Operator-UUID"`
+}
+
+// CustomerCreateQuoteJSONRequestBody defines body for CustomerCreateQuote for application/json ContentType.
+type CustomerCreateQuoteJSONRequestBody = CreateQuoteRequest
 
 // RegisterCustomerJSONRequestBody defines body for RegisterCustomer for application/json ContentType.
 type RegisterCustomerJSONRequestBody = RegisterCustomer
 
+// OnboardRestaurantJSONRequestBody defines body for OnboardRestaurant for application/json ContentType.
+type OnboardRestaurantJSONRequestBody = OnboardRestaurant
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Create order quote
+	// (POST /orders/customer/create-quote)
+	CustomerCreateQuote(ctx echo.Context, params CustomerCreateQuoteParams) error
 	// Register a new customer
 	// (POST /orders/register-customer)
 	RegisterCustomer(ctx echo.Context) error
+	// Onboard or replace a restaurant with full details
+	// (PUT /orders/restaurant/onboard/{restaurant_uuid})
+	OnboardRestaurant(ctx echo.Context, restaurantUuid RestaurantUUID, params OnboardRestaurantParams) error
+	// List all menu items with restaurant info
+	// (GET /orders/restaurants/menu-items)
+	ListMenuItems(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// CustomerCreateQuote converts echo context to params.
+func (w *ServerInterfaceWrapper) CustomerCreateQuote(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CustomerCreateQuoteParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "Customer-UUID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Customer-UUID")]; found {
+		var CustomerUUID CustomerUUID
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Customer-UUID, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Customer-UUID", valueList[0], &CustomerUUID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Customer-UUID: %s", err))
+		}
+
+		params.CustomerUUID = CustomerUUID
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Customer-UUID is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CustomerCreateQuote(ctx, params)
+	return err
 }
 
 // RegisterCustomer converts echo context to params.
@@ -105,6 +281,53 @@ func (w *ServerInterfaceWrapper) RegisterCustomer(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.RegisterCustomer(ctx)
+	return err
+}
+
+// OnboardRestaurant converts echo context to params.
+func (w *ServerInterfaceWrapper) OnboardRestaurant(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "restaurant_uuid" -------------
+	var restaurantUuid RestaurantUUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "restaurant_uuid", ctx.Param("restaurant_uuid"), &restaurantUuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter restaurant_uuid: %s", err))
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params OnboardRestaurantParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "Operator-UUID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Operator-UUID")]; found {
+		var OperatorUUID OperatorUUID
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Operator-UUID, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Operator-UUID", valueList[0], &OperatorUUID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Operator-UUID: %s", err))
+		}
+
+		params.OperatorUUID = OperatorUUID
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Operator-UUID is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.OnboardRestaurant(ctx, restaurantUuid, params)
+	return err
+}
+
+// ListMenuItems converts echo context to params.
+func (w *ServerInterfaceWrapper) ListMenuItems(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListMenuItems(ctx)
 	return err
 }
 
@@ -136,11 +359,85 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.POST(baseURL+"/orders/customer/create-quote", wrapper.CustomerCreateQuote)
 	router.POST(baseURL+"/orders/register-customer", wrapper.RegisterCustomer)
+	router.PUT(baseURL+"/orders/restaurant/onboard/:restaurant_uuid", wrapper.OnboardRestaurant)
+	router.GET(baseURL+"/orders/restaurants/menu-items", wrapper.ListMenuItems)
 
 }
 
 type BadRequestJSONResponse ErrorResponse
+
+type ForbiddenJSONResponse ErrorResponse
+
+type GoneJSONResponse ErrorResponse
+
+type NotFoundJSONResponse ErrorResponse
+
+type UnauthorizedJSONResponse ErrorResponse
+
+type CustomerCreateQuoteRequestObject struct {
+	Params CustomerCreateQuoteParams
+	Body   *CustomerCreateQuoteJSONRequestBody
+}
+
+type CustomerCreateQuoteResponseObject interface {
+	VisitCustomerCreateQuoteResponse(w http.ResponseWriter) error
+}
+
+type CustomerCreateQuote201JSONResponse CreateQuoteResponse
+
+func (response CustomerCreateQuote201JSONResponse) VisitCustomerCreateQuoteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CustomerCreateQuote400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CustomerCreateQuote400JSONResponse) VisitCustomerCreateQuoteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CustomerCreateQuote401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CustomerCreateQuote401JSONResponse) VisitCustomerCreateQuoteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CustomerCreateQuote403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CustomerCreateQuote403JSONResponse) VisitCustomerCreateQuoteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CustomerCreateQuote404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response CustomerCreateQuote404JSONResponse) VisitCustomerCreateQuoteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CustomerCreateQuote410JSONResponse struct{ GoneJSONResponse }
+
+func (response CustomerCreateQuote410JSONResponse) VisitCustomerCreateQuoteResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(410)
+
+	return json.NewEncoder(w).Encode(response)
+}
 
 type RegisterCustomerRequestObject struct {
 	Body *RegisterCustomerJSONRequestBody
@@ -177,11 +474,81 @@ func (response RegisterCustomer409JSONResponse) VisitRegisterCustomerResponse(w 
 	return json.NewEncoder(w).Encode(response)
 }
 
+type OnboardRestaurantRequestObject struct {
+	RestaurantUuid RestaurantUUID `json:"restaurant_uuid"`
+	Params         OnboardRestaurantParams
+	Body           *OnboardRestaurantJSONRequestBody
+}
+
+type OnboardRestaurantResponseObject interface {
+	VisitOnboardRestaurantResponse(w http.ResponseWriter) error
+}
+
+type OnboardRestaurant204Response struct {
+}
+
+func (response OnboardRestaurant204Response) VisitOnboardRestaurantResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type OnboardRestaurant400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response OnboardRestaurant400JSONResponse) VisitOnboardRestaurantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type OnboardRestaurant401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response OnboardRestaurant401JSONResponse) VisitOnboardRestaurantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type OnboardRestaurant403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response OnboardRestaurant403JSONResponse) VisitOnboardRestaurantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMenuItemsRequestObject struct {
+}
+
+type ListMenuItemsResponseObject interface {
+	VisitListMenuItemsResponse(w http.ResponseWriter) error
+}
+
+type ListMenuItems200JSONResponse []MenuItemWithRestaurant
+
+func (response ListMenuItems200JSONResponse) VisitListMenuItemsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// Create order quote
+	// (POST /orders/customer/create-quote)
+	CustomerCreateQuote(ctx context.Context, request CustomerCreateQuoteRequestObject) (CustomerCreateQuoteResponseObject, error)
 	// Register a new customer
 	// (POST /orders/register-customer)
 	RegisterCustomer(ctx context.Context, request RegisterCustomerRequestObject) (RegisterCustomerResponseObject, error)
+	// Onboard or replace a restaurant with full details
+	// (PUT /orders/restaurant/onboard/{restaurant_uuid})
+	OnboardRestaurant(ctx context.Context, request OnboardRestaurantRequestObject) (OnboardRestaurantResponseObject, error)
+	// List all menu items with restaurant info
+	// (GET /orders/restaurants/menu-items)
+	ListMenuItems(ctx context.Context, request ListMenuItemsRequestObject) (ListMenuItemsResponseObject, error)
 }
 
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
@@ -194,6 +561,37 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// CustomerCreateQuote operation middleware
+func (sh *strictHandler) CustomerCreateQuote(ctx echo.Context, params CustomerCreateQuoteParams) error {
+	var request CustomerCreateQuoteRequestObject
+
+	request.Params = params
+
+	var body CustomerCreateQuoteJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CustomerCreateQuote(ctx.Request().Context(), request.(CustomerCreateQuoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CustomerCreateQuote")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(CustomerCreateQuoteResponseObject); ok {
+		return validResponse.VisitCustomerCreateQuoteResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
 }
 
 // RegisterCustomer operation middleware
@@ -219,6 +617,61 @@ func (sh *strictHandler) RegisterCustomer(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(RegisterCustomerResponseObject); ok {
 		return validResponse.VisitRegisterCustomerResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// OnboardRestaurant operation middleware
+func (sh *strictHandler) OnboardRestaurant(ctx echo.Context, restaurantUuid RestaurantUUID, params OnboardRestaurantParams) error {
+	var request OnboardRestaurantRequestObject
+
+	request.RestaurantUuid = restaurantUuid
+	request.Params = params
+
+	var body OnboardRestaurantJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.OnboardRestaurant(ctx.Request().Context(), request.(OnboardRestaurantRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "OnboardRestaurant")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(OnboardRestaurantResponseObject); ok {
+		return validResponse.VisitOnboardRestaurantResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ListMenuItems operation middleware
+func (sh *strictHandler) ListMenuItems(ctx echo.Context) error {
+	var request ListMenuItemsRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ListMenuItems(ctx.Request().Context(), request.(ListMenuItemsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListMenuItems")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(ListMenuItemsResponseObject); ok {
+		return validResponse.VisitListMenuItemsResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}

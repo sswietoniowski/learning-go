@@ -39,6 +39,96 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /orders/customer/create-quote:
+    post:
+      summary: Create order quote
+      operationId: customerCreateQuote
+      tags:
+        - customer
+      parameters:
+        - name: Customer-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerUUID'
+          description: Customer UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuoteRequest'
+      responses:
+        '201':
+          description: Order initialized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateQuoteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+
+  /orders/restaurants/menu-items:
+    get:
+      summary: List all menu items with restaurant info
+      operationId: listMenuItems
+      description: |
+        Returns a list of all active menu items joined with their restaurant information.
+        This is a read model endpoint - it returns denormalized data optimized for display.
+      tags:
+        - read-model
+      responses:
+        '200':
+          description: List of menu items with restaurant info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MenuItemWithRestaurant'
+
+  /orders/restaurant/onboard/{restaurant_uuid}:
+    put:
+      summary: Onboard or replace a restaurant with full details
+      operationId: onboardRestaurant
+      tags:
+        - operations
+      parameters:
+        - name: Operator-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/OperatorUUID'
+        - name: restaurant_uuid
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/RestaurantUUID'
+          description: UUID of the restaurant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardRestaurant'
+      responses:
+        '204':
+          description: Restaurant onboarded successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
 components:
   schemas:
     RegisterCustomer:
@@ -75,6 +165,144 @@ components:
         customer_uuid:
           $ref: '#/components/schemas/CustomerUUID'
 
+    CreateQuoteRequest:
+      type: object
+      required:
+        - restaurant_uuid
+        - items
+        - delivery_address
+      properties:
+        restaurant_uuid:
+          $ref: '#/components/schemas/RestaurantUUID'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          minItems: 1
+        delivery_address:
+          $ref: '#/components/schemas/Address'
+
+    CreateQuoteResponse:
+      type: object
+      required:
+        - quote_uuid
+        - items_subtotal_gross
+        - service_fee_gross
+        - delivery_fee_gross
+        - total_gross
+        - total_tax
+        - expires_at
+        - currency
+      properties:
+        quote_uuid:
+          $ref: '#/components/schemas/QuoteUUID'
+        items_subtotal_gross:
+          $ref: '#/components/schemas/Decimal'
+        service_fee_gross:
+          $ref: '#/components/schemas/Decimal'
+        delivery_fee_gross:
+          $ref: '#/components/schemas/Decimal'
+        total_gross:
+          $ref: '#/components/schemas/Decimal'
+        total_tax:
+          $ref: '#/components/schemas/Decimal'
+        expires_at:
+          type: string
+          format: date-time
+          description: When the offer expires
+        currency:
+          $ref: '#/components/schemas/Currency'
+
+    OrderItem:
+      type: object
+      required:
+        - menu_item_uuid
+        - quantity
+      properties:
+        menu_item_uuid:
+          $ref: '#/components/schemas/MenuItemUUID'
+        quantity:
+          type: integer
+          minimum: 1
+          description: Quantity of the item
+
+    MenuItem:
+      type: object
+      required:
+        - uuid
+        - name
+        - gross_price
+        - ordering
+      properties:
+        uuid:
+          $ref: '#/components/schemas/MenuItemUUID'
+        name:
+          type: string
+          description: Item name
+        gross_price:
+          $ref: '#/components/schemas/Decimal'
+        ordering:
+          type: number
+          description: Ordering index for display
+
+    MenuItemWithRestaurant:
+      type: object
+      required:
+        - menu_item_uuid
+        - menu_item_name
+        - gross_price
+        - currency
+        - restaurant_uuid
+        - restaurant_name
+      properties:
+        menu_item_uuid:
+          $ref: '#/components/schemas/MenuItemUUID'
+        menu_item_name:
+          type: string
+          description: Name of the menu item
+        gross_price:
+          $ref: '#/components/schemas/Decimal'
+        currency:
+          $ref: '#/components/schemas/Currency'
+        restaurant_uuid:
+          $ref: '#/components/schemas/RestaurantUUID'
+        restaurant_name:
+          type: string
+          description: Name of the restaurant
+
+    OnboardRestaurant:
+      type: object
+      required:
+        - name
+        - address
+        - currency
+        - description
+        - menu_items
+      properties:
+        name:
+          type: string
+          description: Restaurant name
+        address:
+          $ref: '#/components/schemas/Address'
+        currency:
+          $ref: '#/components/schemas/Currency'
+        description:
+          type: string
+          description: Restaurant description
+        menu_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'
+          description: Menu items for the restaurant
+
+    QuoteUUID:
+      type: string
+      format: uuid
+      description: UUID of an quote
+      x-go-type: app.QuoteUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
     CustomerUUID:
       type: string
       format: uuid
@@ -82,6 +310,43 @@ components:
       x-go-type: app.CustomerUUID
       x-go-type-import:
         path: eats/backend/orders/app
+
+    RestaurantUUID:
+      type: string
+      format: uuid
+      description: UUID of a restaurant
+      x-go-type: app.RestaurantUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    MenuItemUUID:
+      type: string
+      format: uuid
+      description: UUID of a menu item
+      x-go-type: app.RestaurantMenuItemUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    OperatorUUID:
+      type: string
+      format: uuid
+      description: UUID of an operator
+      x-go-type: common.UUID
+      x-go-type-import:
+        path: eats/backend/common
+
+    Decimal:
+      type: string
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+
+    Currency:
+      type: string
+      description: Currency code in ISO 4217 format
+      x-go-type: shared.Currency
+      x-go-type-import:
+        path: eats/backend/common/shared
 
     Address:
       type: object
@@ -112,7 +377,7 @@ components:
       description: Country code in ISO 3166-1 alpha-2 format
       x-go-type: shared.CountryCode
       x-go-type-import:
-        path: eats/backend/common/shared      
+        path: eats/backend/common/shared
 
     ErrorResponse:
       type: object

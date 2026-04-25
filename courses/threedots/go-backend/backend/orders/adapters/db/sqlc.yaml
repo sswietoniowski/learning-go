@@ -37,13 +37,77 @@ sql:
               import: "eats/backend/common"
               type: "NullUUID"
 
-          - column: "orders.customers.customer_uuid"
+          - db_type: "pg_catalog.numeric"
             go_type:
-              import: "eats/backend/orders/app"
-              type: "CustomerUUID"
-
+              import: "github.com/shopspring/decimal"
+              type: "Decimal"
+            
           - column: "orders.customers.address"
             go_type:
               import: "eats/backend/common/shared"
               type: "Address"
 
+          - column: "orders.customers.customer_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CustomerUUID"
+
+          - column: "orders.restaurants.restaurant_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantUUID"
+
+          - column: "orders.restaurants.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"
+
+          - column: "orders.restaurants.address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "orders.restaurant_menu_items.restaurant_menu_item_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantMenuItemUUID"
+
+          - column: "orders.restaurant_menu_items.restaurant_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantUUID"
+          - column: "orders.quotes.customer_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CustomerUUID"
+
+          - column: "orders.quotes.restaurant_uuid"
+            nullable: true
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantUUID"
+
+          - column: "orders.quotes.quote_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "QuoteUUID"
+
+          - column: "orders.quotes.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"
+
+          - column: "orders.quotes.delivery_address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "orders.quote_items.quote_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "QuoteUUID"
+
+          - column: "orders.quote_items.menu_item_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantMenuItemUUID"
