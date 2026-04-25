@@ -2,6 +2,6 @@ training_name = "backend-masterclass-beta"
 git_configured = true
 
 [file_hashes]
-  ".gitignore" = "215f9e036a797337cf5fd33b68f33231519e3bbc12f736d1c6d928e7457283c1"
+  ".gitignore" = "d47fd01d8bfad5edb507e62a8640f1ae1093fbdb4f0063e7bac49e820f1ffeb9"
   "AGENTS.md" = "a5fec0f5d25731b51428e3e8fbe4e44868c3e5d66278791132bba7ccc1859b52"
   "CLAUDE.md" = "a5fec0f5d25731b51428e3e8fbe4e44868c3e5d66278791132bba7ccc1859b52"
