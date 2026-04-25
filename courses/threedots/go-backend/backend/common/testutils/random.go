@@ -30,6 +30,23 @@ func GenerateRandomOpenapiAddress(country shared.CountryCode) client.Address {
 	return addr
 }
 
+func GenerateRandomAddress(country shared.CountryCode) shared.Address {
+	address := gofakeit.Address()
+
+	addr, err := shared.NewAddress(
+		address.Street,
+		address.Unit,
+		address.Zip,
+		address.City,
+		country,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	return addr
+}
+
 func GenerateOpenapiAddressInCity(country shared.CountryCode, city string) client.Address {
 	address := gofakeit.Address()
 
