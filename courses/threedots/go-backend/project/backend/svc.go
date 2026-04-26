@@ -14,6 +14,7 @@ import (
 	"eats/backend/common/log"
 	"eats/backend/common/module"
 	"eats/backend/common/module/contracts"
+	"eats/backend/delivery"
 	"eats/backend/orders"
 )
 
@@ -37,6 +38,7 @@ func New(
 
 	modules := []module.Module{
 		orders.NewModule(dbPgx, moduleContracts),
+		delivery.NewModule(),
 	}
 
 	for _, module := range modules {

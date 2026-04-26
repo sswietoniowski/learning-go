@@ -9,6 +9,7 @@ import (
 
 	"eats/backend/common"
 	"eats/backend/common/shared"
+	"eats/backend/delivery/api/module/client"
 )
 
 type QuoteUUID struct {
@@ -60,6 +61,7 @@ type OrderRepository interface {
 			restaurantAddress shared.Address,
 		) (Quote, []QuoteMenuItem, error),
 	) (Quote, error)
+	GetRestaurant(ctx context.Context, restaurantUUID RestaurantUUID) (Restaurant, error)
 }
 
 type CreateQuote struct {
@@ -127,6 +129,21 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 		})
 	}
 
+	restaurant, err := s.orderRepository.GetRestaurant(ctx, req.RestaurantUUID)
+	if err != nil {
+		return Quote{}, err
+	}
+
+	deliveryFee, err := s.modules.CalculateDeliveryFee(ctx, client.CalculateDeliveryFeeRequest{
+		RestaurantAddress: restaurant.Address,
+		DeliveryAddress:   req.DeliveryAddress,
+		Currency:          restaurant.Currency,
+		When:              time.Now(),
+	})
+	if err != nil {
+		return Quote{}, fmt.Errorf("error calculating delivery fee for quote: %w", err)
+	}
+
 	return s.orderRepository.CreateQuote(
 		ctx,
 		req.RestaurantUUID,
@@ -171,9 +188,7 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 
 			serviceFeeGross := itemsSubtotal.Mul(decimal.RequireFromString("0.06")).RoundBank(2) // 6%
 
-			deliveryFeeGross := decimal.NewFromInt(10)
-
-			totalAmount := itemsSubtotal.Add(serviceFeeGross).Add(deliveryFeeGross)
+			totalAmount := itemsSubtotal.Add(serviceFeeGross).Add(deliveryFee.GrossFee)
 
 			return Quote{
 				QuoteUUID:      QuoteUUID{common.NewUUIDv7()},
@@ -184,7 +199,7 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 
 				ItemsSubtotalGross: itemsSubtotal,
 				ServiceFeeGross:    serviceFeeGross,
-				DeliveryFeeGross:   deliveryFeeGross,
+				DeliveryFeeGross:   deliveryFee.GrossFee,
 				TotalAmountGross:   totalAmount,
 
 				TotalTax: totalAmount.Div(decimal.RequireFromString("1.23")).RoundBank(2),
