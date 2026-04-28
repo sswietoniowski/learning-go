@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"eats/backend/common/testutils"
-	"eats/backend/orders/api/http/client"
+	ordersclient "eats/backend/orders/api/http/client"
 )
 
 func TestComponent_CriticalFlow(t *testing.T) {
@@ -72,7 +72,7 @@ func TestComponent_ListMenuItems_WithFiltering(t *testing.T) {
 
 	// Filter by restaurant name
 	restaurantName := "Pizza"
-	resp, err := clients.Orders.ListMenuItemsWithResponse(ctx, &client.ListMenuItemsParams{
+	resp, err := clients.Orders.ListMenuItemsWithResponse(ctx, &ordersclient.ListMenuItemsParams{
 		RestaurantName: &restaurantName,
 	})
 	require.NoError(t, err)
@@ -97,8 +97,8 @@ func TestComponent_ListMenuItems_WithOrdering(t *testing.T) {
 	_, _ = onboardRestaurant(ctx, t, clients, country, "Test Restaurant")
 
 	// Order by price ascending
-	orderBy := client.PriceAsc
-	resp, err := clients.Orders.ListMenuItemsWithResponse(ctx, &client.ListMenuItemsParams{
+	orderBy := ordersclient.PriceAsc
+	resp, err := clients.Orders.ListMenuItemsWithResponse(ctx, &ordersclient.ListMenuItemsParams{
 		OrderBy: &orderBy,
 	})
 	require.NoError(t, err)
@@ -136,7 +136,7 @@ func TestComponent_ListMenuItems_WithFullTextSearch(t *testing.T) {
 
 	// Search for "pizza" - should find items/restaurants mentioning pizza
 	search := "pizza"
-	resp, err := clients.Orders.ListMenuItemsWithResponse(ctx, &client.ListMenuItemsParams{
+	resp, err := clients.Orders.ListMenuItemsWithResponse(ctx, &ordersclient.ListMenuItemsParams{
 		Search: &search,
 	})
 	require.NoError(t, err)
@@ -171,8 +171,8 @@ func TestComponent_ListMenuItems_WithSearchAndRelevanceOrdering(t *testing.T) {
 
 	// Search for "burger" with relevance ordering
 	search := "burger"
-	orderBy := client.Relevance
-	resp, err := clients.Orders.ListMenuItemsWithResponse(ctx, &client.ListMenuItemsParams{
+	orderBy := ordersclient.Relevance
+	resp, err := clients.Orders.ListMenuItemsWithResponse(ctx, &ordersclient.ListMenuItemsParams{
 		Search:  &search,
 		OrderBy: &orderBy,
 	})
@@ -182,4 +182,55 @@ func TestComponent_ListMenuItems_WithSearchAndRelevanceOrdering(t *testing.T) {
 
 	items := *resp.JSON200
 	require.NotEmpty(t, items, "should find items matching 'burger'")
+}
+
+func TestComponent_RegisterCourier(t *testing.T) {
+	t.Parallel()
+	clients := newTestClients(t)
+
+	ctx := t.Context()
+
+	country := testutils.GenerateRandomCountry()
+	city := testutils.GenerateRandomAddress(country).City
+
+	// Register a courier
+	courierUUID := registerCourierInCity(ctx, t, clients, country, city)
+	require.NotEmpty(t, courierUUID)
+}
+
+func TestComponent_RegisterCourier_Validation(t *testing.T) {
+	t.Parallel()
+	clients := newTestClients(t)
+
+	ctx := t.Context()
+
+	t.Run("empty_name", func(t *testing.T) {
+		resp, err := clients.Orders.RegisterCourierWithResponse(ctx, ordersclient.RegisterCourier{
+			Name:        "",
+			PhoneNumber: "123456789",
+			City:        "Warsaw",
+		})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode())
+	})
+
+	t.Run("empty_phone_number", func(t *testing.T) {
+		resp, err := clients.Orders.RegisterCourierWithResponse(ctx, ordersclient.RegisterCourier{
+			Name:        "John Doe",
+			PhoneNumber: "",
+			City:        "Warsaw",
+		})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode())
+	})
+
+	t.Run("empty_city", func(t *testing.T) {
+		resp, err := clients.Orders.RegisterCourierWithResponse(ctx, ordersclient.RegisterCourier{
+			Name:        "John Doe",
+			PhoneNumber: "123456789",
+			City:        "",
+		})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode())
+	})
 }

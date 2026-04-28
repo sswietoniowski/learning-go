@@ -90,6 +90,7 @@ func TestUpsertRestaurant_UpdateExisting(t *testing.T) {
 	err = repo.UpsertRestaurant(ctx, restaurantUUID, updatedRestaurant)
 	require.NoError(t, err)
 
+	// Verify restaurant was updated
 	menu, err := repo.GetRestaurantMenu(ctx, restaurantUUID)
 	require.NoError(t, err)
 
@@ -360,5 +361,12 @@ func newTestCustomer(uuid app.CustomerUUID) app.Customer {
 		Email:        gofakeit.Email(),
 		Address:      testutils.GenerateRandomAddress(testutils.GenerateRandomCountry()),
 		PhoneNumber:  gofakeit.Phone(),
+	}
+}
+
+func newTestCourier() app.RegisterCourier {
+	return app.RegisterCourier{
+		Name:        gofakeit.Name(),
+		PhoneNumber: gofakeit.Phone(),
 	}
 }

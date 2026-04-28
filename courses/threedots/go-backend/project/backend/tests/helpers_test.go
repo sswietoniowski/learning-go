@@ -4,7 +4,6 @@ package tests_test
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -20,22 +19,27 @@ import (
 	"eats/backend/orders/app"
 )
 
-func registerCustomer(ctx context.Context, t *testing.T, clients testClients, country shared.CountryCode) ordersclient.CustomerUUID {
+func registerCourierInCity(
+	ctx context.Context,
+	t *testing.T,
+	clients testClients,
+	country shared.CountryCode,
+	city string,
+) ordersclient.CourierUUID {
 	t.Helper()
 
-	customerToCreate := ordersclient.RegisterCustomer{
+	courierToCreate := ordersclient.RegisterCourier{
 		Name:        gofakeit.Name(),
-		Email:       openapi_types.Email(gofakeit.Email()),
-		Address:     testutils.GenerateRandomOpenapiAddress(country),
 		PhoneNumber: gofakeit.Phone(),
+		City:        city,
 	}
 
-	resp, err := clients.Orders.RegisterCustomerWithResponse(ctx, customerToCreate)
+	resp, err := clients.Orders.RegisterCourierWithResponse(ctx, courierToCreate)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusCreated, resp.StatusCode())
 	require.NotNil(t, resp.JSON201)
 
-	return resp.JSON201.CustomerUuid
+	return resp.JSON201.CourierUuid
 }
 
 func registerCustomerInCity(ctx context.Context, t *testing.T, clients testClients, country shared.CountryCode, city string) ordersclient.CustomerUUID {
@@ -54,18 +58,6 @@ func registerCustomerInCity(ctx context.Context, t *testing.T, clients testClien
 	require.NotNil(t, resp.JSON201)
 
 	return resp.JSON201.CustomerUuid
-}
-
-func assertJsonReprEqual(t *testing.T, expected, actual any) {
-	t.Helper()
-
-	expectedJSON, err := json.Marshal(expected)
-	require.NoError(t, err)
-
-	actualJSON, err := json.Marshal(actual)
-	require.NoError(t, err)
-
-	require.JSONEq(t, string(expectedJSON), string(actualJSON))
 }
 
 func onboardRestaurant(ctx context.Context, t *testing.T, clients testClients, country shared.CountryCode, name string) (ordersclient.RestaurantUUID, []ordersclient.MenuItem) {

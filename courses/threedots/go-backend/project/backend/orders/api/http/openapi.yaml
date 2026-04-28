@@ -39,6 +39,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /orders/register-courier:
+    post:
+      summary: Register a new courier
+      operationId: registerCourier
+      tags:
+        - courier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCourier'
+      responses:
+        '201':
+          description: Courier registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterCourierResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
   /orders/customer/create-quote:
     post:
       summary: Create order quote
@@ -75,6 +97,40 @@ paths:
           $ref: '#/components/responses/NotFound'
         '410':
           $ref: '#/components/responses/Gone'
+
+  /orders/restaurant/onboard/{restaurant_uuid}:
+    put:
+      summary: Onboard or replace a restaurant with full details
+      operationId: onboardRestaurant
+      tags:
+        - operations
+      parameters:
+        - name: Operator-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/OperatorUUID'
+        - name: restaurant_uuid
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/RestaurantUUID'
+          description: UUID of the restaurant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardRestaurant'
+      responses:
+        '204':
+          description: Restaurant onboarded successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /orders/restaurants/menu-items:
     get:
@@ -117,40 +173,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/MenuItemWithRestaurant'
 
-  /orders/restaurant/onboard/{restaurant_uuid}:
-    put:
-      summary: Onboard or replace a restaurant with full details
-      operationId: onboardRestaurant
-      tags:
-        - operations
-      parameters:
-        - name: Operator-UUID
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/OperatorUUID'
-        - name: restaurant_uuid
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/RestaurantUUID'
-          description: UUID of the restaurant
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OnboardRestaurant'
-      responses:
-        '204':
-          description: Restaurant onboarded successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
 components:
   schemas:
     RegisterCustomer:
@@ -186,6 +208,37 @@ components:
       properties:
         customer_uuid:
           $ref: '#/components/schemas/CustomerUUID'
+
+    RegisterCourier:
+      type: object
+      required:
+        - name
+        - phone_number
+        - city
+      properties:
+        name:
+          type: string
+          description: Courier's full name
+          minLength: 1
+          maxLength: 255
+        phone_number:
+          type: string
+          description: Courier's phone number
+          minLength: 1
+          maxLength: 50
+        city:
+          type: string
+          description: City where courier operates
+          minLength: 1
+          maxLength: 100
+
+    RegisterCourierResponse:
+      type: object
+      required:
+        - courier_uuid
+      properties:
+        courier_uuid:
+          $ref: '#/components/schemas/CourierUUID'
 
     CreateQuoteRequest:
       type: object
@@ -338,6 +391,14 @@ components:
       format: uuid
       description: UUID of a restaurant
       x-go-type: app.RestaurantUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    CourierUUID:
+      type: string
+      format: uuid
+      description: UUID of a courier
+      x-go-type: app.CourierUUID
       x-go-type-import:
         path: eats/backend/orders/app
 
