@@ -13,6 +13,13 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type OrdersCourier struct {
+	CourierUuid app.CourierUUID
+	Name        string
+	PhoneNumber string
+	City        string
+}
+
 type OrdersCustomer struct {
 	CustomerUuid app.CustomerUUID
 	Name         string

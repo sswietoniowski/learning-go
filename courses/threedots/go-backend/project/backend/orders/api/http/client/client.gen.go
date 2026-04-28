@@ -53,6 +53,9 @@ type Address struct {
 // CountryCode Country code in ISO 3166-1 alpha-2 format
 type CountryCode = shared.CountryCode
 
+// CourierUUID UUID of a courier
+type CourierUUID = app.CourierUUID
+
 // CreateQuoteRequest defines model for CreateQuoteRequest.
 type CreateQuoteRequest struct {
 	DeliveryAddress Address     `json:"delivery_address"`
@@ -176,6 +179,24 @@ type OrderItem struct {
 // QuoteUUID UUID of an quote
 type QuoteUUID = app.QuoteUUID
 
+// RegisterCourier defines model for RegisterCourier.
+type RegisterCourier struct {
+	// City City where courier operates
+	City string `json:"city"`
+
+	// Name Courier's full name
+	Name string `json:"name"`
+
+	// PhoneNumber Courier's phone number
+	PhoneNumber string `json:"phone_number"`
+}
+
+// RegisterCourierResponse defines model for RegisterCourierResponse.
+type RegisterCourierResponse struct {
+	// CourierUuid UUID of a courier
+	CourierUuid CourierUUID `json:"courier_uuid"`
+}
+
 // RegisterCustomer defines model for RegisterCustomer.
 type RegisterCustomer struct {
 	Address Address `json:"address"`
@@ -242,6 +263,9 @@ type ListMenuItemsParamsOrderBy string
 
 // CustomerCreateQuoteJSONRequestBody defines body for CustomerCreateQuote for application/json ContentType.
 type CustomerCreateQuoteJSONRequestBody = CreateQuoteRequest
+
+// RegisterCourierJSONRequestBody defines body for RegisterCourier for application/json ContentType.
+type RegisterCourierJSONRequestBody = RegisterCourier
 
 // RegisterCustomerJSONRequestBody defines body for RegisterCustomer for application/json ContentType.
 type RegisterCustomerJSONRequestBody = RegisterCustomer
@@ -327,6 +351,11 @@ type ClientInterface interface {
 
 	CustomerCreateQuote(ctx context.Context, params *CustomerCreateQuoteParams, body CustomerCreateQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RegisterCourierWithBody request with any body
+	RegisterCourierWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RegisterCourier(ctx context.Context, body RegisterCourierJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RegisterCustomerWithBody request with any body
 	RegisterCustomerWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -355,6 +384,30 @@ func (c *Client) CustomerCreateQuoteWithBody(ctx context.Context, params *Custom
 
 func (c *Client) CustomerCreateQuote(ctx context.Context, params *CustomerCreateQuoteParams, body CustomerCreateQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCustomerCreateQuoteRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RegisterCourierWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRegisterCourierRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RegisterCourier(ctx context.Context, body RegisterCourierJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRegisterCourierRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -474,6 +527,46 @@ func NewCustomerCreateQuoteRequestWithBody(server string, params *CustomerCreate
 		req.Header.Set("Customer-UUID", headerParam0)
 
 	}
+
+	return req, nil
+}
+
+// NewRegisterCourierRequest calls the generic RegisterCourier builder with application/json body
+func NewRegisterCourierRequest(server string, body RegisterCourierJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRegisterCourierRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewRegisterCourierRequestWithBody generates requests for RegisterCourier with any type of body
+func NewRegisterCourierRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/register-courier")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -707,6 +800,11 @@ type ClientWithResponsesInterface interface {
 
 	CustomerCreateQuoteWithResponse(ctx context.Context, params *CustomerCreateQuoteParams, body CustomerCreateQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*CustomerCreateQuoteClientResponse, error)
 
+	// RegisterCourierWithBodyWithResponse request with any body
+	RegisterCourierWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterCourierClientResponse, error)
+
+	RegisterCourierWithResponse(ctx context.Context, body RegisterCourierJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterCourierClientResponse, error)
+
 	// RegisterCustomerWithBodyWithResponse request with any body
 	RegisterCustomerWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterCustomerClientResponse, error)
 
@@ -742,6 +840,29 @@ func (r CustomerCreateQuoteClientResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CustomerCreateQuoteClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RegisterCourierClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *RegisterCourierResponse
+	JSON400      *BadRequest
+}
+
+// Status returns HTTPResponse.Status
+func (r RegisterCourierClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RegisterCourierClientResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -833,6 +954,23 @@ func (c *ClientWithResponses) CustomerCreateQuoteWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseCustomerCreateQuoteClientResponse(rsp)
+}
+
+// RegisterCourierWithBodyWithResponse request with arbitrary body returning *RegisterCourierClientResponse
+func (c *ClientWithResponses) RegisterCourierWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterCourierClientResponse, error) {
+	rsp, err := c.RegisterCourierWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRegisterCourierClientResponse(rsp)
+}
+
+func (c *ClientWithResponses) RegisterCourierWithResponse(ctx context.Context, body RegisterCourierJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterCourierClientResponse, error) {
+	rsp, err := c.RegisterCourier(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRegisterCourierClientResponse(rsp)
 }
 
 // RegisterCustomerWithBodyWithResponse request with arbitrary body returning *RegisterCustomerClientResponse
@@ -933,6 +1071,39 @@ func ParseCustomerCreateQuoteClientResponse(rsp *http.Response) (*CustomerCreate
 			return nil, err
 		}
 		response.JSON410 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRegisterCourierClientResponse parses an HTTP response from a RegisterCourierWithResponse call
+func ParseRegisterCourierClientResponse(rsp *http.Response) (*RegisterCourierClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RegisterCourierClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest RegisterCourierResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	}
 

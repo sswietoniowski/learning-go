@@ -111,3 +111,8 @@ sql:
             go_type:
               import: "eats/backend/orders/app"
               type: "RestaurantMenuItemUUID"
+
+          - column: "orders.couriers.courier_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CourierUUID"

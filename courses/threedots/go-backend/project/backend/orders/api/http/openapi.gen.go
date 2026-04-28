@@ -51,6 +51,9 @@ type Address struct {
 // CountryCode Country code in ISO 3166-1 alpha-2 format
 type CountryCode = shared.CountryCode
 
+// CourierUUID UUID of a courier
+type CourierUUID = app.CourierUUID
+
 // CreateQuoteRequest defines model for CreateQuoteRequest.
 type CreateQuoteRequest struct {
 	DeliveryAddress Address     `json:"delivery_address"`
@@ -174,6 +177,24 @@ type OrderItem struct {
 // QuoteUUID UUID of an quote
 type QuoteUUID = app.QuoteUUID
 
+// RegisterCourier defines model for RegisterCourier.
+type RegisterCourier struct {
+	// City City where courier operates
+	City string `json:"city"`
+
+	// Name Courier's full name
+	Name string `json:"name"`
+
+	// PhoneNumber Courier's phone number
+	PhoneNumber string `json:"phone_number"`
+}
+
+// RegisterCourierResponse defines model for RegisterCourierResponse.
+type RegisterCourierResponse struct {
+	// CourierUuid UUID of a courier
+	CourierUuid CourierUUID `json:"courier_uuid"`
+}
+
 // RegisterCustomer defines model for RegisterCustomer.
 type RegisterCustomer struct {
 	Address Address `json:"address"`
@@ -241,6 +262,9 @@ type ListMenuItemsParamsOrderBy string
 // CustomerCreateQuoteJSONRequestBody defines body for CustomerCreateQuote for application/json ContentType.
 type CustomerCreateQuoteJSONRequestBody = CreateQuoteRequest
 
+// RegisterCourierJSONRequestBody defines body for RegisterCourier for application/json ContentType.
+type RegisterCourierJSONRequestBody = RegisterCourier
+
 // RegisterCustomerJSONRequestBody defines body for RegisterCustomer for application/json ContentType.
 type RegisterCustomerJSONRequestBody = RegisterCustomer
 
@@ -252,6 +276,9 @@ type ServerInterface interface {
 	// Create order quote
 	// (POST /orders/customer/create-quote)
 	CustomerCreateQuote(ctx echo.Context, params CustomerCreateQuoteParams) error
+	// Register a new courier
+	// (POST /orders/register-courier)
+	RegisterCourier(ctx echo.Context) error
 	// Register a new customer
 	// (POST /orders/register-customer)
 	RegisterCustomer(ctx echo.Context) error
@@ -296,6 +323,15 @@ func (w *ServerInterfaceWrapper) CustomerCreateQuote(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.CustomerCreateQuote(ctx, params)
+	return err
+}
+
+// RegisterCourier converts echo context to params.
+func (w *ServerInterfaceWrapper) RegisterCourier(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.RegisterCourier(ctx)
 	return err
 }
 
@@ -407,6 +443,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.POST(baseURL+"/orders/customer/create-quote", wrapper.CustomerCreateQuote)
+	router.POST(baseURL+"/orders/register-courier", wrapper.RegisterCourier)
 	router.POST(baseURL+"/orders/register-customer", wrapper.RegisterCustomer)
 	router.PUT(baseURL+"/orders/restaurant/onboard/:restaurant_uuid", wrapper.OnboardRestaurant)
 	router.GET(baseURL+"/orders/restaurants/menu-items", wrapper.ListMenuItems)
@@ -482,6 +519,32 @@ type CustomerCreateQuote410JSONResponse struct{ GoneJSONResponse }
 func (response CustomerCreateQuote410JSONResponse) VisitCustomerCreateQuoteResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(410)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RegisterCourierRequestObject struct {
+	Body *RegisterCourierJSONRequestBody
+}
+
+type RegisterCourierResponseObject interface {
+	VisitRegisterCourierResponse(w http.ResponseWriter) error
+}
+
+type RegisterCourier201JSONResponse RegisterCourierResponse
+
+func (response RegisterCourier201JSONResponse) VisitRegisterCourierResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RegisterCourier400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response RegisterCourier400JSONResponse) VisitRegisterCourierResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -588,6 +651,9 @@ type StrictServerInterface interface {
 	// Create order quote
 	// (POST /orders/customer/create-quote)
 	CustomerCreateQuote(ctx context.Context, request CustomerCreateQuoteRequestObject) (CustomerCreateQuoteResponseObject, error)
+	// Register a new courier
+	// (POST /orders/register-courier)
+	RegisterCourier(ctx context.Context, request RegisterCourierRequestObject) (RegisterCourierResponseObject, error)
 	// Register a new customer
 	// (POST /orders/register-customer)
 	RegisterCustomer(ctx context.Context, request RegisterCustomerRequestObject) (RegisterCustomerResponseObject, error)
@@ -636,6 +702,35 @@ func (sh *strictHandler) CustomerCreateQuote(ctx echo.Context, params CustomerCr
 		return err
 	} else if validResponse, ok := response.(CustomerCreateQuoteResponseObject); ok {
 		return validResponse.VisitCustomerCreateQuoteResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// RegisterCourier operation middleware
+func (sh *strictHandler) RegisterCourier(ctx echo.Context) error {
+	var request RegisterCourierRequestObject
+
+	var body RegisterCourierJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RegisterCourier(ctx.Request().Context(), request.(RegisterCourierRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RegisterCourier")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(RegisterCourierResponseObject); ok {
+		return validResponse.VisitRegisterCourierResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}

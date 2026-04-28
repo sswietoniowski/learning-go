@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"eats/backend/common"
-	"eats/backend/common/shared"
 	"eats/backend/orders/adapters/db/dbmodels"
 	"eats/backend/orders/app"
 )
@@ -42,6 +41,7 @@ func appRestaurantFromDB(dbRestaurant dbmodels.OrdersRestaurant) app.Restaurant 
 	return app.Restaurant{
 		RestaurantUUID: dbRestaurant.RestaurantUuid,
 		Name:           dbRestaurant.Name,
+		Description:    dbRestaurant.Description,
 		Currency:       dbRestaurant.Currency,
 		Address:        dbRestaurant.Address,
 	}
@@ -54,8 +54,7 @@ func (r *OrdersRepo) CreateQuote(
 	updateFn func(
 		ctx context.Context,
 		menuItems map[app.RestaurantMenuItemUUID]app.MenuItem,
-		restaurantCurrency shared.Currency,
-		restaurantAddress shared.Address,
+		r app.Restaurant,
 	) (app.Quote, []app.QuoteMenuItem, error),
 ) (app.Quote, error) {
 	var quote app.Quote
@@ -79,7 +78,7 @@ func (r *OrdersRepo) CreateQuote(
 		}
 
 		var items []app.QuoteMenuItem
-		quote, items, err = updateFn(ctx, appMenuItems, restaurant.Currency, restaurant.Address)
+		quote, items, err = updateFn(ctx, appMenuItems, appRestaurantFromDB(restaurant))
 		if err != nil {
 			return fmt.Errorf("failed to create quote using updateFn: %w", err)
 		}

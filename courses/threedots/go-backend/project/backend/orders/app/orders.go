@@ -57,8 +57,7 @@ type OrderRepository interface {
 		updateFn func(
 			ctx context.Context,
 			menuItems map[RestaurantMenuItemUUID]MenuItem,
-			restaurantCurrency shared.Currency,
-			restaurantAddress shared.Address,
+			r Restaurant,
 		) (Quote, []QuoteMenuItem, error),
 	) (Quote, error)
 	GetRestaurant(ctx context.Context, restaurantUUID RestaurantUUID) (Restaurant, error)
@@ -151,8 +150,7 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 		func(
 			ctx context.Context,
 			menuItems map[RestaurantMenuItemUUID]MenuItem,
-			restaurantCurrency shared.Currency,
-			restaurantAddress shared.Address,
+			r Restaurant,
 		) (Quote, []QuoteMenuItem, error) {
 			// Re-validate inside the transaction for consistency: menu items or restaurant data
 			// may have changed between the pre-transaction reads and the commit.
@@ -160,14 +158,14 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 				return Quote{}, nil, err
 			}
 
-			if restaurantAddress.City != req.DeliveryAddress.City {
+			if r.Address.City != req.DeliveryAddress.City {
 				return Quote{}, nil, common.NewInvalidInputError(
 					"address-out-of-delivery-zone",
 					"restaurant does not deliver to the provided address",
 				).WithDetails([]common.ErrorDetails{{
 					EntityType: "quote",
 					ErrorSlug:  "address-out-of-delivery-zone",
-					Message:    fmt.Sprintf("restaurant delivers to %s only", restaurantAddress.City),
+					Message:    fmt.Sprintf("restaurant delivers to %s only", r.Address.City),
 				}})
 			}
 
@@ -204,7 +202,7 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 
 				TotalTax: totalAmount.Div(decimal.RequireFromString("1.23")).RoundBank(2),
 
-				Currency: restaurantCurrency,
+				Currency: r.Currency,
 			}, quoteItemPositions, nil
 		},
 	)

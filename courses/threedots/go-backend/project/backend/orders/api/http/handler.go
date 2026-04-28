@@ -185,6 +185,24 @@ func (h Handler) ListMenuItems(ctx context.Context, request ListMenuItemsRequest
 	return ListMenuItems200JSONResponse(items), nil
 }
 
+func (h Handler) RegisterCourier(ctx context.Context, request RegisterCourierRequestObject) (RegisterCourierResponseObject, error) {
+	courierUUID := CourierUUID{common.NewUUIDv7()}
+
+	err := h.service.RegisterCourier(ctx, app.Courier{
+		CourierUUID: courierUUID,
+		Name:        request.Body.Name,
+		PhoneNumber: request.Body.PhoneNumber,
+		City:        request.Body.City,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return RegisterCourier201JSONResponse{
+		CourierUuid: courierUUID,
+	}, nil
+}
+
 func Register(ctx context.Context, e EchoRouter, handler Handler) error {
 	RegisterHandlers(e, NewStrictHandler(handler, nil))
 

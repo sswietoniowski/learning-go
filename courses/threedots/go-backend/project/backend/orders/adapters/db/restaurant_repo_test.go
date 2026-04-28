@@ -364,8 +364,8 @@ func newTestCustomer(uuid app.CustomerUUID) app.Customer {
 	}
 }
 
-func newTestCourier() app.RegisterCourier {
-	return app.RegisterCourier{
+func newTestCourier() app.Courier {
+	return app.Courier{
 		Name:        gofakeit.Name(),
 		PhoneNumber: gofakeit.Phone(),
 	}

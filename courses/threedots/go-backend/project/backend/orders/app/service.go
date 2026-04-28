@@ -14,6 +14,7 @@ type Service struct {
 	restaurantRepository RestaurantRepository
 	customerRepository   CustomerRepository
 	orderRepository      OrderRepository
+	courierRepository    CourierRepository
 	modules              ModulesContract
 }
 
@@ -21,6 +22,7 @@ func NewService(
 	restaurantRepository RestaurantRepository,
 	customerRepository CustomerRepository,
 	orderRepository OrderRepository,
+	courierRepository CourierRepository,
 	modules ModulesContract,
 ) *Service {
 	if restaurantRepository == nil {
@@ -32,6 +34,9 @@ func NewService(
 	if orderRepository == nil {
 		panic("orderRepository cannot be nil")
 	}
+	if courierRepository == nil {
+		panic("courierRepository cannot be nil")
+	}
 	if modules == nil {
 		panic("modules cannot be nil")
 	}
@@ -40,6 +45,7 @@ func NewService(
 		restaurantRepository: restaurantRepository,
 		customerRepository:   customerRepository,
 		orderRepository:      orderRepository,
+		courierRepository:    courierRepository,
 		modules:              modules,
 	}
 }
