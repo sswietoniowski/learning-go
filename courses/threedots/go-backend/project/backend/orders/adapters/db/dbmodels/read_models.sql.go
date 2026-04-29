@@ -7,11 +7,245 @@ package dbmodels
 
 import (
 	"context"
+	"time"
 
 	"eats/backend/common/shared"
 	"eats/backend/orders/app"
 	"github.com/shopspring/decimal"
 )
+
+const listAssignedCourierOrders = `-- name: ListAssignedCourierOrders :many
+SELECT
+    o.order_uuid,
+    o.customer_uuid,
+    o.courier_uuid,
+    o.restaurant_uuid,
+    r.name AS restaurant_name,
+    o.delivery_address,
+    o.ordered_at,
+    o.restaurant_confirmed_at,
+    o.courier_accepted_at,
+    o.restaurant_prepared_at,
+    o.picked_up_at,
+    o.delivered_at,
+    o.items_subtotal_gross
+FROM orders.orders o
+JOIN orders.restaurants r ON o.restaurant_uuid = r.restaurant_uuid
+WHERE o.courier_uuid = $1
+ORDER BY o.ordered_at DESC
+`
+
+type ListAssignedCourierOrdersRow struct {
+	OrderUuid             app.OrderUUID
+	CustomerUuid          app.CustomerUUID
+	CourierUuid           *app.CourierUUID
+	RestaurantUuid        app.RestaurantUUID
+	RestaurantName        string
+	DeliveryAddress       shared.Address
+	OrderedAt             time.Time
+	RestaurantConfirmedAt *time.Time
+	CourierAcceptedAt     *time.Time
+	RestaurantPreparedAt  *time.Time
+	PickedUpAt            *time.Time
+	DeliveredAt           *time.Time
+	ItemsSubtotalGross    decimal.Decimal
+}
+
+func (q *Queries) ListAssignedCourierOrders(ctx context.Context, courierUuid *app.CourierUUID) ([]ListAssignedCourierOrdersRow, error) {
+	rows, err := q.db.Query(ctx, listAssignedCourierOrders, courierUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAssignedCourierOrdersRow{}
+	for rows.Next() {
+		var i ListAssignedCourierOrdersRow
+		if err := rows.Scan(
+			&i.OrderUuid,
+			&i.CustomerUuid,
+			&i.CourierUuid,
+			&i.RestaurantUuid,
+			&i.RestaurantName,
+			&i.DeliveryAddress,
+			&i.OrderedAt,
+			&i.RestaurantConfirmedAt,
+			&i.CourierAcceptedAt,
+			&i.RestaurantPreparedAt,
+			&i.PickedUpAt,
+			&i.DeliveredAt,
+			&i.ItemsSubtotalGross,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAvailableOrdersForCourier = `-- name: ListAvailableOrdersForCourier :many
+SELECT
+    o.order_uuid,
+    o.customer_uuid,
+    o.courier_uuid,
+    o.restaurant_uuid,
+    r.name AS restaurant_name,
+    o.delivery_address,
+    o.ordered_at,
+    o.restaurant_confirmed_at,
+    o.courier_accepted_at,
+    o.restaurant_prepared_at,
+    o.picked_up_at,
+    o.delivered_at,
+    o.items_subtotal_gross
+FROM orders.orders o
+JOIN orders.restaurants r ON o.restaurant_uuid = r.restaurant_uuid
+WHERE
+    o.restaurant_confirmed_at IS NOT NULL AND
+    o.courier_uuid IS NULL AND
+    o.delivered_at IS NULL AND
+    (o.delivery_address ->> 'city') = (
+        SELECT city
+        FROM orders.couriers
+        WHERE couriers.courier_uuid = $1
+    )
+ORDER BY o.ordered_at DESC
+`
+
+type ListAvailableOrdersForCourierRow struct {
+	OrderUuid             app.OrderUUID
+	CustomerUuid          app.CustomerUUID
+	CourierUuid           *app.CourierUUID
+	RestaurantUuid        app.RestaurantUUID
+	RestaurantName        string
+	DeliveryAddress       shared.Address
+	OrderedAt             time.Time
+	RestaurantConfirmedAt *time.Time
+	CourierAcceptedAt     *time.Time
+	RestaurantPreparedAt  *time.Time
+	PickedUpAt            *time.Time
+	DeliveredAt           *time.Time
+	ItemsSubtotalGross    decimal.Decimal
+}
+
+func (q *Queries) ListAvailableOrdersForCourier(ctx context.Context, courierUuid app.CourierUUID) ([]ListAvailableOrdersForCourierRow, error) {
+	rows, err := q.db.Query(ctx, listAvailableOrdersForCourier, courierUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAvailableOrdersForCourierRow{}
+	for rows.Next() {
+		var i ListAvailableOrdersForCourierRow
+		if err := rows.Scan(
+			&i.OrderUuid,
+			&i.CustomerUuid,
+			&i.CourierUuid,
+			&i.RestaurantUuid,
+			&i.RestaurantName,
+			&i.DeliveryAddress,
+			&i.OrderedAt,
+			&i.RestaurantConfirmedAt,
+			&i.CourierAcceptedAt,
+			&i.RestaurantPreparedAt,
+			&i.PickedUpAt,
+			&i.DeliveredAt,
+			&i.ItemsSubtotalGross,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCustomerOrders = `-- name: ListCustomerOrders :many
+SELECT
+    o.order_uuid,
+    o.restaurant_uuid,
+    r.name AS restaurant_name,
+    o.courier_uuid,
+    o.delivery_address,
+    o.ordered_at,
+    o.restaurant_confirmed_at,
+    o.courier_accepted_at,
+    o.restaurant_prepared_at,
+    o.picked_up_at,
+    o.delivered_at,
+    o.items_subtotal_gross,
+    o.service_fee_gross,
+    o.delivery_fee_gross,
+    o.total_amount_gross,
+    o.total_tax,
+    o.currency
+FROM orders.orders o
+JOIN orders.restaurants r ON o.restaurant_uuid = r.restaurant_uuid
+WHERE o.customer_uuid = $1
+ORDER BY o.ordered_at DESC
+`
+
+type ListCustomerOrdersRow struct {
+	OrderUuid             app.OrderUUID
+	RestaurantUuid        app.RestaurantUUID
+	RestaurantName        string
+	CourierUuid           *app.CourierUUID
+	DeliveryAddress       shared.Address
+	OrderedAt             time.Time
+	RestaurantConfirmedAt *time.Time
+	CourierAcceptedAt     *time.Time
+	RestaurantPreparedAt  *time.Time
+	PickedUpAt            *time.Time
+	DeliveredAt           *time.Time
+	ItemsSubtotalGross    decimal.Decimal
+	ServiceFeeGross       decimal.Decimal
+	DeliveryFeeGross      decimal.Decimal
+	TotalAmountGross      decimal.Decimal
+	TotalTax              decimal.Decimal
+	Currency              shared.Currency
+}
+
+func (q *Queries) ListCustomerOrders(ctx context.Context, customerUuid app.CustomerUUID) ([]ListCustomerOrdersRow, error) {
+	rows, err := q.db.Query(ctx, listCustomerOrders, customerUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCustomerOrdersRow{}
+	for rows.Next() {
+		var i ListCustomerOrdersRow
+		if err := rows.Scan(
+			&i.OrderUuid,
+			&i.RestaurantUuid,
+			&i.RestaurantName,
+			&i.CourierUuid,
+			&i.DeliveryAddress,
+			&i.OrderedAt,
+			&i.RestaurantConfirmedAt,
+			&i.CourierAcceptedAt,
+			&i.RestaurantPreparedAt,
+			&i.PickedUpAt,
+			&i.DeliveredAt,
+			&i.ItemsSubtotalGross,
+			&i.ServiceFeeGross,
+			&i.DeliveryFeeGross,
+			&i.TotalAmountGross,
+			&i.TotalTax,
+			&i.Currency,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const listMenuItems = `-- name: ListMenuItems :many
 SELECT
@@ -87,6 +321,67 @@ func (q *Queries) ListMenuItems(ctx context.Context, arg ListMenuItemsParams) ([
 			&i.RestaurantUuid,
 			&i.RestaurantName,
 			&i.Relevance,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRestaurantOrders = `-- name: ListRestaurantOrders :many
+SELECT
+    o.order_uuid,
+    o.customer_uuid,
+    o.courier_uuid,
+    o.ordered_at,
+    o.restaurant_confirmed_at,
+    o.courier_accepted_at,
+    o.restaurant_prepared_at,
+    o.picked_up_at,
+    o.delivered_at,
+    o.items_subtotal_gross
+FROM orders.orders o
+WHERE o.restaurant_uuid = $1
+ORDER BY o.ordered_at DESC
+`
+
+type ListRestaurantOrdersRow struct {
+	OrderUuid             app.OrderUUID
+	CustomerUuid          app.CustomerUUID
+	CourierUuid           *app.CourierUUID
+	OrderedAt             time.Time
+	RestaurantConfirmedAt *time.Time
+	CourierAcceptedAt     *time.Time
+	RestaurantPreparedAt  *time.Time
+	PickedUpAt            *time.Time
+	DeliveredAt           *time.Time
+	ItemsSubtotalGross    decimal.Decimal
+}
+
+func (q *Queries) ListRestaurantOrders(ctx context.Context, restaurantUuid app.RestaurantUUID) ([]ListRestaurantOrdersRow, error) {
+	rows, err := q.db.Query(ctx, listRestaurantOrders, restaurantUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListRestaurantOrdersRow{}
+	for rows.Next() {
+		var i ListRestaurantOrdersRow
+		if err := rows.Scan(
+			&i.OrderUuid,
+			&i.CustomerUuid,
+			&i.CourierUuid,
+			&i.OrderedAt,
+			&i.RestaurantConfirmedAt,
+			&i.CourierAcceptedAt,
+			&i.RestaurantPreparedAt,
+			&i.PickedUpAt,
+			&i.DeliveredAt,
+			&i.ItemsSubtotalGross,
 		); err != nil {
 			return nil, err
 		}

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"eats/backend/common"
-	"eats/backend/common/shared"
 	"eats/backend/orders/adapters/db/dbmodels"
 	"eats/backend/orders/app"
 )
@@ -42,6 +42,7 @@ func appRestaurantFromDB(dbRestaurant dbmodels.OrdersRestaurant) app.Restaurant 
 	return app.Restaurant{
 		RestaurantUUID: dbRestaurant.RestaurantUuid,
 		Name:           dbRestaurant.Name,
+		Description:    dbRestaurant.Description,
 		Currency:       dbRestaurant.Currency,
 		Address:        dbRestaurant.Address,
 	}
@@ -54,8 +55,7 @@ func (r *OrdersRepo) CreateQuote(
 	updateFn func(
 		ctx context.Context,
 		menuItems map[app.RestaurantMenuItemUUID]app.MenuItem,
-		restaurantCurrency shared.Currency,
-		restaurantAddress shared.Address,
+		r app.Restaurant,
 	) (app.Quote, []app.QuoteMenuItem, error),
 ) (app.Quote, error) {
 	var quote app.Quote
@@ -79,7 +79,7 @@ func (r *OrdersRepo) CreateQuote(
 		}
 
 		var items []app.QuoteMenuItem
-		quote, items, err = updateFn(ctx, appMenuItems, restaurant.Currency, restaurant.Address)
+		quote, items, err = updateFn(ctx, appMenuItems, appRestaurantFromDB(restaurant))
 		if err != nil {
 			return fmt.Errorf("failed to create quote using updateFn: %w", err)
 		}
@@ -156,4 +156,155 @@ func appMenuItemsFromDbMenuItems(dbMenuItems []dbmodels.OrdersRestaurantMenuItem
 	}
 
 	return appMenuItems
+}
+
+func (r *OrdersRepo) GetQuote(ctx context.Context, quoteUUID app.QuoteUUID) (app.Quote, error) {
+	queries := dbmodels.New(r.db)
+	dbQuote, err := queries.GetQuote(ctx, quoteUUID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return app.Quote{}, common.NewNotFoundError("quote-not-found", "quote not found")
+		}
+		return app.Quote{}, fmt.Errorf("failed to get quote %s: %w", quoteUUID, err)
+	}
+	return app.Quote{
+		QuoteUUID:          dbQuote.QuoteUuid,
+		CustomerUUID:       dbQuote.CustomerUuid,
+		RestaurantUUID:     dbQuote.RestaurantUuid,
+		DeliveryAddress:    dbQuote.DeliveryAddress,
+		ItemsSubtotalGross: dbQuote.ItemsSubtotalGross,
+		ServiceFeeGross:    dbQuote.ServiceFeeGross,
+		DeliveryFeeGross:   dbQuote.DeliveryFeeGross,
+		TotalAmountGross:   dbQuote.TotalAmountGross,
+		TotalTax:           dbQuote.TotalTax,
+		Currency:           dbQuote.Currency,
+		CreatedAt:          dbQuote.CreatedAt,
+	}, nil
+}
+
+func (r *OrdersRepo) GetMenuItemsForQuote(ctx context.Context, quoteUUID app.QuoteUUID, restaurantUUID app.RestaurantUUID) (map[app.RestaurantMenuItemUUID]app.MenuItem, error) {
+	queries := dbmodels.New(r.db)
+
+	quoteItems, err := queries.GetQuoteItems(ctx, quoteUUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get quote items for %s: %w", quoteUUID, err)
+	}
+
+	menuItemUUIDs := make([]common.UUID, 0, len(quoteItems))
+	for _, item := range quoteItems {
+		menuItemUUIDs = append(menuItemUUIDs, item.MenuItemUuid.UUID)
+	}
+
+	return r.getMenuItems(ctx, queries, restaurantUUID, menuItemUUIDs)
+}
+
+func dbOrderToAppOrder(dbOrder dbmodels.OrdersOrder) app.Order {
+	return app.Order{
+		OrderUUID:             dbOrder.OrderUuid,
+		QuoteUUID:             dbOrder.QuoteUuid,
+		CustomerUUID:          dbOrder.CustomerUuid,
+		RestaurantUUID:        dbOrder.RestaurantUuid,
+		RestaurantName:        "",
+		CourierUUID:           dbOrder.CourierUuid,
+		DeliveryAddress:       dbOrder.DeliveryAddress,
+		OrderedAt:             dbOrder.OrderedAt,
+		RestaurantConfirmedAt: dbOrder.RestaurantConfirmedAt,
+		CourierAcceptedAt:     dbOrder.CourierAcceptedAt,
+		RestaurantPreparedAt:  dbOrder.RestaurantPreparedAt,
+		PickedUpAt:            dbOrder.PickedUpAt,
+		DeliveredAt:           dbOrder.DeliveredAt,
+		ItemsSubtotalGross:    dbOrder.ItemsSubtotalGross,
+		ServiceFeeGross:       dbOrder.ServiceFeeGross,
+		DeliveryFeeGross:      dbOrder.DeliveryFeeGross,
+		TotalAmountGross:      dbOrder.TotalAmountGross,
+		TotalTax:              dbOrder.TotalTax,
+		Currency:              dbOrder.Currency,
+	}
+}
+
+func (r *OrdersRepo) QuoteWithMenuItems(ctx context.Context, quoteUUID app.QuoteUUID) (app.Quote, map[app.RestaurantMenuItemUUID]app.MenuItem, error) {
+	quote, err := r.GetQuote(ctx, quoteUUID)
+	if err != nil {
+		return app.Quote{}, nil, err
+	}
+
+	menuItems, err := r.GetMenuItemsForQuote(ctx, quoteUUID, quote.RestaurantUUID)
+	if err != nil {
+		return app.Quote{}, nil, err
+	}
+
+	return quote, menuItems, nil
+}
+
+func (r *OrdersRepo) OrderByID(ctx context.Context, orderUUID app.OrderUUID) (app.Order, error) {
+	queries := dbmodels.New(r.db)
+	dbOrder, err := queries.GetOrder(ctx, orderUUID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return app.Order{}, common.NewNotFoundError("order_not_found", "order not found")
+		}
+		return app.Order{}, fmt.Errorf("failed to get order %s: %w", orderUUID, err)
+	}
+	return dbOrderToAppOrder(dbOrder), nil
+}
+
+func (r *OrdersRepo) UpdateOrder(
+	ctx context.Context,
+	orderUUID app.OrderUUID,
+	updateFn func(ctx context.Context, order app.Order) (app.Order, error),
+) error {
+	return common.UpdateInTx(ctx, r.db, func(ctx context.Context, tx pgx.Tx) error {
+		queries := dbmodels.New(tx)
+
+		dbOrder, err := queries.GetOrder(ctx, orderUUID)
+		if err != nil {
+			return fmt.Errorf("failed to get order: %w", err)
+		}
+
+		updatedOrder, err := updateFn(ctx, dbOrderToAppOrder(dbOrder))
+		if err != nil {
+			return fmt.Errorf("failed to update order: %w", err)
+		}
+
+		return queries.UpdateOrder(ctx, dbmodels.UpdateOrderParams{
+			orderUUID,
+			updatedOrder.CourierUUID,
+			&updatedOrder.OrderedAt,
+			updatedOrder.RestaurantConfirmedAt,
+			updatedOrder.CourierAcceptedAt,
+			updatedOrder.RestaurantPreparedAt,
+			updatedOrder.PickedUpAt,
+			updatedOrder.DeliveredAt,
+		})
+	})
+}
+
+func (r *OrdersRepo) SaveOrder(ctx context.Context, order app.Order) error {
+	return r.PlaceOrder(ctx, order)
+}
+
+func (r *OrdersRepo) PlaceOrder(ctx context.Context, order app.Order) error {
+	return common.UpdateInTx(ctx, r.db, func(ctx context.Context, tx pgx.Tx) error {
+		queries := dbmodels.New(tx)
+
+		err := queries.PlaceOrder(ctx, dbmodels.PlaceOrderParams{
+			order.OrderUUID,
+			order.QuoteUUID,
+			order.CustomerUUID,
+			order.RestaurantUUID,
+			order.DeliveryAddress,
+			order.OrderedAt,
+				order.ItemsSubtotalGross,
+			order.ServiceFeeGross,
+			order.DeliveryFeeGross,
+			order.TotalAmountGross,
+			order.TotalTax,
+			order.Currency,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to place order %s: %w", order.OrderUUID, err)
+		}
+
+		return nil
+	})
 }

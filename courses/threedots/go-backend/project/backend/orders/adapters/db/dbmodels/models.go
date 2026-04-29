@@ -13,12 +13,40 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type OrdersCourier struct {
+	CourierUuid app.CourierUUID
+	Name        string
+	PhoneNumber string
+	City        string
+}
+
 type OrdersCustomer struct {
 	CustomerUuid app.CustomerUUID
 	Name         string
 	Email        string
 	Address      shared.Address
 	PhoneNumber  string
+}
+
+type OrdersOrder struct {
+	OrderUuid             app.OrderUUID
+	QuoteUuid             app.QuoteUUID
+	CustomerUuid          app.CustomerUUID
+	RestaurantUuid        app.RestaurantUUID
+	CourierUuid           *app.CourierUUID
+	DeliveryAddress       shared.Address
+	OrderedAt             time.Time
+	RestaurantConfirmedAt *time.Time
+	CourierAcceptedAt     *time.Time
+	RestaurantPreparedAt  *time.Time
+	PickedUpAt            *time.Time
+	DeliveredAt           *time.Time
+	ItemsSubtotalGross    decimal.Decimal
+	ServiceFeeGross       decimal.Decimal
+	DeliveryFeeGross      decimal.Decimal
+	TotalAmountGross      decimal.Decimal
+	TotalTax              decimal.Decimal
+	Currency              shared.Currency
 }
 
 type OrdersQuote struct {

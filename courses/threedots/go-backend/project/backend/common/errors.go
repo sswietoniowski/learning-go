@@ -79,6 +79,22 @@ func NewUnauthorizedError(slug, publicErrorFormat string, a ...any) Error {
 	}
 }
 
+func NewForbiddenError(slug, publicErrorFormat string, a ...any) Error {
+	return Error{
+		HttpErrorCode: http.StatusForbidden,
+		PublicError:   fmt.Sprintf(publicErrorFormat, a...),
+		ErrorSlug:     slug,
+	}
+}
+
+func NewConflictError(slug, publicErrorFormat string, a ...any) Error {
+	return Error{
+		HttpErrorCode: http.StatusConflict,
+		PublicError:   fmt.Sprintf(publicErrorFormat, a...),
+		ErrorSlug:     slug,
+	}
+}
+
 func NewExpiredError(slug, publicErrorFormat string, a ...any) Error {
 	return Error{
 		HttpErrorCode: http.StatusGone,

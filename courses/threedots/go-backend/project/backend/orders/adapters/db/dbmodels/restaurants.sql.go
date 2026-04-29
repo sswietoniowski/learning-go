@@ -135,6 +135,38 @@ func (q *Queries) GetRestaurantMenu(ctx context.Context, restaurantUuid app.Rest
 	return items, nil
 }
 
+const listRestaurants = `-- name: ListRestaurants :many
+SELECT restaurant_uuid, name, description, address, currency
+FROM orders.restaurants
+ORDER BY name ASC
+`
+
+func (q *Queries) ListRestaurants(ctx context.Context) ([]OrdersRestaurant, error) {
+	rows, err := q.db.Query(ctx, listRestaurants)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OrdersRestaurant{}
+	for rows.Next() {
+		var i OrdersRestaurant
+		if err := rows.Scan(
+			&i.RestaurantUuid,
+			&i.Name,
+			&i.Description,
+			&i.Address,
+			&i.Currency,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertRestaurant = `-- name: UpsertRestaurant :one
 INSERT INTO orders.restaurants (restaurant_uuid, name, description, address, currency)
 VALUES

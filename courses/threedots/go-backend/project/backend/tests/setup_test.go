@@ -1,3 +1,5 @@
+// This file contains tests that are executed to verify your solution.
+// It's read-only, so all modifications will be ignored.
 package tests_test
 
 import (
@@ -8,16 +10,18 @@ import (
 	"testing"
 	"time"
 
+	commonclients "github.com/ThreeDotsLabs/the-domain-engineer/clients"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"eats/backend"
+	eats "eats/backend"
 	commonHTTP "eats/backend/common/http"
 	"eats/backend/common/log"
 	ordersclient "eats/backend/orders/api/http/client"
 )
 
 type testClients struct {
-	Orders *ordersclient.ClientWithResponses
+	Orders        *ordersclient.ClientWithResponses
+	CommonClients *commonclients.Clients
 }
 
 func newTestClients(t *testing.T) testClients {
@@ -45,8 +49,14 @@ func newTestClients(t *testing.T) testClients {
 		t.Fatalf("creating orders client: %v", err)
 	}
 
+	commonAPIClients, err := commonclients.NewClients(os.Getenv("GATEWAY_ADDR"), editorFn)
+	if err != nil {
+		t.Fatalf("creating common clients: %v", err)
+	}
+
 	return testClients{
-		Orders: orders,
+		Orders:        orders,
+		CommonClients: commonAPIClients,
 	}
 }
 
@@ -66,9 +76,10 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	svc, err := backend.New(
+	svc, err := eats.New(
 		ctx,
 		dbPgx,
+		os.Getenv("GATEWAY_ADDR"),
 	)
 	if err != nil {
 		panic(err)
