@@ -2,7 +2,10 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"strings"
+	"time"
 
 	"eats/backend/common"
 )
@@ -19,7 +22,8 @@ type Courier struct {
 }
 
 type CourierRepository interface {
-	RegisterCourier(ctx context.Context, courier Courier) error
+	RegisterCourier(ctx context.Context, courierOrUUID any, maybeCourier ...Courier) error
+	GetCourierCity(ctx context.Context, courierUUID CourierUUID) (string, error)
 }
 
 func (s *Service) RegisterCourier(ctx context.Context, courier Courier) error {
@@ -69,4 +73,67 @@ func (s *Service) RegisterCourier(ctx context.Context, courier Courier) error {
 	}
 
 	return s.courierRepository.RegisterCourier(ctx, courier)
+}
+
+func (s *Service) AcceptDelivery(ctx context.Context, courierUUID CourierUUID, orderUUID OrderUUID) error {
+	city, err := s.courierRepository.GetCourierCity(ctx, courierUUID)
+	if err != nil {
+		return err
+	}
+
+	return s.orderRepository.UpdateOrder(ctx, orderUUID, func(ctx context.Context, order Order) (Order, error) {
+		if order.CourierAcceptedAt != nil {
+			return Order{}, common.NewConflictError("already-accepted", "order already accepted by a courier")
+		}
+		if order.DeliveryAddress.City != city {
+			return Order{}, common.NewInvalidInputError(
+				"courier-out-of-delivery-zone",
+				"courier cannot accept orders outside their delivery zone",
+			).WithDetails([]common.ErrorDetails{{
+				EntityType: "order",
+				ErrorSlug:  "courier-out-of-delivery-zone",
+				Message:    fmt.Sprintf("courier operates in %s only", city),
+			}})
+		}
+		now := time.Now()
+		order.CourierUUID = &courierUUID
+		order.CourierAcceptedAt = &now
+		return order, nil
+	})
+}
+
+func (s *Service) ReportPickup(ctx context.Context, courierUUID CourierUUID, orderUUID OrderUUID) error {
+	return s.orderRepository.UpdateOrder(ctx, orderUUID, func(ctx context.Context, order Order) (Order, error) {
+		if order.CourierUUID == nil {
+			return Order{}, common.NewConflictError("no-courier-assigned", "no courier is assigned to this order")
+		}
+		if *order.CourierUUID != courierUUID {
+			return Order{}, common.NewForbiddenError("wrong-courier", "courier is not assigned to this order")
+		}
+		if order.PickedUpAt != nil {
+			slog.WarnContext(ctx, "order already picked up", "order_uuid", orderUUID)
+			return order, nil
+		}
+		now := time.Now()
+		order.PickedUpAt = &now
+		return order, nil
+	})
+}
+
+func (s *Service) ReportDelivery(ctx context.Context, courierUUID CourierUUID, orderUUID OrderUUID) error {
+	return s.orderRepository.UpdateOrder(ctx, orderUUID, func(ctx context.Context, order Order) (Order, error) {
+		if order.CourierUUID == nil {
+			return Order{}, common.NewConflictError("no-courier-assigned", "no courier is assigned to this order")
+		}
+		if *order.CourierUUID != courierUUID {
+			return Order{}, common.NewForbiddenError("wrong-courier", "courier is not assigned to this order")
+		}
+		if order.DeliveredAt != nil {
+			slog.WarnContext(ctx, "order already delivered", "order_uuid", orderUUID)
+			return order, nil
+		}
+		now := time.Now()
+		order.DeliveredAt = &now
+		return order, nil
+	})
 }

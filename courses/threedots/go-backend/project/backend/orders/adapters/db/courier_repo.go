@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"eats/backend/common"
 	"eats/backend/orders/adapters/db/dbmodels"
@@ -25,7 +26,12 @@ func NewCourierRepository(db *pgxpool.Pool) *CourierRepository {
 	}
 }
 
-func (r *CourierRepository) RegisterCourier(ctx context.Context, courier app.Courier) error {
+func (r *CourierRepository) RegisterCourier(ctx context.Context, courierOrUUID any, maybeCourier ...app.Courier) error {
+	courier, err := normalizeCourierRegistrationInput(courierOrUUID, maybeCourier...)
+	if err != nil {
+		return err
+	}
+
 	return common.UpdateInTx(ctx, r.db, func(ctx context.Context, tx pgx.Tx) error {
 		queries := dbmodels.New(tx)
 
@@ -41,4 +47,28 @@ func (r *CourierRepository) RegisterCourier(ctx context.Context, courier app.Cou
 
 		return nil
 	})
+}
+
+func normalizeCourierRegistrationInput(courierOrUUID any, maybeCourier ...app.Courier) (app.Courier, error) {
+	switch value := courierOrUUID.(type) {
+	case app.Courier:
+		if len(maybeCourier) != 0 {
+			return app.Courier{}, fmt.Errorf("unexpected extra courier arguments: %d", len(maybeCourier))
+		}
+		return value, nil
+	case app.CourierUUID:
+		if len(maybeCourier) != 1 {
+			return app.Courier{}, fmt.Errorf("expected courier payload alongside courier UUID")
+		}
+		courier := maybeCourier[0]
+		courier.CourierUUID = value
+		return courier, nil
+	default:
+		return app.Courier{}, fmt.Errorf("unsupported courier registration input type %T", courierOrUUID)
+	}
+}
+
+func (r *CourierRepository) GetCourierCity(ctx context.Context, courierUUID app.CourierUUID) (string, error) {
+	queries := dbmodels.New(r.db)
+	return queries.GetCourierCity(ctx, courierUUID)
 }

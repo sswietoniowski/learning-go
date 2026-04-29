@@ -28,6 +28,27 @@ type OrdersCustomer struct {
 	PhoneNumber  string
 }
 
+type OrdersOrder struct {
+	OrderUuid             app.OrderUUID
+	QuoteUuid             app.QuoteUUID
+	CustomerUuid          app.CustomerUUID
+	RestaurantUuid        app.RestaurantUUID
+	CourierUuid           *app.CourierUUID
+	DeliveryAddress       shared.Address
+	OrderedAt             time.Time
+	RestaurantConfirmedAt *time.Time
+	CourierAcceptedAt     *time.Time
+	RestaurantPreparedAt  *time.Time
+	PickedUpAt            *time.Time
+	DeliveredAt           *time.Time
+	ItemsSubtotalGross    decimal.Decimal
+	ServiceFeeGross       decimal.Decimal
+	DeliveryFeeGross      decimal.Decimal
+	TotalAmountGross      decimal.Decimal
+	TotalTax              decimal.Decimal
+	Currency              shared.Currency
+}
+
 type OrdersQuote struct {
 	QuoteUuid          app.QuoteUUID
 	CustomerUuid       app.CustomerUUID

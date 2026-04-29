@@ -4,6 +4,7 @@ go 1.25
 
 require (
 	github.com/ThreeDotsLabs/humanslog v0.1.0
+	github.com/ThreeDotsLabs/the-domain-engineer v0.0.2
 	github.com/brianvoe/gofakeit/v7 v7.14.0
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/golang-migrate/migrate/v4 v4.19.1
@@ -16,6 +17,7 @@ require (
 	github.com/oapi-codegen/runtime v1.2.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.11.1
+	golang.org/x/text v0.32.0
 )
 
 require (
@@ -84,7 +86,6 @@ require (
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.39.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c // indirect

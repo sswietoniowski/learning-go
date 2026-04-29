@@ -32,6 +32,18 @@ const (
 	Relevance ListMenuItemsParamsOrderBy = "relevance"
 )
 
+// AcceptDelivery defines model for AcceptDelivery.
+type AcceptDelivery struct {
+	// OrderUuid UUID of an order
+	OrderUuid OrderUUID `json:"order_uuid"`
+}
+
+// AcceptOrder defines model for AcceptOrder.
+type AcceptOrder struct {
+	// OrderUuid UUID of an order
+	OrderUuid OrderUUID `json:"order_uuid"`
+}
+
 // Address defines model for Address.
 type Address struct {
 	// City City of the address
@@ -52,6 +64,42 @@ type Address struct {
 
 // CountryCode Country code in ISO 3166-1 alpha-2 format
 type CountryCode = shared.CountryCode
+
+// CourierOrder defines model for CourierOrder.
+type CourierOrder struct {
+	// AcceptedByCourierAt When the courier accepted the order
+	AcceptedByCourierAt *time.Time   `json:"accepted_by_courier_at"`
+	CourierUuid         *CourierUUID `json:"courier_uuid"`
+
+	// CustomerUuid UUID of a customer
+	CustomerUuid CustomerUUID `json:"customer_uuid"`
+
+	// DeliveredAt When the order was delivered
+	DeliveredAt        *time.Time `json:"delivered_at"`
+	DeliveryAddress    Address    `json:"delivery_address"`
+	ItemsSubtotalGross Decimal    `json:"items_subtotal_gross"`
+
+	// OrderUuid UUID of an order
+	OrderUuid OrderUUID `json:"order_uuid"`
+
+	// OrderedAt When the order was placed
+	OrderedAt time.Time `json:"ordered_at"`
+
+	// PickedUpAt When the order was picked up
+	PickedUpAt *time.Time `json:"picked_up_at"`
+
+	// RestaurantConfirmedAt When the restaurant confirmed the order
+	RestaurantConfirmedAt *time.Time `json:"restaurant_confirmed_at"`
+
+	// RestaurantName Name of the restaurant
+	RestaurantName string `json:"restaurant_name"`
+
+	// RestaurantPreparedAt When the order was marked ready for pickup
+	RestaurantPreparedAt *time.Time `json:"restaurant_prepared_at"`
+
+	// RestaurantUuid UUID of a restaurant
+	RestaurantUuid RestaurantUUID `json:"restaurant_uuid"`
+}
 
 // CourierUUID UUID of a courier
 type CourierUUID = app.CourierUUID
@@ -85,6 +133,37 @@ type CreateQuoteResponse struct {
 // Currency Currency code in ISO 4217 format
 type Currency = shared.Currency
 
+// CustomerOrder defines model for CustomerOrder.
+type CustomerOrder struct {
+	CourierAcceptedAt *time.Time `json:"courier_accepted_at,omitempty"`
+
+	// CourierUuid UUID of a courier
+	CourierUuid *CourierUUID `json:"courier_uuid,omitempty"`
+
+	// Currency Currency code in ISO 4217 format
+	Currency           Currency   `json:"currency"`
+	DeliveredAt        *time.Time `json:"delivered_at,omitempty"`
+	DeliveryAddress    Address    `json:"delivery_address"`
+	DeliveryFeeGross   Decimal    `json:"delivery_fee_gross"`
+	ItemsSubtotalGross Decimal    `json:"items_subtotal_gross"`
+
+	// OrderUuid UUID of an order
+	OrderUuid OrderUUID `json:"order_uuid"`
+
+	// OrderedAt When the order was placed
+	OrderedAt             time.Time  `json:"ordered_at"`
+	PickedUpAt            *time.Time `json:"picked_up_at,omitempty"`
+	RestaurantConfirmedAt *time.Time `json:"restaurant_confirmed_at,omitempty"`
+	RestaurantName        string     `json:"restaurant_name"`
+	RestaurantPreparedAt  *time.Time `json:"restaurant_prepared_at,omitempty"`
+
+	// RestaurantUuid UUID of a restaurant
+	RestaurantUuid  RestaurantUUID `json:"restaurant_uuid"`
+	ServiceFeeGross Decimal        `json:"service_fee_gross"`
+	TotalGross      Decimal        `json:"total_gross"`
+	TotalTax        Decimal        `json:"total_tax"`
+}
+
 // CustomerUUID UUID of a customer
 type CustomerUUID = app.CustomerUUID
 
@@ -109,6 +188,12 @@ type ErrorResponse struct {
 
 	// Slug Error slug
 	Slug string `json:"slug"`
+}
+
+// MarkOrderReady defines model for MarkOrderReady.
+type MarkOrderReady struct {
+	// OrderUuid UUID of an order
+	OrderUuid OrderUUID `json:"order_uuid"`
 }
 
 // MenuItem defines model for MenuItem.
@@ -176,6 +261,17 @@ type OrderItem struct {
 	Quantity int `json:"quantity"`
 }
 
+// OrderUUID UUID of an order
+type OrderUUID = app.OrderUUID
+
+// PlaceOrder defines model for PlaceOrder.
+type PlaceOrder struct {
+	PaymentNonce string `json:"payment_nonce"`
+
+	// QuoteUuid UUID of an quote
+	QuoteUuid QuoteUUID `json:"quote_uuid"`
+}
+
 // QuoteUUID UUID of an quote
 type QuoteUUID = app.QuoteUUID
 
@@ -217,11 +313,69 @@ type RegisterCustomerResponse struct {
 	CustomerUuid CustomerUUID `json:"customer_uuid"`
 }
 
+// ReportDelivery defines model for ReportDelivery.
+type ReportDelivery struct {
+	// OrderUuid UUID of an order
+	OrderUuid OrderUUID `json:"order_uuid"`
+}
+
+// ReportPickup defines model for ReportPickup.
+type ReportPickup struct {
+	// OrderUuid UUID of an order
+	OrderUuid OrderUUID `json:"order_uuid"`
+}
+
+// Restaurant defines model for Restaurant.
+type Restaurant struct {
+	Address Address `json:"address"`
+
+	// Description Restaurant description
+	Description string `json:"description"`
+
+	// Name Restaurant name
+	Name string `json:"name"`
+
+	// Uuid UUID of a restaurant
+	Uuid RestaurantUUID `json:"uuid"`
+}
+
+// RestaurantOrder defines model for RestaurantOrder.
+type RestaurantOrder struct {
+	// CourierAcceptedAt When the courier accepted the order
+	CourierAcceptedAt *time.Time   `json:"courier_accepted_at"`
+	CourierUuid       *CourierUUID `json:"courier_uuid"`
+
+	// CustomerUuid UUID of a customer
+	CustomerUuid CustomerUUID `json:"customer_uuid"`
+
+	// DeliveredAt When the order was delivered
+	DeliveredAt        *time.Time `json:"delivered_at"`
+	ItemsSubtotalGross Decimal    `json:"items_subtotal_gross"`
+
+	// OrderUuid UUID of an order
+	OrderUuid OrderUUID `json:"order_uuid"`
+
+	// OrderedAt When the order was placed
+	OrderedAt time.Time `json:"ordered_at"`
+
+	// PickedUpAt When the order was picked up
+	PickedUpAt *time.Time `json:"picked_up_at"`
+
+	// RestaurantConfirmedAt When the restaurant confirmed the order
+	RestaurantConfirmedAt *time.Time `json:"restaurant_confirmed_at"`
+
+	// RestaurantPreparedAt When the order was marked ready for pickup
+	RestaurantPreparedAt *time.Time `json:"restaurant_prepared_at"`
+}
+
 // RestaurantUUID UUID of a restaurant
 type RestaurantUUID = app.RestaurantUUID
 
 // BadRequest defines model for BadRequest.
 type BadRequest = ErrorResponse
+
+// Conflict defines model for Conflict.
+type Conflict = ErrorResponse
 
 // Forbidden defines model for Forbidden.
 type Forbidden = ErrorResponse
@@ -235,15 +389,87 @@ type NotFound = ErrorResponse
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = ErrorResponse
 
+// CourierAcceptDeliveryParams defines parameters for CourierAcceptDelivery.
+type CourierAcceptDeliveryParams struct {
+	// CourierUUID Courier UUID
+	CourierUUID CourierUUID `json:"Courier-UUID"`
+}
+
+// CourierGetAvailableOrdersParams defines parameters for CourierGetAvailableOrders.
+type CourierGetAvailableOrdersParams struct {
+	// CourierUUID Courier UUID
+	CourierUUID CourierUUID `json:"Courier-UUID"`
+}
+
+// CourierGetCurrentOrdersParams defines parameters for CourierGetCurrentOrders.
+type CourierGetCurrentOrdersParams struct {
+	// CourierUUID Courier UUID
+	CourierUUID CourierUUID `json:"Courier-UUID"`
+}
+
+// CourierReportDeliveryParams defines parameters for CourierReportDelivery.
+type CourierReportDeliveryParams struct {
+	// CourierUUID Courier UUID
+	CourierUUID CourierUUID `json:"Courier-UUID"`
+}
+
+// CourierReportPickupParams defines parameters for CourierReportPickup.
+type CourierReportPickupParams struct {
+	// CourierUUID Courier UUID
+	CourierUUID CourierUUID `json:"Courier-UUID"`
+}
+
 // CustomerCreateQuoteParams defines parameters for CustomerCreateQuote.
 type CustomerCreateQuoteParams struct {
 	// CustomerUUID Customer UUID
 	CustomerUUID CustomerUUID `json:"Customer-UUID"`
 }
 
+// CustomerGetOrdersParams defines parameters for CustomerGetOrders.
+type CustomerGetOrdersParams struct {
+	// CustomerUUID Customer UUID
+	CustomerUUID CustomerUUID `json:"Customer-UUID"`
+}
+
+// CustomerPlaceOrderParams defines parameters for CustomerPlaceOrder.
+type CustomerPlaceOrderParams struct {
+	// CustomerUUID Customer UUID
+	CustomerUUID CustomerUUID `json:"Customer-UUID"`
+}
+
+// CustomerListRestaurantsParams defines parameters for CustomerListRestaurants.
+type CustomerListRestaurantsParams struct {
+	// CustomerUUID Customer UUID
+	CustomerUUID CustomerUUID `json:"Customer-UUID"`
+}
+
+// CustomerGetRestaurantMenuParams defines parameters for CustomerGetRestaurantMenu.
+type CustomerGetRestaurantMenuParams struct {
+	// CustomerUUID Customer UUID
+	CustomerUUID CustomerUUID `json:"Customer-UUID"`
+}
+
+// RestaurantAcceptOrderParams defines parameters for RestaurantAcceptOrder.
+type RestaurantAcceptOrderParams struct {
+	// RestaurantUUID Restaurant UUID
+	RestaurantUUID RestaurantUUID `json:"Restaurant-UUID"`
+}
+
+// RestaurantMarkOrderReadyForPickupParams defines parameters for RestaurantMarkOrderReadyForPickup.
+type RestaurantMarkOrderReadyForPickupParams struct {
+	// RestaurantUUID Restaurant UUID
+	RestaurantUUID RestaurantUUID `json:"Restaurant-UUID"`
+}
+
 // OnboardRestaurantParams defines parameters for OnboardRestaurant.
 type OnboardRestaurantParams struct {
 	OperatorUUID OperatorUUID `json:"Operator-UUID"`
+}
+
+// RestaurantGetOrdersParams defines parameters for RestaurantGetOrders.
+type RestaurantGetOrdersParams struct {
+	// RestaurantUUID Restaurant UUID
+	RestaurantUUID RestaurantUUID `json:"Restaurant-UUID"`
 }
 
 // ListMenuItemsParams defines parameters for ListMenuItems.
@@ -261,14 +487,32 @@ type ListMenuItemsParams struct {
 // ListMenuItemsParamsOrderBy defines parameters for ListMenuItems.
 type ListMenuItemsParamsOrderBy string
 
+// CourierAcceptDeliveryJSONRequestBody defines body for CourierAcceptDelivery for application/json ContentType.
+type CourierAcceptDeliveryJSONRequestBody = AcceptDelivery
+
+// CourierReportDeliveryJSONRequestBody defines body for CourierReportDelivery for application/json ContentType.
+type CourierReportDeliveryJSONRequestBody = ReportDelivery
+
+// CourierReportPickupJSONRequestBody defines body for CourierReportPickup for application/json ContentType.
+type CourierReportPickupJSONRequestBody = ReportPickup
+
 // CustomerCreateQuoteJSONRequestBody defines body for CustomerCreateQuote for application/json ContentType.
 type CustomerCreateQuoteJSONRequestBody = CreateQuoteRequest
+
+// CustomerPlaceOrderJSONRequestBody defines body for CustomerPlaceOrder for application/json ContentType.
+type CustomerPlaceOrderJSONRequestBody = PlaceOrder
 
 // RegisterCourierJSONRequestBody defines body for RegisterCourier for application/json ContentType.
 type RegisterCourierJSONRequestBody = RegisterCourier
 
 // RegisterCustomerJSONRequestBody defines body for RegisterCustomer for application/json ContentType.
 type RegisterCustomerJSONRequestBody = RegisterCustomer
+
+// RestaurantAcceptOrderJSONRequestBody defines body for RestaurantAcceptOrder for application/json ContentType.
+type RestaurantAcceptOrderJSONRequestBody = AcceptOrder
+
+// RestaurantMarkOrderReadyForPickupJSONRequestBody defines body for RestaurantMarkOrderReadyForPickup for application/json ContentType.
+type RestaurantMarkOrderReadyForPickupJSONRequestBody = MarkOrderReady
 
 // OnboardRestaurantJSONRequestBody defines body for OnboardRestaurant for application/json ContentType.
 type OnboardRestaurantJSONRequestBody = OnboardRestaurant
@@ -346,10 +590,45 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// CourierAcceptDeliveryWithBody request with any body
+	CourierAcceptDeliveryWithBody(ctx context.Context, params *CourierAcceptDeliveryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CourierAcceptDelivery(ctx context.Context, params *CourierAcceptDeliveryParams, body CourierAcceptDeliveryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CourierGetAvailableOrders request
+	CourierGetAvailableOrders(ctx context.Context, params *CourierGetAvailableOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CourierGetCurrentOrders request
+	CourierGetCurrentOrders(ctx context.Context, params *CourierGetCurrentOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CourierReportDeliveryWithBody request with any body
+	CourierReportDeliveryWithBody(ctx context.Context, params *CourierReportDeliveryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CourierReportDelivery(ctx context.Context, params *CourierReportDeliveryParams, body CourierReportDeliveryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CourierReportPickupWithBody request with any body
+	CourierReportPickupWithBody(ctx context.Context, params *CourierReportPickupParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CourierReportPickup(ctx context.Context, params *CourierReportPickupParams, body CourierReportPickupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CustomerCreateQuoteWithBody request with any body
 	CustomerCreateQuoteWithBody(ctx context.Context, params *CustomerCreateQuoteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CustomerCreateQuote(ctx context.Context, params *CustomerCreateQuoteParams, body CustomerCreateQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CustomerGetOrders request
+	CustomerGetOrders(ctx context.Context, params *CustomerGetOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CustomerPlaceOrderWithBody request with any body
+	CustomerPlaceOrderWithBody(ctx context.Context, params *CustomerPlaceOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CustomerPlaceOrder(ctx context.Context, params *CustomerPlaceOrderParams, body CustomerPlaceOrderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CustomerListRestaurants request
+	CustomerListRestaurants(ctx context.Context, params *CustomerListRestaurantsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CustomerGetRestaurantMenu request
+	CustomerGetRestaurantMenu(ctx context.Context, restaurantUuid RestaurantUUID, params *CustomerGetRestaurantMenuParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RegisterCourierWithBody request with any body
 	RegisterCourierWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -361,13 +640,122 @@ type ClientInterface interface {
 
 	RegisterCustomer(ctx context.Context, body RegisterCustomerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RestaurantAcceptOrderWithBody request with any body
+	RestaurantAcceptOrderWithBody(ctx context.Context, params *RestaurantAcceptOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RestaurantAcceptOrder(ctx context.Context, params *RestaurantAcceptOrderParams, body RestaurantAcceptOrderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RestaurantMarkOrderReadyForPickupWithBody request with any body
+	RestaurantMarkOrderReadyForPickupWithBody(ctx context.Context, params *RestaurantMarkOrderReadyForPickupParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RestaurantMarkOrderReadyForPickup(ctx context.Context, params *RestaurantMarkOrderReadyForPickupParams, body RestaurantMarkOrderReadyForPickupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// OnboardRestaurantWithBody request with any body
 	OnboardRestaurantWithBody(ctx context.Context, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	OnboardRestaurant(ctx context.Context, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, body OnboardRestaurantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RestaurantGetOrders request
+	RestaurantGetOrders(ctx context.Context, params *RestaurantGetOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListMenuItems request
 	ListMenuItems(ctx context.Context, params *ListMenuItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) CourierAcceptDeliveryWithBody(ctx context.Context, params *CourierAcceptDeliveryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCourierAcceptDeliveryRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CourierAcceptDelivery(ctx context.Context, params *CourierAcceptDeliveryParams, body CourierAcceptDeliveryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCourierAcceptDeliveryRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CourierGetAvailableOrders(ctx context.Context, params *CourierGetAvailableOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCourierGetAvailableOrdersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CourierGetCurrentOrders(ctx context.Context, params *CourierGetCurrentOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCourierGetCurrentOrdersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CourierReportDeliveryWithBody(ctx context.Context, params *CourierReportDeliveryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCourierReportDeliveryRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CourierReportDelivery(ctx context.Context, params *CourierReportDeliveryParams, body CourierReportDeliveryJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCourierReportDeliveryRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CourierReportPickupWithBody(ctx context.Context, params *CourierReportPickupParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCourierReportPickupRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CourierReportPickup(ctx context.Context, params *CourierReportPickupParams, body CourierReportPickupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCourierReportPickupRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) CustomerCreateQuoteWithBody(ctx context.Context, params *CustomerCreateQuoteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -384,6 +772,66 @@ func (c *Client) CustomerCreateQuoteWithBody(ctx context.Context, params *Custom
 
 func (c *Client) CustomerCreateQuote(ctx context.Context, params *CustomerCreateQuoteParams, body CustomerCreateQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCustomerCreateQuoteRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CustomerGetOrders(ctx context.Context, params *CustomerGetOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCustomerGetOrdersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CustomerPlaceOrderWithBody(ctx context.Context, params *CustomerPlaceOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCustomerPlaceOrderRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CustomerPlaceOrder(ctx context.Context, params *CustomerPlaceOrderParams, body CustomerPlaceOrderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCustomerPlaceOrderRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CustomerListRestaurants(ctx context.Context, params *CustomerListRestaurantsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCustomerListRestaurantsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CustomerGetRestaurantMenu(ctx context.Context, restaurantUuid RestaurantUUID, params *CustomerGetRestaurantMenuParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCustomerGetRestaurantMenuRequest(c.Server, restaurantUuid, params)
 	if err != nil {
 		return nil, err
 	}
@@ -442,6 +890,54 @@ func (c *Client) RegisterCustomer(ctx context.Context, body RegisterCustomerJSON
 	return c.Client.Do(req)
 }
 
+func (c *Client) RestaurantAcceptOrderWithBody(ctx context.Context, params *RestaurantAcceptOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestaurantAcceptOrderRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestaurantAcceptOrder(ctx context.Context, params *RestaurantAcceptOrderParams, body RestaurantAcceptOrderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestaurantAcceptOrderRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestaurantMarkOrderReadyForPickupWithBody(ctx context.Context, params *RestaurantMarkOrderReadyForPickupParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestaurantMarkOrderReadyForPickupRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RestaurantMarkOrderReadyForPickup(ctx context.Context, params *RestaurantMarkOrderReadyForPickupParams, body RestaurantMarkOrderReadyForPickupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestaurantMarkOrderReadyForPickupRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) OnboardRestaurantWithBody(ctx context.Context, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewOnboardRestaurantRequestWithBody(c.Server, restaurantUuid, params, contentType, body)
 	if err != nil {
@@ -466,6 +962,18 @@ func (c *Client) OnboardRestaurant(ctx context.Context, restaurantUuid Restauran
 	return c.Client.Do(req)
 }
 
+func (c *Client) RestaurantGetOrders(ctx context.Context, params *RestaurantGetOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRestaurantGetOrdersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListMenuItems(ctx context.Context, params *ListMenuItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListMenuItemsRequest(c.Server, params)
 	if err != nil {
@@ -476,6 +984,245 @@ func (c *Client) ListMenuItems(ctx context.Context, params *ListMenuItemsParams,
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewCourierAcceptDeliveryRequest calls the generic CourierAcceptDelivery builder with application/json body
+func NewCourierAcceptDeliveryRequest(server string, params *CourierAcceptDeliveryParams, body CourierAcceptDeliveryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCourierAcceptDeliveryRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewCourierAcceptDeliveryRequestWithBody generates requests for CourierAcceptDelivery with any type of body
+func NewCourierAcceptDeliveryRequestWithBody(server string, params *CourierAcceptDeliveryParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/courier/accept-delivery")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Courier-UUID", runtime.ParamLocationHeader, params.CourierUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Courier-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewCourierGetAvailableOrdersRequest generates requests for CourierGetAvailableOrders
+func NewCourierGetAvailableOrdersRequest(server string, params *CourierGetAvailableOrdersParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/courier/available-orders")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Courier-UUID", runtime.ParamLocationHeader, params.CourierUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Courier-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewCourierGetCurrentOrdersRequest generates requests for CourierGetCurrentOrders
+func NewCourierGetCurrentOrdersRequest(server string, params *CourierGetCurrentOrdersParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/courier/current-orders")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Courier-UUID", runtime.ParamLocationHeader, params.CourierUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Courier-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewCourierReportDeliveryRequest calls the generic CourierReportDelivery builder with application/json body
+func NewCourierReportDeliveryRequest(server string, params *CourierReportDeliveryParams, body CourierReportDeliveryJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCourierReportDeliveryRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewCourierReportDeliveryRequestWithBody generates requests for CourierReportDelivery with any type of body
+func NewCourierReportDeliveryRequestWithBody(server string, params *CourierReportDeliveryParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/courier/report-delivery")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Courier-UUID", runtime.ParamLocationHeader, params.CourierUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Courier-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewCourierReportPickupRequest calls the generic CourierReportPickup builder with application/json body
+func NewCourierReportPickupRequest(server string, params *CourierReportPickupParams, body CourierReportPickupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCourierReportPickupRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewCourierReportPickupRequestWithBody generates requests for CourierReportPickup with any type of body
+func NewCourierReportPickupRequestWithBody(server string, params *CourierReportPickupParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/courier/report-pickup")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Courier-UUID", runtime.ParamLocationHeader, params.CourierUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Courier-UUID", headerParam0)
+
+	}
+
+	return req, nil
 }
 
 // NewCustomerCreateQuoteRequest calls the generic CustomerCreateQuote builder with application/json body
@@ -514,6 +1261,186 @@ func NewCustomerCreateQuoteRequestWithBody(server string, params *CustomerCreate
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Customer-UUID", runtime.ParamLocationHeader, params.CustomerUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Customer-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewCustomerGetOrdersRequest generates requests for CustomerGetOrders
+func NewCustomerGetOrdersRequest(server string, params *CustomerGetOrdersParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/customer/orders")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Customer-UUID", runtime.ParamLocationHeader, params.CustomerUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Customer-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewCustomerPlaceOrderRequest calls the generic CustomerPlaceOrder builder with application/json body
+func NewCustomerPlaceOrderRequest(server string, params *CustomerPlaceOrderParams, body CustomerPlaceOrderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCustomerPlaceOrderRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewCustomerPlaceOrderRequestWithBody generates requests for CustomerPlaceOrder with any type of body
+func NewCustomerPlaceOrderRequestWithBody(server string, params *CustomerPlaceOrderParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/customer/place-order")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Customer-UUID", runtime.ParamLocationHeader, params.CustomerUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Customer-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewCustomerListRestaurantsRequest generates requests for CustomerListRestaurants
+func NewCustomerListRestaurantsRequest(server string, params *CustomerListRestaurantsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/customer/restaurants")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Customer-UUID", runtime.ParamLocationHeader, params.CustomerUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Customer-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewCustomerGetRestaurantMenuRequest generates requests for CustomerGetRestaurantMenu
+func NewCustomerGetRestaurantMenuRequest(server string, restaurantUuid RestaurantUUID, params *CustomerGetRestaurantMenuParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "restaurant_uuid", runtime.ParamLocationPath, restaurantUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/customer/%s/menu", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	if params != nil {
 
@@ -611,6 +1538,112 @@ func NewRegisterCustomerRequestWithBody(server string, contentType string, body 
 	return req, nil
 }
 
+// NewRestaurantAcceptOrderRequest calls the generic RestaurantAcceptOrder builder with application/json body
+func NewRestaurantAcceptOrderRequest(server string, params *RestaurantAcceptOrderParams, body RestaurantAcceptOrderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRestaurantAcceptOrderRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewRestaurantAcceptOrderRequestWithBody generates requests for RestaurantAcceptOrder with any type of body
+func NewRestaurantAcceptOrderRequestWithBody(server string, params *RestaurantAcceptOrderParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/restaurant/accept-order")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Restaurant-UUID", runtime.ParamLocationHeader, params.RestaurantUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Restaurant-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewRestaurantMarkOrderReadyForPickupRequest calls the generic RestaurantMarkOrderReadyForPickup builder with application/json body
+func NewRestaurantMarkOrderReadyForPickupRequest(server string, params *RestaurantMarkOrderReadyForPickupParams, body RestaurantMarkOrderReadyForPickupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRestaurantMarkOrderReadyForPickupRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewRestaurantMarkOrderReadyForPickupRequestWithBody generates requests for RestaurantMarkOrderReadyForPickup with any type of body
+func NewRestaurantMarkOrderReadyForPickupRequestWithBody(server string, params *RestaurantMarkOrderReadyForPickupParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/restaurant/mark-order-ready-for-pickup")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Restaurant-UUID", runtime.ParamLocationHeader, params.RestaurantUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Restaurant-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
 // NewOnboardRestaurantRequest calls the generic OnboardRestaurant builder with application/json body
 func NewOnboardRestaurantRequest(server string, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, body OnboardRestaurantJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -665,6 +1698,46 @@ func NewOnboardRestaurantRequestWithBody(server string, restaurantUuid Restauran
 		}
 
 		req.Header.Set("Operator-UUID", headerParam0)
+
+	}
+
+	return req, nil
+}
+
+// NewRestaurantGetOrdersRequest generates requests for RestaurantGetOrders
+func NewRestaurantGetOrdersRequest(server string, params *RestaurantGetOrdersParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orders/restaurant/orders")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		var headerParam0 string
+
+		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Restaurant-UUID", runtime.ParamLocationHeader, params.RestaurantUUID)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Restaurant-UUID", headerParam0)
 
 	}
 
@@ -795,10 +1868,45 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// CourierAcceptDeliveryWithBodyWithResponse request with any body
+	CourierAcceptDeliveryWithBodyWithResponse(ctx context.Context, params *CourierAcceptDeliveryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CourierAcceptDeliveryClientResponse, error)
+
+	CourierAcceptDeliveryWithResponse(ctx context.Context, params *CourierAcceptDeliveryParams, body CourierAcceptDeliveryJSONRequestBody, reqEditors ...RequestEditorFn) (*CourierAcceptDeliveryClientResponse, error)
+
+	// CourierGetAvailableOrdersWithResponse request
+	CourierGetAvailableOrdersWithResponse(ctx context.Context, params *CourierGetAvailableOrdersParams, reqEditors ...RequestEditorFn) (*CourierGetAvailableOrdersClientResponse, error)
+
+	// CourierGetCurrentOrdersWithResponse request
+	CourierGetCurrentOrdersWithResponse(ctx context.Context, params *CourierGetCurrentOrdersParams, reqEditors ...RequestEditorFn) (*CourierGetCurrentOrdersClientResponse, error)
+
+	// CourierReportDeliveryWithBodyWithResponse request with any body
+	CourierReportDeliveryWithBodyWithResponse(ctx context.Context, params *CourierReportDeliveryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CourierReportDeliveryClientResponse, error)
+
+	CourierReportDeliveryWithResponse(ctx context.Context, params *CourierReportDeliveryParams, body CourierReportDeliveryJSONRequestBody, reqEditors ...RequestEditorFn) (*CourierReportDeliveryClientResponse, error)
+
+	// CourierReportPickupWithBodyWithResponse request with any body
+	CourierReportPickupWithBodyWithResponse(ctx context.Context, params *CourierReportPickupParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CourierReportPickupClientResponse, error)
+
+	CourierReportPickupWithResponse(ctx context.Context, params *CourierReportPickupParams, body CourierReportPickupJSONRequestBody, reqEditors ...RequestEditorFn) (*CourierReportPickupClientResponse, error)
+
 	// CustomerCreateQuoteWithBodyWithResponse request with any body
 	CustomerCreateQuoteWithBodyWithResponse(ctx context.Context, params *CustomerCreateQuoteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CustomerCreateQuoteClientResponse, error)
 
 	CustomerCreateQuoteWithResponse(ctx context.Context, params *CustomerCreateQuoteParams, body CustomerCreateQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*CustomerCreateQuoteClientResponse, error)
+
+	// CustomerGetOrdersWithResponse request
+	CustomerGetOrdersWithResponse(ctx context.Context, params *CustomerGetOrdersParams, reqEditors ...RequestEditorFn) (*CustomerGetOrdersClientResponse, error)
+
+	// CustomerPlaceOrderWithBodyWithResponse request with any body
+	CustomerPlaceOrderWithBodyWithResponse(ctx context.Context, params *CustomerPlaceOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CustomerPlaceOrderClientResponse, error)
+
+	CustomerPlaceOrderWithResponse(ctx context.Context, params *CustomerPlaceOrderParams, body CustomerPlaceOrderJSONRequestBody, reqEditors ...RequestEditorFn) (*CustomerPlaceOrderClientResponse, error)
+
+	// CustomerListRestaurantsWithResponse request
+	CustomerListRestaurantsWithResponse(ctx context.Context, params *CustomerListRestaurantsParams, reqEditors ...RequestEditorFn) (*CustomerListRestaurantsClientResponse, error)
+
+	// CustomerGetRestaurantMenuWithResponse request
+	CustomerGetRestaurantMenuWithResponse(ctx context.Context, restaurantUuid RestaurantUUID, params *CustomerGetRestaurantMenuParams, reqEditors ...RequestEditorFn) (*CustomerGetRestaurantMenuClientResponse, error)
 
 	// RegisterCourierWithBodyWithResponse request with any body
 	RegisterCourierWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterCourierClientResponse, error)
@@ -810,13 +1918,152 @@ type ClientWithResponsesInterface interface {
 
 	RegisterCustomerWithResponse(ctx context.Context, body RegisterCustomerJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterCustomerClientResponse, error)
 
+	// RestaurantAcceptOrderWithBodyWithResponse request with any body
+	RestaurantAcceptOrderWithBodyWithResponse(ctx context.Context, params *RestaurantAcceptOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestaurantAcceptOrderClientResponse, error)
+
+	RestaurantAcceptOrderWithResponse(ctx context.Context, params *RestaurantAcceptOrderParams, body RestaurantAcceptOrderJSONRequestBody, reqEditors ...RequestEditorFn) (*RestaurantAcceptOrderClientResponse, error)
+
+	// RestaurantMarkOrderReadyForPickupWithBodyWithResponse request with any body
+	RestaurantMarkOrderReadyForPickupWithBodyWithResponse(ctx context.Context, params *RestaurantMarkOrderReadyForPickupParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestaurantMarkOrderReadyForPickupClientResponse, error)
+
+	RestaurantMarkOrderReadyForPickupWithResponse(ctx context.Context, params *RestaurantMarkOrderReadyForPickupParams, body RestaurantMarkOrderReadyForPickupJSONRequestBody, reqEditors ...RequestEditorFn) (*RestaurantMarkOrderReadyForPickupClientResponse, error)
+
 	// OnboardRestaurantWithBodyWithResponse request with any body
 	OnboardRestaurantWithBodyWithResponse(ctx context.Context, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OnboardRestaurantClientResponse, error)
 
 	OnboardRestaurantWithResponse(ctx context.Context, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, body OnboardRestaurantJSONRequestBody, reqEditors ...RequestEditorFn) (*OnboardRestaurantClientResponse, error)
 
+	// RestaurantGetOrdersWithResponse request
+	RestaurantGetOrdersWithResponse(ctx context.Context, params *RestaurantGetOrdersParams, reqEditors ...RequestEditorFn) (*RestaurantGetOrdersClientResponse, error)
+
 	// ListMenuItemsWithResponse request
 	ListMenuItemsWithResponse(ctx context.Context, params *ListMenuItemsParams, reqEditors ...RequestEditorFn) (*ListMenuItemsClientResponse, error)
+}
+
+type CourierAcceptDeliveryClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+	JSON409      *Conflict
+}
+
+// Status returns HTTPResponse.Status
+func (r CourierAcceptDeliveryClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CourierAcceptDeliveryClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CourierGetAvailableOrdersClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Orders []CourierOrder `json:"orders"`
+	}
+	JSON401 *Unauthorized
+}
+
+// Status returns HTTPResponse.Status
+func (r CourierGetAvailableOrdersClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CourierGetAvailableOrdersClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CourierGetCurrentOrdersClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Orders []CourierOrder `json:"orders"`
+	}
+	JSON401 *Unauthorized
+}
+
+// Status returns HTTPResponse.Status
+func (r CourierGetCurrentOrdersClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CourierGetCurrentOrdersClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CourierReportDeliveryClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r CourierReportDeliveryClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CourierReportDeliveryClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CourierReportPickupClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r CourierReportPickupClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CourierReportPickupClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type CustomerCreateQuoteClientResponse struct {
@@ -840,6 +2087,122 @@ func (r CustomerCreateQuoteClientResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CustomerCreateQuoteClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CustomerGetOrdersClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Orders []CustomerOrder `json:"orders"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON404 *NotFound
+	JSON410 *Gone
+}
+
+// Status returns HTTPResponse.Status
+func (r CustomerGetOrdersClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CustomerGetOrdersClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CustomerPlaceOrderClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *CustomerOrder
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+	JSON410      *Gone
+}
+
+// Status returns HTTPResponse.Status
+func (r CustomerPlaceOrderClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CustomerPlaceOrderClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CustomerListRestaurantsClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Restaurants []Restaurant `json:"restaurants"`
+	}
+	JSON401 *Unauthorized
+}
+
+// Status returns HTTPResponse.Status
+func (r CustomerListRestaurantsClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CustomerListRestaurantsClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CustomerGetRestaurantMenuClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Address Address `json:"address"`
+
+		// Currency Currency code in ISO 4217 format
+		Currency       Currency   `json:"currency"`
+		Description    string     `json:"description"`
+		Items          []MenuItem `json:"items"`
+		RestaurantName string     `json:"restaurant_name"`
+
+		// RestaurantUuid UUID of a restaurant
+		RestaurantUuid RestaurantUUID `json:"restaurant_uuid"`
+	}
+	JSON401 *Unauthorized
+	JSON404 *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r CustomerGetRestaurantMenuClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CustomerGetRestaurantMenuClientResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -893,6 +2256,56 @@ func (r RegisterCustomerClientResponse) StatusCode() int {
 	return 0
 }
 
+type RestaurantAcceptOrderClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r RestaurantAcceptOrderClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RestaurantAcceptOrderClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RestaurantMarkOrderReadyForPickupClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r RestaurantMarkOrderReadyForPickupClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RestaurantMarkOrderReadyForPickupClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type OnboardRestaurantClientResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -911,6 +2324,31 @@ func (r OnboardRestaurantClientResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r OnboardRestaurantClientResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RestaurantGetOrdersClientResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Orders []RestaurantOrder `json:"orders"`
+	}
+	JSON401 *Unauthorized
+}
+
+// Status returns HTTPResponse.Status
+func (r RestaurantGetOrdersClientResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RestaurantGetOrdersClientResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -939,6 +2377,75 @@ func (r ListMenuItemsClientResponse) StatusCode() int {
 	return 0
 }
 
+// CourierAcceptDeliveryWithBodyWithResponse request with arbitrary body returning *CourierAcceptDeliveryClientResponse
+func (c *ClientWithResponses) CourierAcceptDeliveryWithBodyWithResponse(ctx context.Context, params *CourierAcceptDeliveryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CourierAcceptDeliveryClientResponse, error) {
+	rsp, err := c.CourierAcceptDeliveryWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCourierAcceptDeliveryClientResponse(rsp)
+}
+
+func (c *ClientWithResponses) CourierAcceptDeliveryWithResponse(ctx context.Context, params *CourierAcceptDeliveryParams, body CourierAcceptDeliveryJSONRequestBody, reqEditors ...RequestEditorFn) (*CourierAcceptDeliveryClientResponse, error) {
+	rsp, err := c.CourierAcceptDelivery(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCourierAcceptDeliveryClientResponse(rsp)
+}
+
+// CourierGetAvailableOrdersWithResponse request returning *CourierGetAvailableOrdersClientResponse
+func (c *ClientWithResponses) CourierGetAvailableOrdersWithResponse(ctx context.Context, params *CourierGetAvailableOrdersParams, reqEditors ...RequestEditorFn) (*CourierGetAvailableOrdersClientResponse, error) {
+	rsp, err := c.CourierGetAvailableOrders(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCourierGetAvailableOrdersClientResponse(rsp)
+}
+
+// CourierGetCurrentOrdersWithResponse request returning *CourierGetCurrentOrdersClientResponse
+func (c *ClientWithResponses) CourierGetCurrentOrdersWithResponse(ctx context.Context, params *CourierGetCurrentOrdersParams, reqEditors ...RequestEditorFn) (*CourierGetCurrentOrdersClientResponse, error) {
+	rsp, err := c.CourierGetCurrentOrders(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCourierGetCurrentOrdersClientResponse(rsp)
+}
+
+// CourierReportDeliveryWithBodyWithResponse request with arbitrary body returning *CourierReportDeliveryClientResponse
+func (c *ClientWithResponses) CourierReportDeliveryWithBodyWithResponse(ctx context.Context, params *CourierReportDeliveryParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CourierReportDeliveryClientResponse, error) {
+	rsp, err := c.CourierReportDeliveryWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCourierReportDeliveryClientResponse(rsp)
+}
+
+func (c *ClientWithResponses) CourierReportDeliveryWithResponse(ctx context.Context, params *CourierReportDeliveryParams, body CourierReportDeliveryJSONRequestBody, reqEditors ...RequestEditorFn) (*CourierReportDeliveryClientResponse, error) {
+	rsp, err := c.CourierReportDelivery(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCourierReportDeliveryClientResponse(rsp)
+}
+
+// CourierReportPickupWithBodyWithResponse request with arbitrary body returning *CourierReportPickupClientResponse
+func (c *ClientWithResponses) CourierReportPickupWithBodyWithResponse(ctx context.Context, params *CourierReportPickupParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CourierReportPickupClientResponse, error) {
+	rsp, err := c.CourierReportPickupWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCourierReportPickupClientResponse(rsp)
+}
+
+func (c *ClientWithResponses) CourierReportPickupWithResponse(ctx context.Context, params *CourierReportPickupParams, body CourierReportPickupJSONRequestBody, reqEditors ...RequestEditorFn) (*CourierReportPickupClientResponse, error) {
+	rsp, err := c.CourierReportPickup(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCourierReportPickupClientResponse(rsp)
+}
+
 // CustomerCreateQuoteWithBodyWithResponse request with arbitrary body returning *CustomerCreateQuoteClientResponse
 func (c *ClientWithResponses) CustomerCreateQuoteWithBodyWithResponse(ctx context.Context, params *CustomerCreateQuoteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CustomerCreateQuoteClientResponse, error) {
 	rsp, err := c.CustomerCreateQuoteWithBody(ctx, params, contentType, body, reqEditors...)
@@ -954,6 +2461,50 @@ func (c *ClientWithResponses) CustomerCreateQuoteWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseCustomerCreateQuoteClientResponse(rsp)
+}
+
+// CustomerGetOrdersWithResponse request returning *CustomerGetOrdersClientResponse
+func (c *ClientWithResponses) CustomerGetOrdersWithResponse(ctx context.Context, params *CustomerGetOrdersParams, reqEditors ...RequestEditorFn) (*CustomerGetOrdersClientResponse, error) {
+	rsp, err := c.CustomerGetOrders(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCustomerGetOrdersClientResponse(rsp)
+}
+
+// CustomerPlaceOrderWithBodyWithResponse request with arbitrary body returning *CustomerPlaceOrderClientResponse
+func (c *ClientWithResponses) CustomerPlaceOrderWithBodyWithResponse(ctx context.Context, params *CustomerPlaceOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CustomerPlaceOrderClientResponse, error) {
+	rsp, err := c.CustomerPlaceOrderWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCustomerPlaceOrderClientResponse(rsp)
+}
+
+func (c *ClientWithResponses) CustomerPlaceOrderWithResponse(ctx context.Context, params *CustomerPlaceOrderParams, body CustomerPlaceOrderJSONRequestBody, reqEditors ...RequestEditorFn) (*CustomerPlaceOrderClientResponse, error) {
+	rsp, err := c.CustomerPlaceOrder(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCustomerPlaceOrderClientResponse(rsp)
+}
+
+// CustomerListRestaurantsWithResponse request returning *CustomerListRestaurantsClientResponse
+func (c *ClientWithResponses) CustomerListRestaurantsWithResponse(ctx context.Context, params *CustomerListRestaurantsParams, reqEditors ...RequestEditorFn) (*CustomerListRestaurantsClientResponse, error) {
+	rsp, err := c.CustomerListRestaurants(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCustomerListRestaurantsClientResponse(rsp)
+}
+
+// CustomerGetRestaurantMenuWithResponse request returning *CustomerGetRestaurantMenuClientResponse
+func (c *ClientWithResponses) CustomerGetRestaurantMenuWithResponse(ctx context.Context, restaurantUuid RestaurantUUID, params *CustomerGetRestaurantMenuParams, reqEditors ...RequestEditorFn) (*CustomerGetRestaurantMenuClientResponse, error) {
+	rsp, err := c.CustomerGetRestaurantMenu(ctx, restaurantUuid, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCustomerGetRestaurantMenuClientResponse(rsp)
 }
 
 // RegisterCourierWithBodyWithResponse request with arbitrary body returning *RegisterCourierClientResponse
@@ -990,6 +2541,40 @@ func (c *ClientWithResponses) RegisterCustomerWithResponse(ctx context.Context, 
 	return ParseRegisterCustomerClientResponse(rsp)
 }
 
+// RestaurantAcceptOrderWithBodyWithResponse request with arbitrary body returning *RestaurantAcceptOrderClientResponse
+func (c *ClientWithResponses) RestaurantAcceptOrderWithBodyWithResponse(ctx context.Context, params *RestaurantAcceptOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestaurantAcceptOrderClientResponse, error) {
+	rsp, err := c.RestaurantAcceptOrderWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestaurantAcceptOrderClientResponse(rsp)
+}
+
+func (c *ClientWithResponses) RestaurantAcceptOrderWithResponse(ctx context.Context, params *RestaurantAcceptOrderParams, body RestaurantAcceptOrderJSONRequestBody, reqEditors ...RequestEditorFn) (*RestaurantAcceptOrderClientResponse, error) {
+	rsp, err := c.RestaurantAcceptOrder(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestaurantAcceptOrderClientResponse(rsp)
+}
+
+// RestaurantMarkOrderReadyForPickupWithBodyWithResponse request with arbitrary body returning *RestaurantMarkOrderReadyForPickupClientResponse
+func (c *ClientWithResponses) RestaurantMarkOrderReadyForPickupWithBodyWithResponse(ctx context.Context, params *RestaurantMarkOrderReadyForPickupParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RestaurantMarkOrderReadyForPickupClientResponse, error) {
+	rsp, err := c.RestaurantMarkOrderReadyForPickupWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestaurantMarkOrderReadyForPickupClientResponse(rsp)
+}
+
+func (c *ClientWithResponses) RestaurantMarkOrderReadyForPickupWithResponse(ctx context.Context, params *RestaurantMarkOrderReadyForPickupParams, body RestaurantMarkOrderReadyForPickupJSONRequestBody, reqEditors ...RequestEditorFn) (*RestaurantMarkOrderReadyForPickupClientResponse, error) {
+	rsp, err := c.RestaurantMarkOrderReadyForPickup(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestaurantMarkOrderReadyForPickupClientResponse(rsp)
+}
+
 // OnboardRestaurantWithBodyWithResponse request with arbitrary body returning *OnboardRestaurantClientResponse
 func (c *ClientWithResponses) OnboardRestaurantWithBodyWithResponse(ctx context.Context, restaurantUuid RestaurantUUID, params *OnboardRestaurantParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OnboardRestaurantClientResponse, error) {
 	rsp, err := c.OnboardRestaurantWithBody(ctx, restaurantUuid, params, contentType, body, reqEditors...)
@@ -1007,6 +2592,15 @@ func (c *ClientWithResponses) OnboardRestaurantWithResponse(ctx context.Context,
 	return ParseOnboardRestaurantClientResponse(rsp)
 }
 
+// RestaurantGetOrdersWithResponse request returning *RestaurantGetOrdersClientResponse
+func (c *ClientWithResponses) RestaurantGetOrdersWithResponse(ctx context.Context, params *RestaurantGetOrdersParams, reqEditors ...RequestEditorFn) (*RestaurantGetOrdersClientResponse, error) {
+	rsp, err := c.RestaurantGetOrders(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRestaurantGetOrdersClientResponse(rsp)
+}
+
 // ListMenuItemsWithResponse request returning *ListMenuItemsClientResponse
 func (c *ClientWithResponses) ListMenuItemsWithResponse(ctx context.Context, params *ListMenuItemsParams, reqEditors ...RequestEditorFn) (*ListMenuItemsClientResponse, error) {
 	rsp, err := c.ListMenuItems(ctx, params, reqEditors...)
@@ -1014,6 +2608,224 @@ func (c *ClientWithResponses) ListMenuItemsWithResponse(ctx context.Context, par
 		return nil, err
 	}
 	return ParseListMenuItemsClientResponse(rsp)
+}
+
+// ParseCourierAcceptDeliveryClientResponse parses an HTTP response from a CourierAcceptDeliveryWithResponse call
+func ParseCourierAcceptDeliveryClientResponse(rsp *http.Response) (*CourierAcceptDeliveryClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CourierAcceptDeliveryClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCourierGetAvailableOrdersClientResponse parses an HTTP response from a CourierGetAvailableOrdersWithResponse call
+func ParseCourierGetAvailableOrdersClientResponse(rsp *http.Response) (*CourierGetAvailableOrdersClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CourierGetAvailableOrdersClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Orders []CourierOrder `json:"orders"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCourierGetCurrentOrdersClientResponse parses an HTTP response from a CourierGetCurrentOrdersWithResponse call
+func ParseCourierGetCurrentOrdersClientResponse(rsp *http.Response) (*CourierGetCurrentOrdersClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CourierGetCurrentOrdersClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Orders []CourierOrder `json:"orders"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCourierReportDeliveryClientResponse parses an HTTP response from a CourierReportDeliveryWithResponse call
+func ParseCourierReportDeliveryClientResponse(rsp *http.Response) (*CourierReportDeliveryClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CourierReportDeliveryClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCourierReportPickupClientResponse parses an HTTP response from a CourierReportPickupWithResponse call
+func ParseCourierReportPickupClientResponse(rsp *http.Response) (*CourierReportPickupClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CourierReportPickupClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseCustomerCreateQuoteClientResponse parses an HTTP response from a CustomerCreateQuoteWithResponse call
@@ -1071,6 +2883,216 @@ func ParseCustomerCreateQuoteClientResponse(rsp *http.Response) (*CustomerCreate
 			return nil, err
 		}
 		response.JSON410 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCustomerGetOrdersClientResponse parses an HTTP response from a CustomerGetOrdersWithResponse call
+func ParseCustomerGetOrdersClientResponse(rsp *http.Response) (*CustomerGetOrdersClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CustomerGetOrdersClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Orders []CustomerOrder `json:"orders"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 410:
+		var dest Gone
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON410 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCustomerPlaceOrderClientResponse parses an HTTP response from a CustomerPlaceOrderWithResponse call
+func ParseCustomerPlaceOrderClientResponse(rsp *http.Response) (*CustomerPlaceOrderClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CustomerPlaceOrderClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest CustomerOrder
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 410:
+		var dest Gone
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON410 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCustomerListRestaurantsClientResponse parses an HTTP response from a CustomerListRestaurantsWithResponse call
+func ParseCustomerListRestaurantsClientResponse(rsp *http.Response) (*CustomerListRestaurantsClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CustomerListRestaurantsClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Restaurants []Restaurant `json:"restaurants"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCustomerGetRestaurantMenuClientResponse parses an HTTP response from a CustomerGetRestaurantMenuWithResponse call
+func ParseCustomerGetRestaurantMenuClientResponse(rsp *http.Response) (*CustomerGetRestaurantMenuClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CustomerGetRestaurantMenuClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Address Address `json:"address"`
+
+			// Currency Currency code in ISO 4217 format
+			Currency       Currency   `json:"currency"`
+			Description    string     `json:"description"`
+			Items          []MenuItem `json:"items"`
+			RestaurantName string     `json:"restaurant_name"`
+
+			// RestaurantUuid UUID of a restaurant
+			RestaurantUuid RestaurantUUID `json:"restaurant_uuid"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	}
 
@@ -1150,6 +3172,100 @@ func ParseRegisterCustomerClientResponse(rsp *http.Response) (*RegisterCustomerC
 	return response, nil
 }
 
+// ParseRestaurantAcceptOrderClientResponse parses an HTTP response from a RestaurantAcceptOrderWithResponse call
+func ParseRestaurantAcceptOrderClientResponse(rsp *http.Response) (*RestaurantAcceptOrderClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RestaurantAcceptOrderClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRestaurantMarkOrderReadyForPickupClientResponse parses an HTTP response from a RestaurantMarkOrderReadyForPickupWithResponse call
+func ParseRestaurantMarkOrderReadyForPickupClientResponse(rsp *http.Response) (*RestaurantMarkOrderReadyForPickupClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RestaurantMarkOrderReadyForPickupClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseOnboardRestaurantClientResponse parses an HTTP response from a OnboardRestaurantWithResponse call
 func ParseOnboardRestaurantClientResponse(rsp *http.Response) (*OnboardRestaurantClientResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -1184,6 +3300,41 @@ func ParseOnboardRestaurantClientResponse(rsp *http.Response) (*OnboardRestauran
 			return nil, err
 		}
 		response.JSON403 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRestaurantGetOrdersClientResponse parses an HTTP response from a RestaurantGetOrdersWithResponse call
+func ParseRestaurantGetOrdersClientResponse(rsp *http.Response) (*RestaurantGetOrdersClientResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RestaurantGetOrdersClientResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Orders []RestaurantOrder `json:"orders"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	}
 

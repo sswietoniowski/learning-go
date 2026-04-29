@@ -32,6 +32,22 @@ func (q *Queries) GetCourierByUUID(ctx context.Context, courierUuid app.CourierU
 	return i, err
 }
 
+const getCourierCity = `-- name: GetCourierCity :one
+SELECT
+    city
+FROM
+    orders.couriers
+WHERE
+    courier_uuid = $1
+`
+
+func (q *Queries) GetCourierCity(ctx context.Context, courierUuid app.CourierUUID) (string, error) {
+	row := q.db.QueryRow(ctx, getCourierCity, courierUuid)
+	var city string
+	err := row.Scan(&city)
+	return city, err
+}
+
 const insertCourier = `-- name: InsertCourier :exec
 INSERT INTO
     orders.couriers (

@@ -72,6 +72,39 @@ type AddQuoteItemsParams struct {
 	Quantity      int32
 }
 
+const getOrder = `-- name: GetOrder :one
+SELECT order_uuid, quote_uuid, customer_uuid, restaurant_uuid, courier_uuid, delivery_address, ordered_at, restaurant_confirmed_at, courier_accepted_at, restaurant_prepared_at, picked_up_at, delivered_at, items_subtotal_gross, service_fee_gross, delivery_fee_gross, total_amount_gross, total_tax, currency
+FROM orders.orders
+WHERE order_uuid = $1
+LIMIT 1
+`
+
+func (q *Queries) GetOrder(ctx context.Context, orderUuid app.OrderUUID) (OrdersOrder, error) {
+	row := q.db.QueryRow(ctx, getOrder, orderUuid)
+	var i OrdersOrder
+	err := row.Scan(
+		&i.OrderUuid,
+		&i.QuoteUuid,
+		&i.CustomerUuid,
+		&i.RestaurantUuid,
+		&i.CourierUuid,
+		&i.DeliveryAddress,
+		&i.OrderedAt,
+		&i.RestaurantConfirmedAt,
+		&i.CourierAcceptedAt,
+		&i.RestaurantPreparedAt,
+		&i.PickedUpAt,
+		&i.DeliveredAt,
+		&i.ItemsSubtotalGross,
+		&i.ServiceFeeGross,
+		&i.DeliveryFeeGross,
+		&i.TotalAmountGross,
+		&i.TotalTax,
+		&i.Currency,
+	)
+	return i, err
+}
+
 const getQuote = `-- name: GetQuote :one
 SELECT
 	quote_uuid, customer_uuid, restaurant_uuid, delivery_address, created_at, items_subtotal_gross, service_fee_gross, delivery_fee_gross, total_amount_gross, total_tax, currency
@@ -131,4 +164,94 @@ func (q *Queries) GetQuoteItems(ctx context.Context, quoteUuid app.QuoteUUID) ([
 		return nil, err
 	}
 	return items, nil
+}
+
+const placeOrder = `-- name: PlaceOrder :exec
+INSERT INTO orders.orders (
+	order_uuid,
+	quote_uuid,
+	customer_uuid,
+	restaurant_uuid,
+	delivery_address,
+	ordered_at,
+	items_subtotal_gross,
+	service_fee_gross,
+	delivery_fee_gross,
+	total_amount_gross,
+	total_tax,
+	currency
+)
+VALUES
+	($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+`
+
+type PlaceOrderParams struct {
+	OrderUuid          app.OrderUUID
+	QuoteUuid          app.QuoteUUID
+	CustomerUuid       app.CustomerUUID
+	RestaurantUuid     app.RestaurantUUID
+	DeliveryAddress    shared.Address
+	OrderedAt          time.Time
+	ItemsSubtotalGross decimal.Decimal
+	ServiceFeeGross    decimal.Decimal
+	DeliveryFeeGross   decimal.Decimal
+	TotalAmountGross   decimal.Decimal
+	TotalTax           decimal.Decimal
+	Currency           shared.Currency
+}
+
+func (q *Queries) PlaceOrder(ctx context.Context, arg PlaceOrderParams) error {
+	_, err := q.db.Exec(ctx, placeOrder,
+		arg.OrderUuid,
+		arg.QuoteUuid,
+		arg.CustomerUuid,
+		arg.RestaurantUuid,
+		arg.DeliveryAddress,
+		arg.OrderedAt,
+		arg.ItemsSubtotalGross,
+		arg.ServiceFeeGross,
+		arg.DeliveryFeeGross,
+		arg.TotalAmountGross,
+		arg.TotalTax,
+		arg.Currency,
+	)
+	return err
+}
+
+const updateOrder = `-- name: UpdateOrder :exec
+UPDATE orders.orders
+SET
+    courier_uuid            = COALESCE($2, courier_uuid),
+    ordered_at              = COALESCE($3, ordered_at),
+    restaurant_confirmed_at = COALESCE($4, restaurant_confirmed_at),
+    courier_accepted_at     = COALESCE($5, courier_accepted_at),
+    restaurant_prepared_at  = COALESCE($6, restaurant_prepared_at),
+    picked_up_at            = COALESCE($7, picked_up_at),
+    delivered_at            = COALESCE($8, delivered_at)
+WHERE order_uuid = $1
+`
+
+type UpdateOrderParams struct {
+	OrderUuid             app.OrderUUID
+	CourierUuid           *app.CourierUUID
+	OrderedAt             *time.Time
+	RestaurantConfirmedAt *time.Time
+	CourierAcceptedAt     *time.Time
+	RestaurantPreparedAt  *time.Time
+	PickedUpAt            *time.Time
+	DeliveredAt           *time.Time
+}
+
+func (q *Queries) UpdateOrder(ctx context.Context, arg UpdateOrderParams) error {
+	_, err := q.db.Exec(ctx, updateOrder,
+		arg.OrderUuid,
+		arg.CourierUuid,
+		arg.OrderedAt,
+		arg.RestaurantConfirmedAt,
+		arg.CourierAcceptedAt,
+		arg.RestaurantPreparedAt,
+		arg.PickedUpAt,
+		arg.DeliveredAt,
+	)
+	return err
 }

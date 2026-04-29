@@ -10,6 +10,8 @@ github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA
 github.com/RaveNoX/go-jsoncommentstrip v1.0.0/go.mod h1:78ihd09MekBnJnxpICcwzCMzGrKSKYe4AqU6PDYYpjk=
 github.com/ThreeDotsLabs/humanslog v0.1.0 h1:J+wB4k+1VZb0ljr7HH215SUSK0FOnvTFDvIZU6xfQpo=
 github.com/ThreeDotsLabs/humanslog v0.1.0/go.mod h1:RjSlLA+mS/2QPeANJE2kVnBmioInQEfYjPN4nj2oJ0w=
+github.com/ThreeDotsLabs/the-domain-engineer v0.0.2 h1:gpCkowL6p3KfaCgqhvoUKNjWmm1SRCKUwWuQXZ22Zqw=
+github.com/ThreeDotsLabs/the-domain-engineer v0.0.2/go.mod h1:54Z1R7DGXb2SVt9XKTv4LoQkRICXuCBsCgi36bAZEAs=
 github.com/antlr4-go/antlr/v4 v4.13.1 h1:SqQKkuVZ+zWkMMNkjy5FZe5mr5WURWnlpmOuzYWrPrQ=
 github.com/antlr4-go/antlr/v4 v4.13.1/go.mod h1:GKmUxMtwp6ZgGwZSva4eWPC5mS6vUAmOABFgjdkM7Nw=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0 h1:axGnT1gRIfimI7gJifB699GoE/oq+F2MU7Dml6nw9rQ=

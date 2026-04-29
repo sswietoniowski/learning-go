@@ -4,6 +4,7 @@ output: prefixed
 
 env:
   POSTGRES_URL: "postgresql://user:password@localhost:5432/eats"
+  GATEWAY_ADDR: "http://localhost:8888"
 
 tasks:
   up:

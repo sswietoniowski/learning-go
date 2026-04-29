@@ -116,3 +116,40 @@ sql:
             go_type:
               import: "eats/backend/orders/app"
               type: "CourierUUID"
+
+          - column: "orders.orders.order_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "OrderUUID"
+          
+          - column: "orders.orders.quote_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "QuoteUUID"
+
+          - column: "orders.orders.customer_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CustomerUUID"
+
+          - column: "orders.orders.restaurant_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantUUID"
+
+          - column: "orders.orders.courier_uuid"
+            nullable: true
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CourierUUID"
+              pointer: true
+
+          - column: "orders.orders.delivery_address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "orders.orders.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"

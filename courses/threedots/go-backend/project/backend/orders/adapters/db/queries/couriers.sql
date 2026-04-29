@@ -17,3 +17,12 @@ FROM
 WHERE
     courier_uuid = $1
 ;
+
+-- name: GetCourierCity :one
+SELECT
+    city
+FROM
+    orders.couriers
+WHERE
+    courier_uuid = $1
+;

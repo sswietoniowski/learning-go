@@ -32,6 +32,7 @@ func main() {
 	svc, err := backend.New(
 		ctx,
 		dbPgx,
+		os.Getenv("GATEWAY_ADDR"),
 	)
 	if err != nil {
 		panic(err)

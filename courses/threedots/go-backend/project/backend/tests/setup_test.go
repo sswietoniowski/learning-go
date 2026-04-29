@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	commonclients "github.com/ThreeDotsLabs/the-domain-engineer/clients"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	eats "eats/backend"
@@ -19,7 +20,8 @@ import (
 )
 
 type testClients struct {
-	Orders *ordersclient.ClientWithResponses
+	Orders        *ordersclient.ClientWithResponses
+	CommonClients *commonclients.Clients
 }
 
 func newTestClients(t *testing.T) testClients {
@@ -47,8 +49,14 @@ func newTestClients(t *testing.T) testClients {
 		t.Fatalf("creating orders client: %v", err)
 	}
 
+	commonAPIClients, err := commonclients.NewClients(os.Getenv("GATEWAY_ADDR"), editorFn)
+	if err != nil {
+		t.Fatalf("creating common clients: %v", err)
+	}
+
 	return testClients{
-		Orders: orders,
+		Orders:        orders,
+		CommonClients: commonAPIClients,
 	}
 }
 
@@ -71,6 +79,7 @@ func TestMain(m *testing.M) {
 	svc, err := eats.New(
 		ctx,
 		dbPgx,
+		os.Getenv("GATEWAY_ADDR"),
 	)
 	if err != nil {
 		panic(err)

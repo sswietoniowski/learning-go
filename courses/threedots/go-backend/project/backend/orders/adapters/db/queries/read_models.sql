@@ -1,3 +1,91 @@
+-- name: ListCustomerOrders :many
+SELECT
+    o.order_uuid,
+    o.restaurant_uuid,
+    r.name AS restaurant_name,
+    o.courier_uuid,
+    o.delivery_address,
+    o.ordered_at,
+    o.restaurant_confirmed_at,
+    o.courier_accepted_at,
+    o.restaurant_prepared_at,
+    o.picked_up_at,
+    o.delivered_at,
+    o.items_subtotal_gross,
+    o.service_fee_gross,
+    o.delivery_fee_gross,
+    o.total_amount_gross,
+    o.total_tax,
+    o.currency
+FROM orders.orders o
+JOIN orders.restaurants r ON o.restaurant_uuid = r.restaurant_uuid
+WHERE o.customer_uuid = $1
+ORDER BY o.ordered_at DESC;
+
+-- name: ListRestaurantOrders :many
+SELECT
+    o.order_uuid,
+    o.customer_uuid,
+    o.courier_uuid,
+    o.ordered_at,
+    o.restaurant_confirmed_at,
+    o.courier_accepted_at,
+    o.restaurant_prepared_at,
+    o.picked_up_at,
+    o.delivered_at,
+    o.items_subtotal_gross
+FROM orders.orders o
+WHERE o.restaurant_uuid = $1
+ORDER BY o.ordered_at DESC;
+
+-- name: ListAssignedCourierOrders :many
+SELECT
+    o.order_uuid,
+    o.customer_uuid,
+    o.courier_uuid,
+    o.restaurant_uuid,
+    r.name AS restaurant_name,
+    o.delivery_address,
+    o.ordered_at,
+    o.restaurant_confirmed_at,
+    o.courier_accepted_at,
+    o.restaurant_prepared_at,
+    o.picked_up_at,
+    o.delivered_at,
+    o.items_subtotal_gross
+FROM orders.orders o
+JOIN orders.restaurants r ON o.restaurant_uuid = r.restaurant_uuid
+WHERE o.courier_uuid = $1
+ORDER BY o.ordered_at DESC;
+
+-- name: ListAvailableOrdersForCourier :many
+SELECT
+    o.order_uuid,
+    o.customer_uuid,
+    o.courier_uuid,
+    o.restaurant_uuid,
+    r.name AS restaurant_name,
+    o.delivery_address,
+    o.ordered_at,
+    o.restaurant_confirmed_at,
+    o.courier_accepted_at,
+    o.restaurant_prepared_at,
+    o.picked_up_at,
+    o.delivered_at,
+    o.items_subtotal_gross
+FROM orders.orders o
+JOIN orders.restaurants r ON o.restaurant_uuid = r.restaurant_uuid
+WHERE
+    o.restaurant_confirmed_at IS NOT NULL AND
+    o.courier_uuid IS NULL AND
+    o.delivered_at IS NULL AND
+    (o.delivery_address ->> 'city') = (
+        SELECT city
+        FROM orders.couriers
+        WHERE couriers.courier_uuid = $1
+    )
+ORDER BY o.ordered_at DESC;
+
 -- name: ListMenuItems :many
 -- Lists menu items with optional restaurant name filter, optional full-text search, and dynamic ordering.
 -- Uses CASE WHEN to support multiple ordering options in a single query.

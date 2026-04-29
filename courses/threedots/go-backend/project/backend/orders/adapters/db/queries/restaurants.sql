@@ -57,6 +57,11 @@ WHERE
 	restaurant_menu_item_uuid = ANY ($1::UUID[])
 ;
 
+-- name: ListRestaurants :many
+SELECT *
+FROM orders.restaurants
+ORDER BY name ASC;
+
 -- name: GetMenuItemsByUUIDs :many
 SELECT
 	restaurant_menu_items.*

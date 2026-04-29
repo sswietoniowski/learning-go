@@ -66,3 +66,7 @@ func (u UUID) IsZero() bool {
 func (u UUID) Equals(other UUID) bool {
 	return u == other
 }
+
+type NullUUID struct {
+	UUID UUID
+}

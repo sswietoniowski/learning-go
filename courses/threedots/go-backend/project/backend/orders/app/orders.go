@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -61,6 +62,11 @@ type OrderRepository interface {
 		) (Quote, []QuoteMenuItem, error),
 	) (Quote, error)
 	GetRestaurant(ctx context.Context, restaurantUUID RestaurantUUID) (Restaurant, error)
+	GetQuote(ctx context.Context, quoteUUID QuoteUUID) (Quote, error)
+	GetMenuItemsForQuote(ctx context.Context, quoteUUID QuoteUUID, restaurantUUID RestaurantUUID) (map[RestaurantMenuItemUUID]MenuItem, error)
+	PlaceOrder(ctx context.Context, order Order) error
+	OrderByID(ctx context.Context, orderUUID OrderUUID) (Order, error)
+	UpdateOrder(ctx context.Context, orderUUID OrderUUID, updateFn func(ctx context.Context, order Order) (Order, error)) error
 }
 
 type CreateQuote struct {
@@ -237,4 +243,123 @@ func ensureQuoteItemsAreNotArchived(menuItems map[RestaurantMenuItemUUID]MenuIte
 		"archived menu items in order: %v",
 		archivedPositions,
 	)).WithDetails(details)
+}
+
+type OrderUUID struct {
+	common.UUID
+}
+
+type Order struct {
+	OrderUUID             OrderUUID
+	QuoteUUID             QuoteUUID
+	CustomerUUID          CustomerUUID
+	RestaurantUUID        RestaurantUUID
+	RestaurantName        string
+	CourierUUID           *CourierUUID
+	DeliveryAddress       shared.Address
+	OrderedAt             time.Time
+	RestaurantConfirmedAt *time.Time
+	CourierAcceptedAt     *time.Time
+	RestaurantPreparedAt  *time.Time
+	PickedUpAt            *time.Time
+	DeliveredAt           *time.Time
+	ItemsSubtotalGross    decimal.Decimal
+	ServiceFeeGross       decimal.Decimal
+	DeliveryFeeGross      decimal.Decimal
+	TotalAmountGross      decimal.Decimal
+	TotalTax              decimal.Decimal
+	Currency              shared.Currency
+}
+
+func NewOrderFromQuote(quote Quote) (Order, error) {
+	return Order{
+		OrderUUID:          OrderUUID{common.NewUUIDv7()},
+		QuoteUUID:          quote.QuoteUUID,
+		CustomerUUID:       quote.CustomerUUID,
+		RestaurantUUID:     quote.RestaurantUUID,
+		DeliveryAddress:    quote.DeliveryAddress,
+		OrderedAt:          time.Now(),
+		ItemsSubtotalGross: quote.ItemsSubtotalGross,
+		ServiceFeeGross:    quote.ServiceFeeGross,
+		DeliveryFeeGross: quote.DeliveryFeeGross,
+		TotalAmountGross: quote.TotalAmountGross,
+		TotalTax:         quote.TotalTax,
+		Currency:         quote.Currency,
+	}, nil
+}
+
+func (s *Service) PlaceOrder(ctx context.Context, customerUUID CustomerUUID, quoteUUID QuoteUUID, paymentNonce string) (Order, error) {
+	quote, err := s.orderRepository.GetQuote(ctx, quoteUUID)
+	if err != nil {
+		return Order{}, err
+	}
+
+	if quote.CustomerUUID != customerUUID {
+		return Order{}, common.NewForbiddenError("invalid-customer", "customer does not match the quote")
+	}
+
+	if quote.Expired() {
+		return Order{}, common.NewExpiredError("quote-expired", "quote has expired")
+	}
+
+	menuItems, err := s.orderRepository.GetMenuItemsForQuote(ctx, quoteUUID, quote.RestaurantUUID)
+	if err != nil {
+		return Order{}, err
+	}
+
+	if err := ensureQuoteItemsAreNotArchived(menuItems); err != nil {
+		return Order{}, err
+	}
+
+	restaurant, err := s.orderRepository.GetRestaurant(ctx, quote.RestaurantUUID)
+	if err != nil {
+		return Order{}, err
+	}
+
+	if err := s.paymentsClient.CapturePayment(ctx, paymentNonce, quote.TotalAmountGross, quote.RestaurantUUID.String()); err != nil {
+		return Order{}, fmt.Errorf("payment capture failed: %w", err)
+	}
+
+	order, err := NewOrderFromQuote(quote)
+	if err != nil {
+		return Order{}, err
+	}
+	order.CustomerUUID = customerUUID
+	order.RestaurantName = restaurant.Name
+
+	if err := s.orderRepository.PlaceOrder(ctx, order); err != nil {
+		return Order{}, err
+	}
+
+	return order, nil
+}
+
+func (s *Service) AcceptOrder(ctx context.Context, restaurantUUID RestaurantUUID, orderUUID OrderUUID) error {
+	return s.orderRepository.UpdateOrder(ctx, orderUUID, func(ctx context.Context, order Order) (Order, error) {
+		if order.RestaurantUUID != restaurantUUID {
+			return Order{}, common.NewForbiddenError("wrong-restaurant", "restaurant does not own this order")
+		}
+		if order.RestaurantConfirmedAt != nil {
+			slog.WarnContext(ctx, "order already accepted", "order_uuid", orderUUID)
+			return order, nil
+		}
+		now := time.Now()
+		order.RestaurantConfirmedAt = &now
+		return order, nil
+	})
+}
+
+func (s *Service) MarkOrderReadyForPickup(ctx context.Context, restaurantUUID RestaurantUUID, orderUUID OrderUUID) error {
+	return s.orderRepository.UpdateOrder(ctx, orderUUID, func(ctx context.Context, order Order) (Order, error) {
+		if order.RestaurantUUID != restaurantUUID {
+			return Order{}, common.NewForbiddenError("wrong-restaurant", "restaurant does not own this order")
+		}
+		if order.RestaurantPreparedAt != nil {
+			slog.WarnContext(ctx, "order already marked ready for pickup", "order_uuid", orderUUID)
+			return order, nil
+		}
+		now := time.Now()
+		order.RestaurantPreparedAt = &now
+		return order, nil
+	})
 }
