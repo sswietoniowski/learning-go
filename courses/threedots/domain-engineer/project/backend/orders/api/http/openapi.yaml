@@ -1,0 +1,1209 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Orders
+  contact:
+    name: Three Dots Labs
+    url: https://threedots.tech/
+servers:
+  - url: http://{hostname}/orders
+    variables:
+      hostname:
+        default: localhost:8080
+paths:
+  /orders/register-customer:
+    post:
+      summary: Register a new customer
+      operationId: registerCustomer
+      tags:
+        - customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCustomer'
+      responses:
+        '201':
+          description: Customer registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterCustomerResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Customer already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /orders/register-courier:
+    post:
+      summary: Register a new courier
+      operationId: registerCourier
+      tags:
+        - courier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCourier'
+      responses:
+        '201':
+          description: Courier registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterCourierResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /orders/customer/create-quote:
+    post:
+      summary: Create order quote
+      operationId: customerCreateQuote
+      tags:
+        - customer
+      parameters:
+        - name: Customer-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerUUID'
+          description: Customer UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuoteRequest'
+      responses:
+        '201':
+          description: Order initialized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateQuoteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+
+  /orders/customer/place-order:
+    post:
+      summary: Place a new order using an order offer
+      operationId: customerPlaceOrder
+      tags:
+        - customer
+      parameters:
+        - name: Customer-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerUUID'
+          description: Customer UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceOrder'
+      responses:
+        '201':
+          description: Order placed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerOrder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+
+  /orders/customer/orders:
+    get:
+      summary: List customer orders
+      operationId: customerGetOrders
+      tags:
+        - customer
+      parameters:
+        - name: Customer-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerUUID'
+          description: Customer UUID
+      responses:
+        '200':
+          description: List of customer orders
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - orders
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CustomerOrder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+
+
+  /orders/restaurant/accept-order:
+    post:
+      summary: Restaurant accepts an order
+      operationId: restaurantAcceptOrder
+      tags:
+        - restaurant
+      parameters:
+        - name: Restaurant-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/RestaurantUUID'
+          description: Restaurant UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptOrder'
+      responses:
+        '202':
+          description: Order acceptance recorded
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /orders/restaurant/orders:
+    get:
+      summary: List orders for restaurant
+      operationId: restaurantGetOrders
+      tags:
+        - restaurant
+      parameters:
+        - name: Restaurant-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/RestaurantUUID'
+          description: Restaurant UUID
+      responses:
+        '200':
+          description: List of restaurant orders
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - orders
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RestaurantOrder'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /orders/restaurant/mark-order-ready-for-pickup:
+    post:
+      summary: Restaurant marks order as ready for pickup
+      operationId: restaurantMarkOrderReadyForPickup
+      tags:
+        - restaurant
+      parameters:
+        - name: Restaurant-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/RestaurantUUID'
+          description: Restaurant UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkOrderReady'
+      responses:
+        '202':
+          description: Order marked as ready
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /orders/courier/available-orders:
+    get:
+      summary: List orders available for delivery
+      operationId: courierGetAvailableOrders
+      tags:
+        - courier
+      parameters:
+        - name: Courier-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CourierUUID'
+          description: Courier UUID
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - orders
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CourierOrder'
+          description: List of available orders
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /orders/courier/current-orders:
+    get:
+      summary: List current orders assigned to courier
+      operationId: courierGetCurrentOrders
+      tags:
+        - courier
+      parameters:
+        - name: Courier-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CourierUUID'
+          description: Courier UUID
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - orders
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CourierOrder'
+          description: List of current orders
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /orders/courier/accept-delivery:
+    post:
+      summary: Courier accepts delivery job
+      operationId: courierAcceptDelivery
+      tags:
+        - courier
+      parameters:
+        - name: Courier-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CourierUUID'
+          description: Courier UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptDelivery'
+      responses:
+        '202':
+          description: Delivery acceptance recorded
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /orders/courier/report-pickup:
+    post:
+      summary: Courier reports picking up an order
+      operationId: courierReportPickup
+      tags:
+        - courier
+      parameters:
+        - name: Courier-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CourierUUID'
+          description: Courier UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportPickup'
+      responses:
+        '202':
+          description: Pickup recorded
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /orders/courier/report-delivery:
+    post:
+      summary: Courier reports successful delivery
+      operationId: courierReportDelivery
+      tags:
+        - courier
+      parameters:
+        - name: Courier-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CourierUUID'
+          description: Courier UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportDelivery'
+      responses:
+        '202':
+          description: Delivery recorded
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /orders/customer/restaurants:
+    get:
+      summary: List all restaurants
+      operationId: customerListRestaurants
+      tags:
+        - customer
+      parameters:
+        - name: Customer-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerUUID'
+          description: Customer UUID
+      responses:
+        '200':
+          description: List of restaurants
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - restaurants
+                properties:
+                  restaurants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Restaurant'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /orders/restaurant/onboard/{restaurant_uuid}:
+    put:
+      summary: Onboard or replace a restaurant with full details
+      operationId: onboardRestaurant
+      tags:
+        - operations
+      parameters:
+        - name: Operator-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/OperatorUUID'
+        - name: restaurant_uuid
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/RestaurantUUID'
+          description: UUID of the restaurant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardRestaurant'
+      responses:
+        '204':
+          description: Restaurant onboarded successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /orders/restaurants/menu-items:
+    get:
+      summary: List all menu items with restaurant info
+      operationId: listMenuItems
+      description: |
+        Returns a list of all active menu items joined with their restaurant information.
+        This is a read model endpoint - it returns denormalized data optimized for display.
+        Supports filtering by restaurant name, full-text search, and ordering by price or name.
+      tags:
+        - read-model
+      parameters:
+        - name: restaurant_name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by restaurant name (case-insensitive partial match)
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Full-text search across menu item names and restaurant names
+        - name: order_by
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [price_asc, price_desc, name_asc, name_desc, relevance]
+            default: name_asc
+          description: Order results by price, name, or relevance (when searching)
+      responses:
+        '200':
+          description: List of menu items with restaurant info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MenuItemWithRestaurant'
+
+  /orders/customer/{restaurant_uuid}/menu:
+    get:
+      summary: Get restaurant menu
+      operationId: customerGetRestaurantMenu
+      tags:
+        - customer
+      parameters:
+        - name: Customer-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerUUID'
+          description: Customer UUID
+        - name: restaurant_uuid
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/RestaurantUUID'
+          description: UUID of the restaurant
+      responses:
+        '200':
+          description: Restaurant menu
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - restaurant_uuid
+                  - restaurant_name
+                  - address
+                  - description
+                  - currency
+                  - items
+                properties:
+                  restaurant_uuid:
+                    $ref: '#/components/schemas/RestaurantUUID'
+                  restaurant_name:
+                    type: string
+                  address:
+                    $ref: '#/components/schemas/Address'
+                  description:
+                    type: string
+                  currency:
+                    $ref: '#/components/schemas/Currency'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MenuItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    RegisterCustomer:
+      type: object
+      required:
+        - name
+        - email
+        - address
+        - phone_number
+      properties:
+        name:
+          type: string
+          description: Customer's full name
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          description: Customer's email address
+          maxLength: 255
+        address:
+          $ref: '#/components/schemas/Address'
+        phone_number:
+          type: string
+          description: Customer's phone number
+          minLength: 1
+          maxLength: 50
+
+    RegisterCustomerResponse:
+      type: object
+      required:
+        - customer_uuid
+      properties:
+        customer_uuid:
+          $ref: '#/components/schemas/CustomerUUID'
+
+    RegisterCourier:
+      type: object
+      required:
+        - name
+        - phone_number
+        - city
+      properties:
+        name:
+          type: string
+          description: Courier's full name
+          minLength: 1
+          maxLength: 255
+        phone_number:
+          type: string
+          description: Courier's phone number
+          minLength: 1
+          maxLength: 50
+        city:
+          type: string
+          description: City where courier operates
+          minLength: 1
+          maxLength: 100
+
+    RegisterCourierResponse:
+      type: object
+      required:
+        - courier_uuid
+      properties:
+        courier_uuid:
+          $ref: '#/components/schemas/CourierUUID'
+
+    CreateQuoteRequest:
+      type: object
+      required:
+        - restaurant_uuid
+        - items
+        - delivery_address
+      properties:
+        restaurant_uuid:
+          $ref: '#/components/schemas/RestaurantUUID'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          minItems: 1
+        delivery_address:
+          $ref: '#/components/schemas/Address'
+
+    CreateQuoteResponse:
+      type: object
+      required:
+        - quote_uuid
+        - items_subtotal_gross
+        - service_fee_gross
+        - delivery_fee_gross
+        - total_gross
+        - total_tax
+        - expires_at
+        - currency
+      properties:
+        quote_uuid:
+          $ref: '#/components/schemas/QuoteUUID'
+        items_subtotal_gross:
+          $ref: '#/components/schemas/Decimal'
+        service_fee_gross:
+          $ref: '#/components/schemas/Decimal'
+        delivery_fee_gross:
+          $ref: '#/components/schemas/Decimal'
+        total_gross:
+          $ref: '#/components/schemas/Decimal'
+        total_tax:
+          $ref: '#/components/schemas/Decimal'
+        expires_at:
+          type: string
+          format: date-time
+          description: When the offer expires
+        currency:
+          $ref: '#/components/schemas/Currency'
+
+    PlaceOrder:
+      type: object
+      required:
+        - quote_uuid
+        - payment_nonce
+      properties:
+        quote_uuid:
+          $ref: '#/components/schemas/QuoteUUID'
+        payment_nonce:
+          type: string
+
+    CustomerOrder:
+      type: object
+      required:
+        - order_uuid
+        - restaurant_uuid
+        - restaurant_name
+        - delivery_address
+        - ordered_at
+        - items_subtotal_gross
+        - service_fee_gross
+        - delivery_fee_gross
+        - total_gross
+        - total_tax
+        - currency
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+        restaurant_uuid:
+          $ref: '#/components/schemas/RestaurantUUID'
+        restaurant_name:
+          type: string
+        courier_uuid:
+          $ref: '#/components/schemas/CourierUUID'
+        delivery_address:
+          $ref: '#/components/schemas/Address'
+        ordered_at:
+          type: string
+          format: date-time
+          description: When the order was placed
+        restaurant_confirmed_at:
+          type: string
+          format: date-time
+        courier_accepted_at:
+          type: string
+          format: date-time
+        restaurant_prepared_at:
+          type: string
+          format: date-time
+        picked_up_at:
+          type: string
+          format: date-time
+        delivered_at:
+          type: string
+          format: date-time
+        items_subtotal_gross:
+          $ref: '#/components/schemas/Decimal'
+        service_fee_gross:
+          $ref: '#/components/schemas/Decimal'
+        delivery_fee_gross:
+          $ref: '#/components/schemas/Decimal'
+        total_gross:
+          $ref: '#/components/schemas/Decimal'
+        total_tax:
+          $ref: '#/components/schemas/Decimal'
+        currency:
+          $ref: '#/components/schemas/Currency'
+
+
+    OrderItem:
+      type: object
+      required:
+        - menu_item_uuid
+        - quantity
+      properties:
+        menu_item_uuid:
+          $ref: '#/components/schemas/MenuItemUUID'
+        quantity:
+          type: integer
+          minimum: 1
+          description: Quantity of the item
+
+    AcceptOrder:
+      type: object
+      required:
+        - order_uuid
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+
+    ConfirmOrder:
+      type: object
+      required:
+        - order_uuid
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+
+    RestaurantOrder:
+      type: object
+      required:
+        - order_uuid
+        - customer_uuid
+        - ordered_at
+        - items_subtotal_gross
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+        customer_uuid:
+          $ref: '#/components/schemas/CustomerUUID'
+        courier_uuid:
+          allOf:
+            - $ref: '#/components/schemas/CourierUUID'
+          nullable: true
+        ordered_at:
+          type: string
+          format: date-time
+          description: When the order was placed
+        restaurant_confirmed_at:
+          type: string
+          format: date-time
+          description: When the restaurant confirmed the order
+          nullable: true
+        courier_accepted_at:
+          type: string
+          format: date-time
+          description: When the courier accepted the order
+          nullable: true
+        restaurant_prepared_at:
+          type: string
+          format: date-time
+          description: When the order was marked ready for pickup
+          nullable: true
+        picked_up_at:
+          type: string
+          format: date-time
+          description: When the order was picked up
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          description: When the order was delivered
+          nullable: true
+        items_subtotal_gross:
+          $ref: '#/components/schemas/Decimal'
+
+    MarkOrderReady:
+      type: object
+      required:
+        - order_uuid
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+
+    AcceptDelivery:
+      type: object
+      required:
+        - order_uuid
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+
+    CourierOrder:
+      type: object
+      required:
+        - order_uuid
+        - customer_uuid
+        - ordered_at
+        - items_subtotal_gross
+        - delivery_address
+        - restaurant_uuid
+        - restaurant_name
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+        customer_uuid:
+          $ref: '#/components/schemas/CustomerUUID'
+        courier_uuid:
+          allOf:
+            - $ref: '#/components/schemas/CourierUUID'
+          nullable: true
+        ordered_at:
+          type: string
+          format: date-time
+          description: When the order was placed
+        restaurant_confirmed_at:
+          type: string
+          format: date-time
+          description: When the restaurant confirmed the order
+          nullable: true
+        accepted_by_courier_at:
+          type: string
+          format: date-time
+          description: When the courier accepted the order
+          nullable: true
+        restaurant_prepared_at:
+          type: string
+          format: date-time
+          description: When the order was marked ready for pickup
+          nullable: true
+        picked_up_at:
+          type: string
+          format: date-time
+          description: When the order was picked up
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          description: When the order was delivered
+          nullable: true
+        items_subtotal_gross:
+          $ref: '#/components/schemas/Decimal'
+        delivery_address:
+          $ref: '#/components/schemas/Address'
+        restaurant_uuid:
+          $ref: '#/components/schemas/RestaurantUUID'
+        restaurant_name:
+          type: string
+          description: Name of the restaurant
+
+
+    ReportPickup:
+      type: object
+      required:
+        - order_uuid
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+
+    ReportDelivery:
+      type: object
+      required:
+        - order_uuid
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+
+    ReportDeliveryIssue:
+      type: object
+      required:
+        - order_uuid
+        - issue_description
+      properties:
+        order_uuid:
+          $ref: '#/components/schemas/OrderUUID'
+        issue_description:
+          type: string
+          description: Description of the delivery issue
+
+    Restaurant:
+      type: object
+      required:
+        - uuid
+        - name
+        - description
+        - address
+      properties:
+        uuid:
+          $ref: '#/components/schemas/RestaurantUUID'
+        name:
+          type: string
+          description: Restaurant name
+        description:
+          type: string
+          description: Restaurant description
+        address:
+          $ref: '#/components/schemas/Address'
+
+    MenuItem:
+      type: object
+      required:
+        - uuid
+        - name
+        - gross_price
+        - ordering
+      properties:
+        uuid:
+          $ref: '#/components/schemas/MenuItemUUID'
+        name:
+          type: string
+          description: Item name
+        gross_price:
+          $ref: '#/components/schemas/Decimal'
+        ordering:
+          type: number
+          description: Ordering index for display
+
+    MenuItemWithRestaurant:
+      type: object
+      required:
+        - menu_item_uuid
+        - menu_item_name
+        - gross_price
+        - currency
+        - restaurant_uuid
+        - restaurant_name
+      properties:
+        menu_item_uuid:
+          $ref: '#/components/schemas/MenuItemUUID'
+        menu_item_name:
+          type: string
+          description: Name of the menu item
+        gross_price:
+          $ref: '#/components/schemas/Decimal'
+        currency:
+          $ref: '#/components/schemas/Currency'
+        restaurant_uuid:
+          $ref: '#/components/schemas/RestaurantUUID'
+        restaurant_name:
+          type: string
+          description: Name of the restaurant
+
+    OnboardRestaurant:
+      type: object
+      required:
+        - name
+        - address
+        - currency
+        - description
+        - menu_items
+      properties:
+        name:
+          type: string
+          description: Restaurant name
+        address:
+          $ref: '#/components/schemas/Address'
+        currency:
+          $ref: '#/components/schemas/Currency'
+        description:
+          type: string
+          description: Restaurant description
+        menu_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'
+          description: Menu items for the restaurant
+
+    OrderUUID:
+      type: string
+      format: uuid
+      description: UUID of an order
+      x-go-type: app.OrderUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    QuoteUUID:
+      type: string
+      format: uuid
+      description: UUID of an quote
+      x-go-type: app.QuoteUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    CustomerUUID:
+      type: string
+      format: uuid
+      description: UUID of a customer
+      x-go-type: app.CustomerUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    RestaurantUUID:
+      type: string
+      format: uuid
+      description: UUID of a restaurant
+      x-go-type: app.RestaurantUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    CourierUUID:
+      type: string
+      format: uuid
+      description: UUID of a courier
+      x-go-type: app.CourierUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    MenuItemUUID:
+      type: string
+      format: uuid
+      description: UUID of a menu item
+      x-go-type: app.RestaurantMenuItemUUID
+      x-go-type-import:
+        path: eats/backend/orders/app
+
+    OperatorUUID:
+      type: string
+      format: uuid
+      description: UUID of an operator
+      x-go-type: common.UUID
+      x-go-type-import:
+        path: eats/backend/common
+
+    Decimal:
+      type: string
+      x-go-type: decimal.Decimal
+      x-go-type-import:
+        path: github.com/shopspring/decimal
+
+    Currency:
+      type: string
+      description: Currency code in ISO 4217 format
+      x-go-type: shared.Currency
+      x-go-type-import:
+        path: eats/backend/common/shared
+
+    Address:
+      type: object
+      required:
+        - line1
+        - line2
+        - postal_code
+        - city
+        - country_code
+      properties:
+        line1:
+          type: string
+          description: First line of the address
+        line2:
+          type: string
+          description: Second line of the address
+        postal_code:
+          type: string
+          description: Postal code of the address
+        city:
+          type: string
+          description: City of the address
+        country_code:
+          $ref: '#/components/schemas/CountryCode'
+
+    CountryCode:
+      type: string
+      description: Country code in ISO 3166-1 alpha-2 format
+      x-go-type: shared.CountryCode
+      x-go-type-import:
+        path: eats/backend/common/shared
+
+    ErrorResponse:
+      type: object
+      required:
+        - slug
+        - message
+        - details
+      properties:
+        slug:
+          type: string
+          description: Error slug
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: array
+          description: Detailed error information
+          items:
+            $ref: '#/components/schemas/ErrorDetails'
+
+    ErrorDetails:
+      type: object
+      required:
+        - error_slug
+        - message
+      properties:
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+        error_slug:
+          type: string
+        message:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Conflict:
+      description: Conflict with current state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Gone:
+      description: Order offer has expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
