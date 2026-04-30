@@ -1,0 +1,168 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "queries"
+    schema: "migrations"
+    gen:
+      go:
+        package: "dbmodels"
+        out: "dbmodels"
+        sql_package: "pgx/v5"
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
+        overrides:
+          # Map nullable timestamptz to *time.Time (pointer for nil handling).
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
+
+          # Map non-nullable timestamptz to time.Time.
+          - db_type: "timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+
+          # Use shopspring/decimal for money - floats have precision issues.
+          # See: https://github.com/shopspring/decimal#why-dont-you-just-use-float64
+          - db_type: "pg_catalog.numeric"
+            go_type:
+              import: "github.com/shopspring/decimal"
+              type: "Decimal"
+
+          - db_type: "uuid"
+            nullable: false
+            go_type:
+              import: "eats/backend/common"
+              type: "UUID"
+
+          - db_type: "uuid"
+            nullable: true
+            go_type:
+              import: "eats/backend/common"
+              type: "NullUUID"
+
+          - column: "orders.customers.address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "orders.customers.customer_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CustomerUUID"
+
+          - column: "orders.restaurants.restaurant_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantUUID"
+
+          - column: "orders.restaurants.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"
+
+          - column: "orders.restaurants.address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "orders.restaurant_menu_items.restaurant_menu_item_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantMenuItemUUID"
+
+          - column: "orders.restaurant_menu_items.restaurant_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantUUID"
+
+          - column: "orders.orders.order_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "OrderUUID"
+
+          - column: "orders.orders.quote_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "QuoteUUID"
+
+          - column: "orders.orders.restaurant_uuid"
+            nullable: true
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantUUID"
+
+          - column: "orders.orders.courier_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CourierUUID"
+              pointer: true
+
+          - column: "orders.orders.customer_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CustomerUUID"
+
+          - column: "orders.orders.delivery_address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "orders.order_positions.order_position_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "OrderPositionUUID"
+
+          - column: "orders.orders.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"
+
+          - column: "orders.quotes.order_position_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "OrderPositionUUID"
+
+          - column: "orders.quotes.customer_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CustomerUUID"
+
+          - column: "orders.quotes.restaurant_uuid"
+            nullable: true
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantUUID"
+
+          - column: "orders.quotes.quote_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "QuoteUUID"
+
+          - column: "orders.quotes.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"
+
+          - column: "orders.quotes.delivery_address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "orders.quote_items.quote_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "QuoteUUID"
+
+          - column: "orders.quote_items.menu_item_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "RestaurantMenuItemUUID"
+
+          - column: "orders.couriers.courier_uuid"
+            go_type:
+              import: "eats/backend/orders/app"
+              type: "CourierUUID"

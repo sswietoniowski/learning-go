@@ -1,0 +1,53 @@
+services:
+  gateway:
+    image: threedotslabs/the-domain-engineer-gateway:latest
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "8888:8080"
+    environment:
+      SOLUTION_BASE_URL: "http://host.docker.internal:8080/"
+
+    # this allows webhooks from Gateway to call your solution on Linux
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      GATEWAY_ADDR: "gateway:8080"
+      POSTGRES_URL: "postgres://user:password@postgres:5432/eats?sslmode=disable"
+    depends_on:
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+    volumes:
+      - ./:/src
+      - go_pkg:/go/pkg
+      - go_cache:/go-cache
+
+  postgres:
+    image: postgres:17.6-alpine3.22
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: eats
+    healthcheck:
+      test: pg_isready -U user -d eats
+      interval: 1s
+      retries: 120
+      start_period: 2s
+    ports:
+      - "5432:5432"
+
+volumes:
+  go_pkg:
+  go_cache:
