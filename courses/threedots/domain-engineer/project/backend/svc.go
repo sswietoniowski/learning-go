@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	echo "github.com/labstack/echo/v4"
 
+	"eats/backend/billing"
 	commonHTTP "eats/backend/common/http"
 	"eats/backend/common/log"
 	"eats/backend/common/module"
@@ -53,6 +54,7 @@ func New(
 	modules := []module.Module{
 		orders.NewModule(dbPgx, moduleContracts, apiClients),
 		delivery.NewModule(),
+		billing.NewModule(dbPgx),
 	}
 
 	for _, module := range modules {
