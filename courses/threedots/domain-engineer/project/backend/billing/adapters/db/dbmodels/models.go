@@ -2,17 +2,17 @@
 // versions:
 //   sqlc v1.30.0
 
-package dbtests
+package dbmodels
 
 import (
+	"eats/backend/billing/domain"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type BillingDocument struct {
-	DocumentUuid      pgtype.UUID
-	ExternalReference pgtype.Text
-	DocumentNumber    string
-	SeriesPrefix      string
+	DocumentUuid   domain.DocumentUUID
+	DocumentNumber string
+	SeriesPrefix   string
 }
 
 type BillingDocumentSeries struct {
