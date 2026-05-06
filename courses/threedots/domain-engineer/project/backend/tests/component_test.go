@@ -223,7 +223,7 @@ func TestComponent_RegisterCourier(t *testing.T) {
 	ctx := t.Context()
 
 	country := testutils.GenerateRandomCountry()
-	city := testutils.GenerateRandomAddress(country).City
+	city := testutils.GenerateRandomAddress(country).City()
 
 	// Register a courier
 	courier := registerCourierInCity(ctx, t, clients, country, city)

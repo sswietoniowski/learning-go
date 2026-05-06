@@ -90,7 +90,7 @@ func (s *Service) CourierAcceptDelivery(ctx context.Context, courierUUID Courier
 				))
 			}
 
-			if order.DeliveryAddress.City != courierCity {
+			if order.DeliveryAddress.City() != courierCity {
 				return Order{}, common.NewInvalidInputError(
 					"courier-out-of-delivery-zone",
 					"courier cannot accept orders outside their delivery zone",

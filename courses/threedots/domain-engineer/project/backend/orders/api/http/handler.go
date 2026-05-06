@@ -280,11 +280,11 @@ func (h Handler) CustomerGetOrders(ctx context.Context, request CustomerGetOrder
 
 func sharedAddressToOpenapiAddress(addr shared.Address) Address {
 	return Address{
-		Line1:       addr.Line1,
-		Line2:       addr.Line2,
-		PostalCode:  addr.PostalCode,
-		City:        addr.City,
-		CountryCode: addr.CountryCode,
+		Line1:       addr.Line1(),
+		Line2:       addr.Line2(),
+		PostalCode:  addr.PostalCode(),
+		City:        addr.City(),
+		CountryCode: addr.CountryCode(),
 	}
 }
 

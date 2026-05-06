@@ -269,14 +269,14 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 				return Quote{}, nil, err
 			}
 
-			if restaurant.Address.City != req.DeliveryAddress.City {
+			if restaurant.Address.City() != req.DeliveryAddress.City() {
 				return Quote{}, nil, common.NewInvalidInputError(
 					"address-out-of-delivery-zone",
 					"restaurant does not deliver to the provided address",
 				).WithDetails([]common.ErrorDetails{{
 					EntityType: "quote",
 					ErrorSlug:  "address-out-of-delivery-zone",
-					Message:    fmt.Sprintf("restaurant delivers to %s only", restaurant.Address.City),
+					Message:    fmt.Sprintf("restaurant delivers to %s only", restaurant.Address.City()),
 				}})
 			}
 
