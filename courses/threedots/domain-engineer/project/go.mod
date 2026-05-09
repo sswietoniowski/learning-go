@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/ThreeDotsLabs/humanslog v0.1.0
-	github.com/ThreeDotsLabs/the-domain-engineer v0.0.2
+	github.com/ThreeDotsLabs/the-domain-engineer v0.0.3
 	github.com/brianvoe/gofakeit/v7 v7.14.0
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/golang-migrate/migrate/v4 v4.19.1

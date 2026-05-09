@@ -8,7 +8,9 @@ import (
 	"time"
 
 	backoff "github.com/cenkalti/backoff/v5"
+	"github.com/jackc/pgerrcode"
 	pgx "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 const couldNotSerializeAccessErrMsg = "could not serialize access"
@@ -93,4 +95,17 @@ func updateInTx(
 	}()
 
 	return fn(ctx, tx)
+}
+
+func IsUniqueViolationError(err error, constraint string) bool {
+	if err == nil {
+		return false
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == pgerrcode.UniqueViolation && pgErr.ConstraintName == constraint
+	}
+
+	return false
 }
