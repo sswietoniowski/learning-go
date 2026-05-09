@@ -4,4 +4,5 @@ var SharedTypes = []any{
 	Currency{},
 	CountryCode{},
 	Address{},
+	TaxID{},
 }
