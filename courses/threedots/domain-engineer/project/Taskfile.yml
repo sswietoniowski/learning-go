@@ -46,6 +46,12 @@ tasks:
     cmds:
       - go test ./backend/tests/... -count=1 {{.CLI_ARGS}}
 
+  test-update-golden:
+    cmds:
+      - go test ./... -count=1 {{.CLI_ARGS}}
+    env:
+      UPDATE_GOLDEN_TESTS: "1"
+
   gen:
     cmds:
       - go generate ./...

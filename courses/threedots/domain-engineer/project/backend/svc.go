@@ -12,6 +12,7 @@ import (
 	echo "github.com/labstack/echo/v4"
 
 	"eats/backend/billing"
+	"eats/backend/common/file"
 	commonHTTP "eats/backend/common/http"
 	"eats/backend/common/log"
 	"eats/backend/common/module"
@@ -51,10 +52,12 @@ func New(
 	// then all modules can call each other after initialization completes.
 	moduleContracts := &contracts.Contracts{}
 
+	fileStorage := file.NewPublicStorage(apiClients)
+
 	modules := []module.Module{
 		orders.NewModule(dbPgx, moduleContracts, apiClients),
 		delivery.NewModule(),
-		billing.NewModule(dbPgx),
+		billing.NewModule(dbPgx, fileStorage),
 	}
 
 	for _, module := range modules {

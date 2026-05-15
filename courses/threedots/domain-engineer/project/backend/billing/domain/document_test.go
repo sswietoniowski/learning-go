@@ -164,11 +164,11 @@ func TestNewReceipt_ValidationErrors(t *testing.T) {
 func TestNewReceipt_SummarizesMultipleItems(t *testing.T) {
 	data := validReceiptData(t)
 	data.LineItems = []domain.NewLineItemData{
-		{Name: "Item A", Quantity: 2, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(10.00))},
-		{Name: "Item B", Quantity: 1, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(5.00))},
-		{Name: "Item C", Quantity: 1, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(15.00))},
-		{Name: "Item D", Quantity: 3, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(5.00))},
-		{Name: "Item E", Quantity: 2, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(10.00))},
+		{Name: "Item A", LineItemType: shared.LineItemTypeFood, Quantity: 2, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(10.00))},
+		{Name: "Item B", LineItemType: shared.LineItemTypeFood, Quantity: 1, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(5.00))},
+		{Name: "Item C", LineItemType: shared.LineItemTypeBeverage, Quantity: 1, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(15.00))},
+		{Name: "Item D", LineItemType: shared.LineItemTypeDelivery, Quantity: 3, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(5.00))},
+		{Name: "Item E", LineItemType: shared.LineItemTypeService, Quantity: 2, UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(10.00))},
 	}
 
 	doc, err := domain.NewReceipt(data, newTestDocumentNumber(t))
@@ -207,14 +207,16 @@ func validReceiptData(t *testing.T) domain.NewDocumentData {
 		Buyer:             buyer,
 		LineItems: []domain.NewLineItemData{
 			{
-				Name:       "Cheeseburger",
-				Quantity:   2,
-				UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(10.00)),
+				LineItemType: shared.LineItemTypeFood,
+				Name:         "Cheeseburger",
+				Quantity:     2,
+				UnitAmount:   shared.NewNetAmount(decimal.NewFromFloat(10.00)),
 			},
 			{
-				Name:       "Fries",
-				Quantity:   1,
-				UnitAmount: shared.NewNetAmount(decimal.NewFromFloat(3.50)),
+				LineItemType: shared.LineItemTypeFood,
+				Name:         "Fries",
+				Quantity:     1,
+				UnitAmount:   shared.NewNetAmount(decimal.NewFromFloat(3.50)),
 			},
 		},
 	}

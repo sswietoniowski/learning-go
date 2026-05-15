@@ -5,11 +5,13 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"eats/backend/delivery/api/module/client"
+	billingModule "eats/backend/billing/api/module/client"
+	deliveryModule "eats/backend/delivery/api/module/client"
 )
 
 type ModulesContract interface {
-	CalculateDeliveryFee(ctx context.Context, req client.CalculateDeliveryFeeRequest) (client.CalculateDeliveryFeeResponse, error)
+	CalculateDeliveryFee(ctx context.Context, req deliveryModule.CalculateDeliveryFeeRequest) (deliveryModule.CalculateDeliveryFeeResponse, error)
+	IssueReceipt(ctx context.Context, req billingModule.IssueReceiptRequest) error
 }
 
 type PaymentsService interface {

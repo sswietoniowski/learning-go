@@ -21,6 +21,7 @@ type Customer struct {
 }
 
 type CustomerRepository interface {
+	CustomerByUUID(ctx context.Context, customerUUID CustomerUUID) (Customer, error)
 	RegisterCustomer(ctx context.Context, customer Customer) error
 }
 

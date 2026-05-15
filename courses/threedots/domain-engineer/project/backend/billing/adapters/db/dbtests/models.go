@@ -5,14 +5,84 @@
 package dbtests
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type BillingTaxType string
+
+const (
+	BillingTaxTypeVat      BillingTaxType = "vat"
+	BillingTaxTypeGst      BillingTaxType = "gst"
+	BillingTaxTypeSalesTax BillingTaxType = "sales-tax"
+)
+
+func (e *BillingTaxType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BillingTaxType(s)
+	case string:
+		*e = BillingTaxType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BillingTaxType: %T", src)
+	}
+	return nil
+}
+
+type NullBillingTaxType struct {
+	BillingTaxType BillingTaxType
+	Valid          bool // Valid is true if BillingTaxType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBillingTaxType) Scan(value interface{}) error {
+	if value == nil {
+		ns.BillingTaxType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BillingTaxType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBillingTaxType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BillingTaxType), nil
+}
+
 type BillingDocument struct {
 	DocumentUuid      pgtype.UUID
-	ExternalReference pgtype.Text
 	DocumentNumber    string
 	SeriesPrefix      string
+	ExternalReference pgtype.Text
+	DocumentType      string
+	IssueDate         pgtype.Timestamptz
+	Currency          string
+	TotalNetAmount    pgtype.Numeric
+	TotalTaxAmount    pgtype.Numeric
+	TotalGrossAmount  pgtype.Numeric
+	SellerUuid        pgtype.UUID
+	BuyerUuid         pgtype.UUID
+	FileUrl           pgtype.Text
+}
+
+type BillingDocumentLineItem struct {
+	LineItemUuid    pgtype.UUID
+	DocumentUuid    pgtype.UUID
+	Name            string
+	Quantity        int32
+	UnitNetAmount   pgtype.Numeric
+	UnitTaxAmount   pgtype.Numeric
+	UnitGrossAmount pgtype.Numeric
+	NetAmount       pgtype.Numeric
+	TaxAmount       pgtype.Numeric
+	GrossAmount     pgtype.Numeric
+	TaxRate         pgtype.Numeric
+	TaxType         BillingTaxType
 }
 
 type BillingDocumentSeries struct {
@@ -20,4 +90,19 @@ type BillingDocumentSeries struct {
 	LastNumber int32
 	CreatedAt  pgtype.Timestamp
 	UpdatedAt  pgtype.Timestamp
+}
+
+type BillingDocumentTax struct {
+	DocumentUuid pgtype.UUID
+	TaxRate      pgtype.Numeric
+	TaxType      BillingTaxType
+	NetAmount    pgtype.Numeric
+	TaxAmount    pgtype.Numeric
+}
+
+type BillingLegalEntitySnapshot struct {
+	SnapshotUuid pgtype.UUID
+	Name         string
+	Address      []byte
+	TaxID        pgtype.Text
 }

@@ -22,6 +22,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	billingclient "eats/backend/billing/api/http/client"
 	"eats/backend/common"
 	"eats/backend/common/shared"
 	"eats/backend/common/testutils"
@@ -950,4 +951,54 @@ func onboardRestaurantWithItems(
 	require.Equal(t, http.StatusNoContent, resp.StatusCode())
 
 	return restaurantUUID, restaurantToCreate
+}
+
+func issueReceipt(
+	ctx context.Context,
+	t *testing.T,
+	clients testClients,
+) string {
+	t.Helper()
+
+	sellerTaxID, err := shared.NewTaxID("12-3456789")
+	require.NoError(t, err)
+
+	resp, err := clients.Billing.CreateReceiptWithResponse(ctx, billingclient.CreateDocument{
+		IssueDate: time.Now(),
+		Currency:  shared.MustNewCurrency("USD"),
+		Seller: billingclient.LegalEntity{
+			Name: "Eats Inc.",
+			Address: billingclient.Address{
+				Line1:       "123 Main St",
+				Line2:       "Suite 100",
+				City:        "New York",
+				PostalCode:  "10001",
+				CountryCode: shared.MustNewCountryCode("US"),
+			},
+			TaxId: &sellerTaxID,
+		},
+		Buyer: billingclient.LegalEntity{
+			Name: "John Doe",
+			Address: billingclient.Address{
+				Line1:       "456 Oak Ave",
+				City:        "New York",
+				PostalCode:  "10002",
+				CountryCode: shared.MustNewCountryCode("US"),
+			},
+		},
+		LineItems: []billingclient.LineItem{
+			{
+				Name:         "Classic Burger",
+				LineItemType: shared.LineItemTypeFood,
+				Quantity:     2,
+				UnitAmount:   decimal.RequireFromString("12.50"),
+				IsGross:      true,
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode(), "creating receipt failed: %s", string(resp.Body))
+	require.NotNil(t, resp.JSON201)
+
+	return resp.JSON201.DocumentUuid.String()
 }

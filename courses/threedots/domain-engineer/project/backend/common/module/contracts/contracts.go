@@ -7,6 +7,7 @@ package contracts
 import (
 	"errors"
 
+	billingModule "eats/backend/billing/api/module/client"
 	deliveryModule "eats/backend/delivery/api/module/client"
 	ordersModule "eats/backend/orders/api/module/client"
 )
@@ -14,6 +15,7 @@ import (
 type Contracts struct {
 	ordersModule.Orders
 	deliveryModule.Delivery
+	billingModule.Billing
 }
 
 func (c *Contracts) Verify() error {
@@ -24,6 +26,9 @@ func (c *Contracts) Verify() error {
 	}
 	if c.Delivery == nil {
 		err = errors.Join(err, errors.New("delivery module contract is empty"))
+	}
+	if c.Billing == nil {
+		err = errors.Join(err, errors.New("billing module contract is empty"))
 	}
 
 	return err

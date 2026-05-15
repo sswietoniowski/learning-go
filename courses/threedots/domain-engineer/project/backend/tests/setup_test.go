@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	eats "eats/backend"
+	billingclient "eats/backend/billing/api/http/client"
 	commonHTTP "eats/backend/common/http"
 	"eats/backend/common/log"
 	ordersclient "eats/backend/orders/api/http/client"
@@ -21,6 +22,7 @@ import (
 
 type testClients struct {
 	Orders        *ordersclient.ClientWithResponses
+	Billing       *billingclient.ClientWithResponses
 	CommonClients *commonclients.Clients
 }
 
@@ -49,6 +51,14 @@ func newTestClients(t *testing.T) testClients {
 		t.Fatalf("creating orders client: %v", err)
 	}
 
+	billing, err := billingclient.NewClientWithResponses("http://localhost:9090/",
+		billingclient.WithHTTPClient(httpClient),
+		billingclient.WithRequestEditorFn(editorFn),
+	)
+	if err != nil {
+		t.Fatalf("creating billing client: %v", err)
+	}
+
 	commonAPIClients, err := commonclients.NewClients(os.Getenv("GATEWAY_ADDR"), editorFn)
 	if err != nil {
 		t.Fatalf("creating common clients: %v", err)
@@ -56,6 +66,7 @@ func newTestClients(t *testing.T) testClients {
 
 	return testClients{
 		Orders:        orders,
+		Billing:       billing,
 		CommonClients: commonAPIClients,
 	}
 }

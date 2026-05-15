@@ -5,15 +5,89 @@
 package dbmodels
 
 import (
+	"database/sql/driver"
+	"fmt"
+	"time"
+
 	"eats/backend/billing/domain"
+	"eats/backend/common"
+	"eats/backend/common/shared"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/shopspring/decimal"
 )
+
+type BillingTaxType string
+
+const (
+	BillingTaxTypeVat      BillingTaxType = "vat"
+	BillingTaxTypeGst      BillingTaxType = "gst"
+	BillingTaxTypeSalesTax BillingTaxType = "sales-tax"
+)
+
+func (e *BillingTaxType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BillingTaxType(s)
+	case string:
+		*e = BillingTaxType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BillingTaxType: %T", src)
+	}
+	return nil
+}
+
+type NullBillingTaxType struct {
+	BillingTaxType BillingTaxType
+	Valid          bool // Valid is true if BillingTaxType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBillingTaxType) Scan(value interface{}) error {
+	if value == nil {
+		ns.BillingTaxType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BillingTaxType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBillingTaxType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BillingTaxType), nil
+}
 
 type BillingDocument struct {
 	DocumentUuid      domain.DocumentUUID
-	ExternalReference *string
 	DocumentNumber    string
 	SeriesPrefix      string
+	ExternalReference *string
+	DocumentType      domain.DocumentType
+	IssueDate         time.Time
+	Currency          shared.Currency
+	TotalNetAmount    decimal.Decimal
+	TotalTaxAmount    decimal.Decimal
+	TotalGrossAmount  decimal.Decimal
+	SellerUuid        common.UUID
+	BuyerUuid         common.UUID
+	FileUrl           *string
+}
+
+type BillingDocumentLineItem struct {
+	LineItemUuid    domain.LineItemUUID
+	DocumentUuid    domain.DocumentUUID
+	Name            string
+	Quantity        int32
+	UnitNetAmount   decimal.Decimal
+	UnitTaxAmount   decimal.Decimal
+	UnitGrossAmount decimal.Decimal
+	NetAmount       decimal.Decimal
+	TaxAmount       decimal.Decimal
+	GrossAmount     decimal.Decimal
+	TaxRate         decimal.Decimal
+	TaxType         domain.TaxType
 }
 
 type BillingDocumentSeries struct {
@@ -21,4 +95,19 @@ type BillingDocumentSeries struct {
 	LastNumber int32
 	CreatedAt  pgtype.Timestamp
 	UpdatedAt  pgtype.Timestamp
+}
+
+type BillingDocumentTax struct {
+	DocumentUuid domain.DocumentUUID
+	TaxRate      decimal.Decimal
+	TaxType      domain.TaxType
+	NetAmount    decimal.Decimal
+	TaxAmount    decimal.Decimal
+}
+
+type BillingLegalEntitySnapshot struct {
+	SnapshotUuid common.UUID
+	Name         string
+	Address      shared.Address
+	TaxID        *shared.TaxID
 }

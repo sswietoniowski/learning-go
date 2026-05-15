@@ -26,6 +26,23 @@ func NewCustomerRepository(db *pgxpool.Pool) *CustomerRepository {
 	}
 }
 
+func (r *CustomerRepository) CustomerByUUID(ctx context.Context, customerUUID app.CustomerUUID) (app.Customer, error) {
+	queries := dbmodels.New(r.db)
+
+	dbCustomer, err := queries.GetCustomerByUUID(ctx, customerUUID)
+	if err != nil {
+		return app.Customer{}, fmt.Errorf("could not get customer: %w", err)
+	}
+
+	return app.Customer{
+		CustomerUUID: customerUUID,
+		Name:         dbCustomer.Name,
+		Email:        dbCustomer.Email,
+		Address:      dbCustomer.Address,
+		PhoneNumber:  dbCustomer.PhoneNumber,
+	}, nil
+}
+
 func (r *CustomerRepository) RegisterCustomer(ctx context.Context, customer app.Customer) error {
 	return common.UpdateInTx(ctx, r.db, func(ctx context.Context, tx pgx.Tx) error {
 		queries := dbmodels.New(tx)

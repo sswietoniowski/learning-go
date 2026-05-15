@@ -20,6 +20,16 @@ import (
 	ordersclient "eats/backend/orders/api/http/client"
 )
 
+func TestComponent_IssueReceipt(t *testing.T) {
+	t.Parallel()
+	clients := newTestClients(t)
+
+	ctx := t.Context()
+
+	documentUUID := issueReceipt(ctx, t, clients)
+	require.NotEmpty(t, documentUUID, "document UUID should not be empty")
+}
+
 func TestComponent_CriticalFlow(t *testing.T) {
 	t.Parallel()
 	clients := newTestClients(t)

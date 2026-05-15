@@ -50,6 +50,57 @@ sql:
               import: "eats/backend/billing/domain"
               type: "DocumentUUID"
 
+          - column: "billing.documents.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"
+
+          - column: "billing.documents.document_type"
+            go_type:
+              import: "eats/backend/billing/domain"
+              type: "DocumentType"
+
+          - column: "billing.document_line_items.document_uuid"
+            go_type:
+              import: "eats/backend/billing/domain"
+              type: "DocumentUUID"
+
+          - column: "billing.document_line_items.line_item_uuid"
+            go_type:
+              import: "eats/backend/billing/domain"
+              type: "LineItemUUID"
+
+          - column: "billing.document_line_items.line_item_type"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "LineItemType"
+
+          - column: "billing.document_line_items.tax_type"
+            go_type:
+              import: "eats/backend/billing/domain"
+              type: "TaxType"
+
+          - column: "billing.document_taxes.document_uuid"
+            go_type:
+              import: "eats/backend/billing/domain"
+              type: "DocumentUUID"
+
+          - column: "billing.document_taxes.tax_type"
+            go_type:
+              import: "eats/backend/billing/domain"
+              type: "TaxType"
+
+          - column: "billing.legal_entity_snapshots.address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "billing.legal_entity_snapshots.tax_id"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "TaxID"
+              pointer: true
+
   - engine: "postgresql"
     queries: "query_test.sql"
     schema: "migrations"

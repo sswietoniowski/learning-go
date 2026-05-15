@@ -2,6 +2,7 @@ package shared
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"unicode"
@@ -65,4 +66,24 @@ func (t TaxID) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return t.taxID, nil
+}
+
+func (t TaxID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.taxID)
+}
+
+func (t *TaxID) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling TaxID from json: %w", err)
+	}
+
+	id, err := NewTaxID(s)
+	if err != nil {
+		return err
+	}
+
+	*t = id
+	return nil
 }
