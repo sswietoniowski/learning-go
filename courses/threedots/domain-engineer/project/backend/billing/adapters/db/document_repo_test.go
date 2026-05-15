@@ -20,6 +20,7 @@ import (
 
 	"eats/backend/billing/adapters/db"
 	"eats/backend/billing/adapters/db/dbtests"
+	"eats/backend/billing/adapters/tax"
 	"eats/backend/billing/domain"
 	"eats/backend/common"
 	"eats/backend/common/shared"
@@ -61,10 +62,15 @@ func TestCreateDocument_ConcurrentDocumentNumbers(t *testing.T) {
 
 	concurrentDocuments := 100
 
+	f := domain.NewDocumentFactory(tax.NewStub())
+
 	for i := 0; i < concurrentDocuments; i++ {
 		wg.Go(func() {
+			builder, builderErr := f.NewReceiptBuilder(ctx, documentData)
+			assert.NoError(t, builderErr)
+
 			_, err := repo.CreateDocument(ctx, series, func(documentNumber domain.DocumentNumber) (*domain.Document, error) {
-				return domain.NewReceipt(documentData, documentNumber)
+				return builder.Build(documentNumber)
 			})
 			assert.NoError(t, err)
 		})
@@ -122,8 +128,13 @@ func TestCreateDocument_ExternalReference(t *testing.T) {
 		},
 	}
 
+	f := domain.NewDocumentFactory(tax.NewStub())
+
+	builder, err := f.NewReceiptBuilder(ctx, documentData)
+	require.NoError(t, err)
+
 	docUUID, err := repo.CreateDocument(ctx, series, func(documentNumber domain.DocumentNumber) (*domain.Document, error) {
-		return domain.NewReceipt(documentData, documentNumber)
+		return builder.Build(documentNumber)
 	})
 	require.NoError(t, err)
 
@@ -133,8 +144,11 @@ func TestCreateDocument_ExternalReference(t *testing.T) {
 	assert.Equal(t, externalRef, *doc.ExternalReference())
 
 	// Saving the document with the same external reference should be idempotent
+	builder2, err := f.NewReceiptBuilder(ctx, documentData)
+	require.NoError(t, err)
+
 	doc2UUID, err := repo.CreateDocument(ctx, series, func(documentNumber domain.DocumentNumber) (*domain.Document, error) {
-		return domain.NewReceipt(documentData, documentNumber)
+		return builder2.Build(documentNumber)
 	})
 	require.NoError(t, err)
 
@@ -181,8 +195,13 @@ func TestCreateDocument_WithLineItemsAndTaxes(t *testing.T) {
 		},
 	}
 
+	f := domain.NewDocumentFactory(tax.NewStub())
+
+	builder, err := f.NewReceiptBuilder(ctx, documentData)
+	require.NoError(t, err)
+
 	docUUID, err := repo.CreateDocument(ctx, series, func(documentNumber domain.DocumentNumber) (*domain.Document, error) {
-		return domain.NewReceipt(documentData, documentNumber)
+		return builder.Build(documentNumber)
 	})
 	require.NoError(t, err)
 
@@ -220,7 +239,7 @@ func TestCreateDocument_WithLineItemsAndTaxes(t *testing.T) {
 
 	taxes := doc.Summary().Taxes()
 	require.Len(t, taxes, 1)
-	assert.True(t, taxes[0].TaxRate().Rate().Equal(decimal.NewFromFloat(0.10)))
+	assert.True(t, taxes[0].TaxRate().Rate().Equal(decimal.NewFromFloat(0.23)))
 	assert.True(t, taxes[0].NetAmount().GreaterThan(decimal.Zero))
 	assert.True(t, taxes[0].TaxAmount().GreaterThan(decimal.Zero))
 }

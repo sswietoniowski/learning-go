@@ -11,6 +11,50 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type BillingLineItemType string
+
+const (
+	BillingLineItemTypeFood     BillingLineItemType = "food"
+	BillingLineItemTypeBeverage BillingLineItemType = "beverage"
+	BillingLineItemTypeDelivery BillingLineItemType = "delivery"
+	BillingLineItemTypeService  BillingLineItemType = "service"
+)
+
+func (e *BillingLineItemType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BillingLineItemType(s)
+	case string:
+		*e = BillingLineItemType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BillingLineItemType: %T", src)
+	}
+	return nil
+}
+
+type NullBillingLineItemType struct {
+	BillingLineItemType BillingLineItemType
+	Valid               bool // Valid is true if BillingLineItemType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBillingLineItemType) Scan(value interface{}) error {
+	if value == nil {
+		ns.BillingLineItemType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BillingLineItemType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBillingLineItemType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BillingLineItemType), nil
+}
+
 type BillingTaxType string
 
 const (
@@ -83,6 +127,7 @@ type BillingDocumentLineItem struct {
 	GrossAmount     pgtype.Numeric
 	TaxRate         pgtype.Numeric
 	TaxType         BillingTaxType
+	LineItemType    BillingLineItemType
 }
 
 type BillingDocumentSeries struct {

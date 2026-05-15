@@ -87,6 +87,7 @@ func TestCreateQuote(t *testing.T) {
 
 			positions = append(positions, app.QuoteMenuItem{
 				MenuItemUUID: qmp.MenuItemUUID,
+				Category:     mp.Category,
 				GrossPrice:   mp.GrossPrice,
 				Quantity:     qmp.Quantity,
 			})
@@ -118,6 +119,7 @@ func TestCreateQuote(t *testing.T) {
 
 	cmpOpts := cmp.Options{
 		cmpopts.EquateComparable(shared.SharedTypes...),
+		cmpopts.EquateComparable(app.ItemCategory{}),
 		cmp.Comparer(func(a, b time.Time) bool {
 			return a.Truncate(time.Second).Equal(b.Truncate(time.Second))
 		}),
@@ -166,7 +168,7 @@ func TestCreateQuote(t *testing.T) {
 			Quantity:     int(item.Quantity),
 		})
 	}
-	if diff := cmp.Diff(positions, persistedPositions, cmpOpts, cmpopts.SortSlices(func(a, b app.QuoteMenuItem) bool {
+	if diff := cmp.Diff(positions, persistedPositions, cmpOpts, cmpopts.IgnoreFields(app.QuoteMenuItem{}, "Category"), cmpopts.SortSlices(func(a, b app.QuoteMenuItem) bool {
 		return a.MenuItemUUID.String() < b.MenuItemUUID.String()
 	})); diff != "" {
 		t.Errorf("persisted quote items mismatch (-want +got):\n%s", diff)
@@ -373,6 +375,7 @@ func setupRestaurantAndQuote(t *testing.T, ctx context.Context, restaurantRepo *
 
 			quoteItems = append(quoteItems, app.QuoteMenuItem{
 				MenuItemUUID: qmp.MenuItemUUID,
+				Category:     mp.Category,
 				Quantity:     qmp.Quantity,
 				GrossPrice:   mp.GrossPrice,
 			})

@@ -18,6 +18,7 @@ import (
 	"eats/backend/common/shared"
 	"eats/backend/common/testutils"
 	ordersclient "eats/backend/orders/api/http/client"
+	"eats/backend/orders/app"
 )
 
 func TestComponent_IssueReceipt(t *testing.T) {
@@ -760,12 +761,11 @@ func TestComponent_PlaceOrderWithArchivedItemFromQuote(t *testing.T) {
 	}
 	updateRestaurantMenu(ctx, t, clients, restaurant.UUID, updatedRestaurant)
 
-	_, cardNumber := createBankAccountWithBalance(ctx, t, clients, decimal.NewFromInt(1000), common.NewUUIDv7().String())
-	createBankAccount(ctx, t, clients, restaurant.UUID.String())
+	_, cardNumber := createBankAccountWithBalance(ctx, t, decimal.NewFromInt(1000), common.NewUUIDv7().String())
+	createBankAccount(ctx, t, restaurant.UUID.String())
 	nonce := preauthPayment(
 		ctx,
 		t,
-		clients,
 		cardNumber,
 		decimal.NewFromInt(100),
 		"USD",
@@ -899,5 +899,147 @@ func TestComponent_CreateQuoteValidationErrors(t *testing.T) {
 
 		assert.Equal(t, "empty-order", errorResponse.Details[0].ErrorSlug)
 		assert.Contains(t, errorResponse.Details[0].Message, "at least one menu position")
+	})
+}
+
+func TestComponent_OnboardingValidation(t *testing.T) {
+	t.Parallel()
+	clients := newTestClients(t)
+
+	ctx := t.Context()
+
+	t.Run("invalid_country_code", func(t *testing.T) {
+		t.Parallel()
+
+		// Using an invalid country code that won't pass validation
+		invalidCountry := shared.CountryCode{} // Zero value is invalid
+		restaurant := ordersclient.OnboardRestaurant{
+			Name:        "Test Restaurant",
+			Description: "A test restaurant",
+			Address: ordersclient.Address{
+				Line1:       "123 Test St",
+				Line2:       "",
+				City:        "Test City",
+				PostalCode:  "12345",
+				CountryCode: invalidCountry,
+			},
+			MenuItems: []ordersclient.MenuItem{
+				{
+					Uuid:       app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+					Name:       "Test Item",
+					Category:   app.ItemCategoryFood,
+					GrossPrice: decimal.RequireFromString("10.00"),
+					Ordering:   0.1,
+				},
+			},
+			Currency: shared.MustNewCurrency("USD"),
+		}
+
+		restaurantUUID := app.RestaurantUUID{common.NewUUIDv7()}
+		resp, err := clients.Orders.OnboardRestaurantWithResponse(
+			ctx,
+			restaurantUUID,
+			&ordersclient.OnboardRestaurantParams{
+				OperatorUUID: common.NewUUIDv7(),
+			},
+			restaurant,
+		)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode(),
+			"should reject invalid country code")
+	})
+
+	t.Run("negative_menu_item_price", func(t *testing.T) {
+		t.Parallel()
+
+		country := testutils.GenerateRandomCountry()
+		restaurant := ordersclient.OnboardRestaurant{
+			Name:        "Test Restaurant",
+			Description: "A test restaurant",
+			Address:     testutils.GenerateRandomOpenapiAddress(country),
+			MenuItems: []ordersclient.MenuItem{
+				{
+					Uuid:       app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+					Name:       "Negative Price Item",
+					Category:   app.ItemCategoryFood,
+					GrossPrice: decimal.RequireFromString("-10.00"), // Invalid: negative price
+					Ordering:   0.1,
+				},
+			},
+			Currency: shared.MustNewCurrency("USD"),
+		}
+
+		restaurantUUID := app.RestaurantUUID{common.NewUUIDv7()}
+		resp, err := clients.Orders.OnboardRestaurantWithResponse(
+			ctx,
+			restaurantUUID,
+			&ordersclient.OnboardRestaurantParams{
+				OperatorUUID: common.NewUUIDv7(),
+			},
+			restaurant,
+		)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode(),
+			"should reject negative menu item price")
+	})
+
+	t.Run("empty_restaurant_name", func(t *testing.T) {
+		t.Parallel()
+
+		country := testutils.GenerateRandomCountry()
+		restaurant := ordersclient.OnboardRestaurant{
+			Name:        "", // Invalid: empty name
+			Description: "A test restaurant",
+			Address:     testutils.GenerateRandomOpenapiAddress(country),
+			MenuItems: []ordersclient.MenuItem{
+				{
+					Uuid:       app.RestaurantMenuItemUUID{common.NewUUIDv7()},
+					Name:       "Test Item",
+					Category:   app.ItemCategoryFood,
+					GrossPrice: decimal.RequireFromString("10.00"),
+					Ordering:   0.1,
+				},
+			},
+			Currency: shared.MustNewCurrency("USD"),
+		}
+
+		restaurantUUID := app.RestaurantUUID{common.NewUUIDv7()}
+		resp, err := clients.Orders.OnboardRestaurantWithResponse(
+			ctx,
+			restaurantUUID,
+			&ordersclient.OnboardRestaurantParams{
+				OperatorUUID: common.NewUUIDv7(),
+			},
+			restaurant,
+		)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode(),
+			"should reject empty restaurant name")
+	})
+
+	t.Run("empty_menu", func(t *testing.T) {
+		t.Parallel()
+
+		country := testutils.GenerateRandomCountry()
+		restaurant := ordersclient.OnboardRestaurant{
+			Name:        "Test Restaurant",
+			Description: "A test restaurant",
+			Address:     testutils.GenerateRandomOpenapiAddress(country),
+			MenuItems:   []ordersclient.MenuItem{}, // Invalid: empty menu
+			Currency:    shared.MustNewCurrency("USD"),
+		}
+
+		restaurantUUID := app.RestaurantUUID{common.NewUUIDv7()}
+		resp, err := clients.Orders.OnboardRestaurantWithResponse(
+			ctx,
+			restaurantUUID,
+			&ordersclient.OnboardRestaurantParams{
+				OperatorUUID: common.NewUUIDv7(),
+			},
+			restaurant,
+		)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode(),
+			"should reject empty menu")
 	})
 }

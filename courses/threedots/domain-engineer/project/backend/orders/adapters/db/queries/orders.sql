@@ -43,6 +43,17 @@ SELECT *
 FROM orders.quote_items
 WHERE quote_uuid = $1;
 
+-- name: GetOrderItems :many
+SELECT
+    quote_items.*,
+    restaurant_menu_items.name,
+    restaurant_menu_items.category
+FROM orders.quote_items
+INNER JOIN orders.restaurant_menu_items ON quote_items.menu_item_uuid = restaurant_menu_items.restaurant_menu_item_uuid
+WHERE quote_uuid = (
+    SELECT quote_uuid FROM orders.orders WHERE order_uuid = $1
+);
+
 -- name: GetQuote :one
 SELECT
 	*

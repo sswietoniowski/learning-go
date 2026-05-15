@@ -30,7 +30,7 @@ func (q *Queries) ArchiveMenuItems(ctx context.Context, dollar_1 []common.UUID) 
 
 const getMenuItemsByUUIDs = `-- name: GetMenuItemsByUUIDs :many
 SELECT
-	restaurant_menu_items.restaurant_menu_item_uuid, restaurant_menu_items.restaurant_uuid, restaurant_menu_items.name, restaurant_menu_items.gross_price, restaurant_menu_items.ordering, restaurant_menu_items.is_archived
+	restaurant_menu_items.restaurant_menu_item_uuid, restaurant_menu_items.restaurant_uuid, restaurant_menu_items.name, restaurant_menu_items.gross_price, restaurant_menu_items.ordering, restaurant_menu_items.is_archived, restaurant_menu_items.category
 FROM
 	orders.restaurant_menu_items AS restaurant_menu_items
 WHERE
@@ -59,6 +59,7 @@ func (q *Queries) GetMenuItemsByUUIDs(ctx context.Context, arg GetMenuItemsByUUI
 			&i.GrossPrice,
 			&i.Ordering,
 			&i.IsArchived,
+			&i.Category,
 		); err != nil {
 			return nil, err
 		}
@@ -94,7 +95,7 @@ func (q *Queries) GetRestaurant(ctx context.Context, restaurantUuid app.Restaura
 
 const getRestaurantMenu = `-- name: GetRestaurantMenu :many
 SELECT
-	restaurant_menu_items.restaurant_menu_item_uuid, restaurant_menu_items.restaurant_uuid, restaurant_menu_items.name, restaurant_menu_items.gross_price, restaurant_menu_items.ordering, restaurant_menu_items.is_archived
+	restaurant_menu_items.restaurant_menu_item_uuid, restaurant_menu_items.restaurant_uuid, restaurant_menu_items.name, restaurant_menu_items.gross_price, restaurant_menu_items.ordering, restaurant_menu_items.is_archived, restaurant_menu_items.category
 FROM
 	orders.restaurant_menu_items AS restaurant_menu_items
 WHERE
@@ -124,6 +125,7 @@ func (q *Queries) GetRestaurantMenu(ctx context.Context, restaurantUuid app.Rest
 			&i.OrdersRestaurantMenuItem.GrossPrice,
 			&i.OrdersRestaurantMenuItem.Ordering,
 			&i.OrdersRestaurantMenuItem.IsArchived,
+			&i.OrdersRestaurantMenuItem.Category,
 		); err != nil {
 			return nil, err
 		}
@@ -229,15 +231,17 @@ INSERT INTO orders.restaurant_menu_items (
 	restaurant_menu_item_uuid,
 	restaurant_uuid,
 	name,
+	category,
 	gross_price,
 	ordering,
 	is_archived
 )
 VALUES
-	($1, $2, $3, $4, $5, $6)
+	($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT (restaurant_menu_item_uuid) DO UPDATE SET
 	restaurant_uuid = EXCLUDED.restaurant_uuid,
 	name = EXCLUDED.name,
+	category = EXCLUDED.category,
 	gross_price = EXCLUDED.gross_price,
 	ordering = EXCLUDED.ordering,
 	is_archived = EXCLUDED.is_archived
@@ -247,6 +251,7 @@ type UpsertRestaurantMenuItemParams struct {
 	RestaurantMenuItemUuid app.RestaurantMenuItemUUID
 	RestaurantUuid         app.RestaurantUUID
 	Name                   string
+	Category               app.ItemCategory
 	GrossPrice             decimal.Decimal
 	Ordering               float64
 	IsArchived             bool
@@ -257,6 +262,7 @@ func (q *Queries) UpsertRestaurantMenuItem(ctx context.Context, arg UpsertRestau
 		arg.RestaurantMenuItemUuid,
 		arg.RestaurantUuid,
 		arg.Name,
+		arg.Category,
 		arg.GrossPrice,
 		arg.Ordering,
 		arg.IsArchived,

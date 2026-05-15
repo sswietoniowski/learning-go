@@ -5,6 +5,8 @@
 package dbmodels
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"eats/backend/common"
@@ -12,6 +14,48 @@ import (
 	"eats/backend/orders/app"
 	"github.com/shopspring/decimal"
 )
+
+type OrdersItemCategory string
+
+const (
+	OrdersItemCategoryFood     OrdersItemCategory = "food"
+	OrdersItemCategoryBeverage OrdersItemCategory = "beverage"
+)
+
+func (e *OrdersItemCategory) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrdersItemCategory(s)
+	case string:
+		*e = OrdersItemCategory(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrdersItemCategory: %T", src)
+	}
+	return nil
+}
+
+type NullOrdersItemCategory struct {
+	OrdersItemCategory OrdersItemCategory
+	Valid              bool // Valid is true if OrdersItemCategory is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrdersItemCategory) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrdersItemCategory, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrdersItemCategory.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrdersItemCategory) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrdersItemCategory), nil
+}
 
 type OrdersCourier struct {
 	CourierUuid app.CourierUUID
@@ -86,4 +130,5 @@ type OrdersRestaurantMenuItem struct {
 	GrossPrice             decimal.Decimal
 	Ordering               float64
 	IsArchived             bool
+	Category               app.ItemCategory
 }

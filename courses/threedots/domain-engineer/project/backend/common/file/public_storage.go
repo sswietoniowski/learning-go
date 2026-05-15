@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/ThreeDotsLabs/the-domain-engineer/clients"
 	"github.com/ThreeDotsLabs/the-domain-engineer/clients/files"
@@ -22,13 +23,14 @@ func NewPublicStorage(clients *clients.Clients) *PublicStorage {
 	return &PublicStorage{clients: clients}
 }
 
-func (p *PublicStorage) StoreFile(ctx context.Context, filePath string, fileContent []byte) (string, error) {
+func (p *PublicStorage) StoreFile(ctx context.Context, path string, fileContent []byte) (string, error) {
 	fileID := uuid.NewString()
+	filename := filepath.Base(path)
 
 	resp, err := p.clients.Files.PutFilesFileIdContentWithBodyWithResponse(
 		ctx,
 		fileID,
-		&files.PutFilesFileIdContentParams{XFilename: filePath},
+		&files.PutFilesFileIdContentParams{XFilename: filename},
 		"application/octet-stream",
 		bytes.NewReader(fileContent),
 	)

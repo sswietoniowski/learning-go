@@ -12,6 +12,7 @@ import (
 type ModulesContract interface {
 	CalculateDeliveryFee(ctx context.Context, req deliveryModule.CalculateDeliveryFeeRequest) (deliveryModule.CalculateDeliveryFeeResponse, error)
 	IssueReceipt(ctx context.Context, req billingModule.IssueReceiptRequest) error
+	CalculateTaxes(ctx context.Context, req billingModule.CalculateTaxesRequest) (billingModule.CalculateTaxesResponse, error)
 }
 
 type PaymentsService interface {

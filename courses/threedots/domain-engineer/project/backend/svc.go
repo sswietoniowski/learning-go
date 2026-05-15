@@ -7,19 +7,32 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ThreeDotsLabs/the-domain-engineer/clients"
 	"github.com/jackc/pgx/v5/pgxpool"
 	echo "github.com/labstack/echo/v4"
 
 	"eats/backend/billing"
-	"eats/backend/common/file"
+	billing_domain "eats/backend/billing/domain"
 	commonHTTP "eats/backend/common/http"
 	"eats/backend/common/log"
 	"eats/backend/common/module"
 	"eats/backend/common/module/contracts"
 	"eats/backend/delivery"
 	"eats/backend/orders"
+	orders_app "eats/backend/orders/app"
 )
+
+// FileStorage stores files and returns their public URL.
+type FileStorage interface {
+	StoreFile(ctx context.Context, path string, content []byte) (string, error)
+}
+
+// ExternalServices provides external API service dependencies.
+// For production, use real HTTP clients. For tests, inject stubs.
+type ExternalServices struct {
+	Payments    orders_app.PaymentsService
+	Tax         billing_domain.TaxRateProvider
+	FileStorage FileStorage
+}
 
 type Svc struct {
 	echoRouter *echo.Echo
@@ -32,32 +45,18 @@ type Svc struct {
 func New(
 	ctx context.Context,
 	dbPgx *pgxpool.Pool,
-	gatewayAddr string,
+	services ExternalServices,
 ) (Svc, error) {
 	e := commonHTTP.NewEcho()
-
-	apiClients, err := clients.NewClientsWithHttpClient(
-		gatewayAddr,
-		func(ctx context.Context, req *http.Request) error {
-			req.Header.Set("Correlation-ID", log.CorrelationIDFromContext(ctx))
-			return nil
-		},
-		&http.Client{Timeout: 10 * time.Second},
-	)
-	if err != nil {
-		return Svc{}, fmt.Errorf("creating api clients failed: %w", err)
-	}
 
 	// We use a pointer here so modules can register their contracts during Init(),
 	// then all modules can call each other after initialization completes.
 	moduleContracts := &contracts.Contracts{}
 
-	fileStorage := file.NewPublicStorage(apiClients)
-
 	modules := []module.Module{
-		orders.NewModule(dbPgx, moduleContracts, apiClients),
+		orders.NewModule(dbPgx, moduleContracts, services.Payments),
 		delivery.NewModule(),
-		billing.NewModule(dbPgx, fileStorage),
+		billing.NewModule(dbPgx, services.FileStorage, services.Tax),
 	}
 
 	for _, module := range modules {

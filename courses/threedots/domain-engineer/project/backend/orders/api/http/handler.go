@@ -375,6 +375,7 @@ func (h Handler) OnboardRestaurant(ctx context.Context, request OnboardRestauran
 		menuItems = append(menuItems, app.MenuItem{
 			MenuItemUUID: item.Uuid,
 			Name:         item.Name,
+			Category:     item.Category,
 			GrossPrice:   item.GrossPrice,
 			Ordering:     float64(item.Ordering),
 		})
@@ -414,6 +415,7 @@ func (h Handler) CustomerGetRestaurantMenu(ctx context.Context, request Customer
 		httpMenuItems = append(httpMenuItems, MenuItem{
 			Uuid:       item.MenuItemUUID,
 			Name:       item.Name,
+			Category:   item.Category,
 			GrossPrice: item.GrossPrice,
 			Ordering:   float32(item.Ordering),
 		})

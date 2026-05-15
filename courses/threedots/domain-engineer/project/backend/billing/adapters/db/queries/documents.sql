@@ -18,7 +18,7 @@ VALUES (
 
 -- name: SaveDocumentLineItem :exec
 INSERT INTO billing.document_line_items (
-    line_item_uuid, document_uuid, name, quantity,
+    line_item_uuid, document_uuid, name, quantity, line_item_type,
     unit_net_amount, unit_tax_amount, unit_gross_amount,
     net_amount, tax_amount, gross_amount,
     tax_rate, tax_type
@@ -27,6 +27,7 @@ INSERT INTO billing.document_line_items (
     sqlc.arg(document_uuid),
     sqlc.arg(name),
     sqlc.arg(quantity),
+    sqlc.arg(line_item_type),
     sqlc.arg(unit_net_amount),
     sqlc.arg(unit_tax_amount),
     sqlc.arg(unit_gross_amount),

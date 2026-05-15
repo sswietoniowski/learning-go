@@ -40,6 +40,26 @@ func (r *OrdersRepo) OrderByID(ctx context.Context, orderUUID app.OrderUUID) (ap
 	return dbOrderToAppOrder(dbOrder), nil
 }
 
+func (r *OrdersRepo) OrderItemsByOrderID(ctx context.Context, orderUUID app.OrderUUID) ([]app.OrderItem, error) {
+	queries := dbmodels.New(r.db)
+	dbItems, err := queries.GetOrderItems(ctx, orderUUID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting order items: %w", err)
+	}
+
+	appItems := make([]app.OrderItem, 0, len(dbItems))
+	for _, dbItem := range dbItems {
+		appItems = append(appItems, app.OrderItem{
+			Name:       dbItem.Name,
+			Category:   dbItem.Category,
+			GrossPrice: dbItem.GrossPrice,
+			Quantity:   int(dbItem.Quantity),
+		})
+	}
+
+	return appItems, nil
+}
+
 func (r *OrdersRepo) GetRestaurant(
 	ctx context.Context,
 	restaurantID app.RestaurantUUID,
@@ -50,6 +70,19 @@ func (r *OrdersRepo) GetRestaurant(
 		return app.Restaurant{}, fmt.Errorf("failed to get restaurant %s: %w", restaurantID, err)
 	}
 	return appRestaurantFromDB(dbRestaurant), nil
+}
+
+func (r *OrdersRepo) GetMenuItems(
+	ctx context.Context,
+	restaurantUUID app.RestaurantUUID,
+	menuItemUUIDs []app.RestaurantMenuItemUUID,
+) (map[app.RestaurantMenuItemUUID]app.MenuItem, error) {
+	queries := dbmodels.New(r.db)
+	uuids := make([]common.UUID, 0, len(menuItemUUIDs))
+	for _, id := range menuItemUUIDs {
+		uuids = append(uuids, id.UUID)
+	}
+	return r.getMenuItems(ctx, queries, restaurantUUID, uuids)
 }
 
 func (r *OrdersRepo) CreateQuote(
@@ -153,6 +186,7 @@ func appMenuItemsFromDbMenuItems(dbMenuItems []dbmodels.OrdersRestaurantMenuItem
 		appMenuItems[dbItemPosition.RestaurantMenuItemUuid] = app.MenuItem{
 			dbItemPosition.RestaurantMenuItemUuid,
 			dbItemPosition.Name,
+			dbItemPosition.Category,
 			dbItemPosition.Ordering,
 			dbItemPosition.GrossPrice,
 			dbItemPosition.IsArchived,

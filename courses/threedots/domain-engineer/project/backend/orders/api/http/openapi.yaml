@@ -967,6 +967,7 @@ components:
       required:
         - uuid
         - name
+        - category
         - gross_price
         - ordering
       properties:
@@ -975,6 +976,12 @@ components:
         name:
           type: string
           description: Item name
+        category:
+          type: string
+          description: Category of the item
+          x-go-type: app.ItemCategory
+          x-go-type-import:
+            path: eats/backend/orders/app
         gross_price:
           $ref: '#/components/schemas/Decimal'
         ordering:

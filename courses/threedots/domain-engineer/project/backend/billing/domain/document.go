@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shopspring/decimal"
-
 	"eats/backend/common"
 	"eats/backend/common/shared"
 )
@@ -24,6 +22,20 @@ func (DocumentTypeValues) Values() []string {
 
 var DocumentTypeReceipt = common.MustEnum[DocumentType]("receipt")
 
+type DocumentFactory struct {
+	taxRateProvider TaxRateProvider
+}
+
+func NewDocumentFactory(taxRateProvider TaxRateProvider) *DocumentFactory {
+	if taxRateProvider == nil {
+		panic("taxRateProvider is required")
+	}
+
+	return &DocumentFactory{
+		taxRateProvider: taxRateProvider,
+	}
+}
+
 type DocumentRepository interface {
 	DocumentByUUID(ctx context.Context, docUUID DocumentUUID) (*Document, error)
 	CreateDocument(
@@ -34,16 +46,51 @@ type DocumentRepository interface {
 	UpdateFileUrl(ctx context.Context, docUUID DocumentUUID, fileUrl string) error
 }
 
-// defaultTaxRate is the hardcoded 10% sales tax for our single-country MVP.
-var defaultTaxRate = TaxRate{
-	rate:    decimal.NewFromFloat(0.10),
-	taxType: TaxTypeSalesTax,
+// DocumentBuilder separates inter-module calls (like tax rate lookups) from document creation.
+// This way, Build() can run inside a database transaction without making inter-module calls.
+type DocumentBuilder struct {
+	externalReference *string
+	documentType      DocumentType
+	issueDate         time.Time
+	currency          shared.Currency
+	seller            LegalEntity
+	buyer             LegalEntity
+	lineItems         []LineItem
+	summary           PriceBreakdownSummary
 }
 
-func NewReceipt(data NewDocumentData, docNumber DocumentNumber) (*Document, error) {
+// Build creates a Document with the given document number.
+// It's safe to call inside a database transaction: no external calls are made here.
+func (b *DocumentBuilder) Build(docNumber DocumentNumber) (*Document, error) {
+	return &Document{
+		uuid:              DocumentUUID{common.NewUUIDv7()},
+		externalReference: b.externalReference,
+		documentType:      b.documentType,
+		issueDate:         b.issueDate,
+		documentNumber:    docNumber,
+		currency:          b.currency,
+		seller:            b.seller,
+		buyer:             b.buyer,
+		lineItems:         b.lineItems,
+		summary:           b.summary,
+	}, nil
+}
+
+// NewReceiptBuilder resolves all external data (tax rates) upfront,
+// so Build() can safely run inside a database transaction.
+func (f DocumentFactory) NewReceiptBuilder(ctx context.Context, data NewDocumentData) (*DocumentBuilder, error) {
 	if data.Buyer.TaxID() != nil {
 		return nil, errors.New("receipts cannot be issued to buyers with a tax ID")
 	}
+
+	return f.newDocumentBuilder(ctx, DocumentTypeReceipt, data)
+}
+
+func (f DocumentFactory) newDocumentBuilder(
+	ctx context.Context,
+	docType DocumentType,
+	data NewDocumentData,
+) (*DocumentBuilder, error) {
 	if data.Buyer.IsZero() {
 		return nil, errors.New("buyer can't be empty")
 	}
@@ -63,27 +110,37 @@ func NewReceipt(data NewDocumentData, docNumber DocumentNumber) (*Document, erro
 	if data.Seller.TaxID() == nil {
 		return nil, errors.New("seller must have a tax ID to issue billing documents")
 	}
+
 	if len(data.LineItems) == 0 {
 		return nil, errors.New("document must have at least one line item")
 	}
 
+	buyerCountryCode := data.Buyer.Address().CountryCode()
+	sellerCountryCode := data.Seller.Address().CountryCode()
+
 	lineItems := make([]LineItem, 0, len(data.LineItems))
-	for _, lid := range data.LineItems {
-		lineItem, err := newLineItem(lid, data.Currency, defaultTaxRate)
+	for _, lineItemData := range data.LineItems {
+		lineItem, err := f.newLineItem(
+			ctx,
+			lineItemData,
+			buyerCountryCode,
+			data.Buyer.TaxID(),
+			sellerCountryCode,
+			data.Currency,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create line item for document: %w", err)
 		}
+
 		lineItems = append(lineItems, lineItem)
 	}
 
 	summary := summarizeLineItems(lineItems)
 
-	return &Document{
-		uuid:              DocumentUUID{common.NewUUIDv7()},
+	return &DocumentBuilder{
 		externalReference: data.ExternalReference,
-		documentType:      DocumentTypeReceipt,
+		documentType:      docType,
 		issueDate:         data.IssueDate,
-		documentNumber:    docNumber,
 		currency:          data.Currency,
 		seller:            data.Seller,
 		buyer:             data.Buyer,
@@ -102,9 +159,10 @@ type NewDocumentData struct {
 }
 
 type NewLineItemData struct {
-	Name       string
-	Quantity   int
-	UnitAmount shared.LineAmount
+	Name         string
+	LineItemType shared.LineItemType
+	Quantity     int
+	UnitAmount   shared.LineAmount
 }
 
 type DocumentUUID struct {
@@ -169,15 +227,35 @@ type LineItemUUID struct {
 }
 
 type LineItem struct {
-	uuid      LineItemUUID
-	name      string
-	breakdown PriceBreakdown
-	quantity  int
+	uuid         LineItemUUID
+	name         string
+	lineItemType shared.LineItemType
+	breakdown    PriceBreakdown
+	quantity     int
 }
 
-func newLineItem(data NewLineItemData, currency shared.Currency, taxRate TaxRate) (LineItem, error) {
+func (f DocumentFactory) newLineItem(
+	ctx context.Context,
+	data NewLineItemData,
+	buyerCountryCode shared.CountryCode,
+	buyerTaxID *shared.TaxID,
+	sellerCountryCode shared.CountryCode,
+	currency shared.Currency,
+) (LineItem, error) {
 	if data.Name == "" {
 		return LineItem{}, errors.New("name can't be empty")
+	}
+
+	if buyerCountryCode.IsZero() {
+		return LineItem{}, errors.New("buyer country code cannot be empty")
+	}
+
+	if sellerCountryCode.IsZero() {
+		return LineItem{}, errors.New("seller country code cannot be empty")
+	}
+
+	if data.LineItemType.IsZero() {
+		return LineItem{}, errors.New("item type can't be zero")
 	}
 
 	if data.Quantity < 1 {
@@ -188,8 +266,20 @@ func newLineItem(data NewLineItemData, currency shared.Currency, taxRate TaxRate
 		return LineItem{}, errors.New("unit amount can't be negative")
 	}
 
+	taxRateRequest := TaxRateRequest{
+		BuyerCountryCode:  buyerCountryCode,
+		BuyerTaxID:        buyerTaxID,
+		SellerCountryCode: sellerCountryCode,
+		LineItemType:      data.LineItemType,
+		TransactionDate:   time.Now().UTC(),
+	}
+
+	taxRate, err := f.taxRateProvider.GetTaxRate(ctx, taxRateRequest)
+	if err != nil {
+		return LineItem{}, fmt.Errorf("could not get tax rate for item: %w", err)
+	}
+
 	var priceBreakdown PriceBreakdown
-	var err error
 
 	if data.UnitAmount.IsGross() {
 		priceBreakdown, err = NewPriceBreakdownFromGrossAmount(taxRate, data.UnitAmount.Amount(), currency, data.Quantity)
@@ -202,10 +292,11 @@ func newLineItem(data NewLineItemData, currency shared.Currency, taxRate TaxRate
 	}
 
 	return LineItem{
-		uuid:      LineItemUUID{common.NewUUIDv7()},
-		name:      data.Name,
-		breakdown: priceBreakdown,
-		quantity:  data.Quantity,
+		uuid:         LineItemUUID{common.NewUUIDv7()},
+		name:         data.Name,
+		breakdown:    priceBreakdown,
+		lineItemType: data.LineItemType,
+		quantity:     data.Quantity,
 	}, nil
 }
 
@@ -221,6 +312,57 @@ func (l LineItem) Quantity() int {
 	return l.quantity
 }
 
+func (l LineItem) LineItemType() shared.LineItemType {
+	return l.lineItemType
+}
+
 func (l LineItem) PriceBreakdown() PriceBreakdown {
 	return l.breakdown
+}
+
+type TaxCalculationInput struct {
+	BuyerCountryCode  shared.CountryCode
+	BuyerTaxID        *shared.TaxID
+	SellerCountryCode shared.CountryCode
+	LineItems         []NewLineItemData
+	Currency          shared.Currency
+}
+
+type TaxCalculation struct {
+	lineItems []LineItem
+	summary   PriceBreakdownSummary
+}
+
+func (f DocumentFactory) NewTaxCalculation(ctx context.Context, input TaxCalculationInput) (TaxCalculation, error) {
+	lineItems := make([]LineItem, 0, len(input.LineItems))
+	for _, li := range input.LineItems {
+		lineItem, err := f.newLineItem(
+			ctx,
+			li,
+			input.BuyerCountryCode,
+			input.BuyerTaxID,
+			input.SellerCountryCode,
+			input.Currency,
+		)
+		if err != nil {
+			return TaxCalculation{}, fmt.Errorf("could not create line item: %w", err)
+		}
+
+		lineItems = append(lineItems, lineItem)
+	}
+
+	summary := summarizeLineItems(lineItems)
+
+	return TaxCalculation{
+		lineItems: lineItems,
+		summary:   summary,
+	}, nil
+}
+
+func (t TaxCalculation) LineItems() []LineItem {
+	return t.lineItems
+}
+
+func (t TaxCalculation) Summary() PriceBreakdownSummary {
+	return t.summary
 }

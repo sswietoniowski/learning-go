@@ -1,6 +1,9 @@
 package domain
 
 import (
+	"context"
+	"time"
+
 	"github.com/shopspring/decimal"
 
 	"eats/backend/common"
@@ -35,6 +38,21 @@ var (
 	TaxTypeGST      = common.MustEnum[TaxType]("gst")
 	TaxTypeSalesTax = common.MustEnum[TaxType]("sales-tax")
 )
+
+type TaxRateRequest struct {
+	BuyerCountryCode  shared.CountryCode
+	BuyerTaxID        *shared.TaxID
+	SellerCountryCode shared.CountryCode
+	LineItemType      shared.LineItemType
+	TransactionDate   time.Time
+}
+
+type TaxRateProvider interface {
+	// In a real system, a single line item could have multiple tax rates applied to it,
+	// e.g. in US, where state and local taxes apply.
+	// For simplicity, we assume a single tax rate per line item here.
+	GetTaxRate(ctx context.Context, input TaxRateRequest) (TaxRate, error)
+}
 
 type PriceBreakdown struct {
 	rate TaxRate

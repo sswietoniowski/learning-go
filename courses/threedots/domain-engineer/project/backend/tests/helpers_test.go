@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	bank2 "github.com/ThreeDotsLabs/the-domain-engineer/clients/bank"
 	gofakeit "github.com/brianvoe/gofakeit/v7"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -30,6 +29,11 @@ import (
 	"eats/backend/orders/app"
 )
 
+var orderCmpOpts = []cmp.Option{
+	cmpopts.EquateComparable(shared.SharedTypes...),
+	cmpopts.EquateApproxTime(time.Second),
+}
+
 func assertRestaurantMenuPublished(ctx context.Context, t *testing.T, clients testClients, restaurantUUID app.RestaurantUUID, restaurant ordersclient.OnboardRestaurant) {
 	t.Helper()
 
@@ -44,6 +48,7 @@ func assertRestaurantMenuPublished(ctx context.Context, t *testing.T, clients te
 		cmp.Diff(
 			restaurant.MenuItems,
 			resp.JSON200.Items,
+			cmpopts.EquateComparable(app.ItemCategory{}),
 			cmpopts.SortSlices(func(a, b ordersclient.MenuItem) bool {
 				return a.Uuid.String() < b.Uuid.String()
 			}),
@@ -68,11 +73,19 @@ func onboardRestaurant(
 ) testRestaurant {
 	t.Helper()
 
+	var category app.ItemCategory
+	if rand.Intn(2) == 0 {
+		category = app.ItemCategoryFood
+	} else {
+		category = app.ItemCategoryBeverage
+	}
+
 	var menuItems []ordersclient.MenuItem
 	for i := 0; i < 5; i++ {
 		menuItems = append(menuItems, ordersclient.MenuItem{
 			Uuid:       app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 			Name:       gofakeit.Lunch(),
+			Category:   category,
 			GrossPrice: randomPrice(),
 			Ordering:   rand.Float32(),
 		})
@@ -223,12 +236,11 @@ func placeOrder(
 	require.False(t, quoteResp.JSON201.ServiceFeeGross.IsZero())
 	require.False(t, quoteResp.JSON201.TotalGross.IsZero())
 
-	_, cardNumber := createBankAccountWithBalance(ctx, t, clients, decimal.NewFromInt(1000), common.NewUUIDv7().String())
-	createBankAccount(ctx, t, clients, restaurantUUID.String())
+	_, cardNumber := createBankAccountWithBalance(ctx, t, decimal.NewFromInt(1000), common.NewUUIDv7().String())
+	createBankAccount(ctx, t, restaurantUUID.String())
 	nonce := preauthPayment(
 		ctx,
 		t,
-		clients,
 		cardNumber,
 		quoteResp.JSON201.TotalGross,
 		quoteResp.JSON201.Currency.String(),
@@ -275,8 +287,7 @@ func placeOrder(
 				Currency:              quoteResp.JSON201.Currency,
 			},
 			orderResp.JSON201,
-			cmpopts.EquateApproxTime(time.Minute),
-			cmpopts.EquateComparable(shared.SharedTypes...),
+			orderCmpOpts...,
 		),
 	)
 
@@ -290,8 +301,7 @@ func placeOrder(
 		cmp.Diff(
 			*orderResp.JSON201,
 			customerOrdersResp.JSON200.Orders[0],
-			cmpopts.EquateComparable(shared.SharedTypes...),
-			cmpopts.EquateApproxTime(time.Second),
+			orderCmpOpts...,
 		),
 	)
 
@@ -725,9 +735,9 @@ func placeOrderFromQuote(
 ) *ordersclient.CustomerOrder {
 	t.Helper()
 
-	_, cardNumber := createBankAccountWithBalance(ctx, t, clients, decimal.NewFromInt(1000), common.NewUUIDv7().String())
-	createBankAccount(ctx, t, clients, restaurantUUID.String())
-	nonce := preauthPayment(ctx, t, clients, cardNumber, quote.TotalGross, quote.Currency.String(), quote.QuoteUuid.String())
+	_, cardNumber := createBankAccountWithBalance(ctx, t, decimal.NewFromInt(1000), common.NewUUIDv7().String())
+	createBankAccount(ctx, t, restaurantUUID.String())
+	nonce := preauthPayment(ctx, t, cardNumber, quote.TotalGross, quote.Currency.String(), quote.QuoteUuid.String())
 
 	placeOrderRequest := ordersclient.PlaceOrder{
 		QuoteUuid:    quote.QuoteUuid,
@@ -817,55 +827,34 @@ func assertJsonReprEqual(t *testing.T, expected, actual any) {
 func createBankAccount(
 	ctx context.Context,
 	t *testing.T,
-	clients testClients,
 	merchantID string,
 ) (string, string) {
 	t.Helper()
-	return createBankAccountWithBalance(ctx, t, clients, decimal.Zero, merchantID)
+
+	return createBankAccountWithBalance(ctx, t, decimal.Zero, merchantID)
 }
 
 func createBankAccountWithBalance(
 	ctx context.Context,
 	t *testing.T,
-	clients testClients,
 	balance decimal.Decimal,
 	merchantID string,
 ) (string, string) {
 	t.Helper()
-	resp, err := clients.CommonClients.Bank.CreateAccountWithResponse(ctx, bank2.CreateAccountJSONRequestBody{
-		InitialBalance: balance,
-		MerchantId:     merchantID,
-	})
-	require.NoError(t, err)
-	require.Equal(t, http.StatusCreated, resp.StatusCode())
-	require.NotNil(t, resp.JSON201)
-	require.NotNil(t, resp.JSON201.Card)
-	return resp.JSON201.AccountNumber, resp.JSON201.Card.CardNumber
+
+	accountNumber, cardNumber := stubs.Payments.CreateAccount(merchantID, balance)
+	return accountNumber, cardNumber
 }
 
 func preauthPayment(
 	ctx context.Context,
 	t *testing.T,
-	clients testClients,
 	cardNumber string,
 	amount decimal.Decimal,
 	currency string,
 	idempotencyKey string,
 ) string {
-	paymentResp, err := clients.CommonClients.Bank.PreauthorizePaymentWithResponse(ctx, bank2.PreauthorizePaymentJSONRequestBody{
-		Amount:     amount,
-		CardNumber: cardNumber,
-		Currency:   currency,
-		Cvv:        "123",
-		ExpiryDate: openapi_types.Date{
-			Time: time.Date(2030, time.January, 1, 0, 0, 0, 0, time.UTC),
-		},
-		IdempotencyKey: idempotencyKey,
-	})
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, paymentResp.StatusCode())
-
-	return paymentResp.JSON200.PaymentNonce
+	return stubs.Payments.PreauthorizePayment(cardNumber, amount, currency)
 }
 
 func onboardRestaurantWithName(
@@ -877,11 +866,19 @@ func onboardRestaurantWithName(
 ) (app.RestaurantUUID, ordersclient.OnboardRestaurant) {
 	t.Helper()
 
+	var category app.ItemCategory
+	if rand.Intn(2) == 0 {
+		category = app.ItemCategoryFood
+	} else {
+		category = app.ItemCategoryBeverage
+	}
+
 	var menuItems []ordersclient.MenuItem
 	for i := 0; i < 5; i++ {
 		menuItems = append(menuItems, ordersclient.MenuItem{
 			Uuid:       app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 			Name:       gofakeit.Lunch(),
+			Category:   category,
 			GrossPrice: randomPrice(),
 			Ordering:   rand.Float32(),
 		})
@@ -925,6 +922,7 @@ func onboardRestaurantWithItems(
 		menuItems = append(menuItems, ordersclient.MenuItem{
 			Uuid:       app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 			Name:       itemName,
+			Category:   app.ItemCategoryFood,
 			GrossPrice: decimal.NewFromFloat(10.00 + float64(i)),
 			Ordering:   float32(i + 1),
 		})

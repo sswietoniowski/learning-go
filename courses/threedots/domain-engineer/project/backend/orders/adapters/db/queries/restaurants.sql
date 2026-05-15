@@ -13,15 +13,17 @@ INSERT INTO orders.restaurant_menu_items (
 	restaurant_menu_item_uuid,
 	restaurant_uuid,
 	name,
+	category,
 	gross_price,
 	ordering,
 	is_archived
 )
 VALUES
-	($1, $2, $3, $4, $5, $6)
+	($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT (restaurant_menu_item_uuid) DO UPDATE SET
 	restaurant_uuid = EXCLUDED.restaurant_uuid,
 	name = EXCLUDED.name,
+	category = EXCLUDED.category,
 	gross_price = EXCLUDED.gross_price,
 	ordering = EXCLUDED.ordering,
 	is_archived = EXCLUDED.is_archived

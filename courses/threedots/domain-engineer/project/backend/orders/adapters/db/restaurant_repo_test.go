@@ -56,6 +56,7 @@ func TestUpsertRestaurant_CreateNew(t *testing.T) {
 	if diff := cmp.Diff(
 		expectedMenu,
 		menu,
+		cmpopts.EquateComparable(app.ItemCategory{}),
 		cmpopts.EquateComparable(shared.SharedTypes...),
 	); diff != "" {
 		t.Errorf("restaurant menu mismatch (-want +got):\n%s", diff)
@@ -66,6 +67,7 @@ func TestUpsertRestaurant_CreateNew(t *testing.T) {
 	if diff := cmp.Diff(
 		onboardRestaurant.MenuItems,
 		menu.Positions,
+		cmpopts.EquateComparable(app.ItemCategory{}),
 		cmpopts.SortSlices(func(a, b app.MenuItem) bool { return a.Ordering < b.Ordering }),
 	); diff != "" {
 		t.Errorf("menu positions mismatch (-want +got):\n%s", diff)
@@ -114,6 +116,7 @@ func TestUpsertRestaurant_UpdateExisting(t *testing.T) {
 	if diff := cmp.Diff(
 		expectedMenu,
 		menu,
+		cmpopts.EquateComparable(app.ItemCategory{}),
 		cmpopts.EquateComparable(shared.SharedTypes...),
 	); diff != "" {
 		t.Errorf("restaurant menu mismatch (-want +got):\n%s", diff)
@@ -137,8 +140,10 @@ func TestUpsertRestaurant_UpdateMenuItems(t *testing.T) {
 	// Update menu position prices and names
 	updatedRestaurant := onboardRestaurant
 	updatedRestaurant.MenuItems[0].Name = gofakeit.Dessert()
+	updatedRestaurant.MenuItems[0].Category = app.ItemCategoryBeverage
 	updatedRestaurant.MenuItems[0].GrossPrice = newTestPrice()
 	updatedRestaurant.MenuItems[1].Name = gofakeit.Lunch()
+	updatedRestaurant.MenuItems[1].Category = app.ItemCategoryBeverage
 	updatedRestaurant.MenuItems[1].GrossPrice = newTestPrice()
 
 	err = repo.UpsertRestaurant(ctx, restaurantUUID, updatedRestaurant)
@@ -152,6 +157,7 @@ func TestUpsertRestaurant_UpdateMenuItems(t *testing.T) {
 	if diff := cmp.Diff(
 		updatedRestaurant.MenuItems,
 		menu.Positions,
+		cmpopts.EquateComparable(app.ItemCategory{}),
 		cmpopts.SortSlices(func(a, b app.MenuItem) bool { return a.Ordering < b.Ordering }),
 	); diff != "" {
 		t.Errorf("menu positions mismatch (-want +got):\n%s", diff)
@@ -265,6 +271,7 @@ func TestUpsertRestaurant_Idempotency(t *testing.T) {
 	if diff := cmp.Diff(
 		expectedMenu,
 		menu,
+		cmpopts.EquateComparable(app.ItemCategory{}),
 		cmpopts.EquateComparable(shared.SharedTypes...),
 	); diff != "" {
 		t.Errorf("restaurant menu mismatch (-want +got):\n%s", diff)
@@ -322,6 +329,7 @@ func TestGetRestaurantMenu(t *testing.T) {
 	if diff := cmp.Diff(
 		expectedMenu,
 		menu,
+		cmpopts.EquateComparable(app.ItemCategory{}),
 		cmpopts.EquateComparable(shared.SharedTypes...),
 	); diff != "" {
 		t.Errorf("restaurant menu mismatch (-want +got):\n%s", diff)
@@ -332,6 +340,7 @@ func TestGetRestaurantMenu(t *testing.T) {
 	if diff := cmp.Diff(
 		onboardRestaurant.MenuItems,
 		menu.Positions,
+		cmpopts.EquateComparable(app.ItemCategory{}),
 		cmpopts.SortSlices(func(a, b app.MenuItem) bool { return a.Ordering < b.Ordering }),
 	); diff != "" {
 		t.Errorf("menu positions mismatch (-want +got):\n%s", diff)
@@ -373,6 +382,7 @@ func newTestMenuItem() app.MenuItem {
 	return app.MenuItem{
 		MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 		Name:         gofakeit.Dinner(),
+		Category:     app.ItemCategoryFood,
 		Ordering:     gofakeit.Float64Range(1, 100),
 		GrossPrice:   newTestPrice(),
 	}

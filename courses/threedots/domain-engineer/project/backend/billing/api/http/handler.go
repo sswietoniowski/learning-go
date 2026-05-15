@@ -92,9 +92,10 @@ func legalEntityToResponse(le domain.LegalEntity) LegalEntity {
 
 func lineItemToResponse(li domain.LineItem) ResponseLineItem {
 	return ResponseLineItem{
-		Name:      li.Name(),
-		Quantity:  li.Quantity(),
-		Breakdown: priceBreakdownToResponse(li.PriceBreakdown()),
+		Name:         li.Name(),
+		Quantity:     li.Quantity(),
+		Breakdown:    priceBreakdownToResponse(li.PriceBreakdown()),
+		LineItemType: li.LineItemType(),
 	}
 }
 
@@ -156,9 +157,10 @@ func newDocumentDetailsFromCreateDocument(cd CreateDocument) (domain.NewDocument
 		}
 
 		lineItem := domain.NewLineItemData{
-			Name:       httpLineItem.Name,
-			Quantity:   httpLineItem.Quantity,
-			UnitAmount: unitAmount,
+			Name:         httpLineItem.Name,
+			LineItemType: httpLineItem.LineItemType,
+			Quantity:     httpLineItem.Quantity,
+			UnitAmount:   unitAmount,
 		}
 
 		lineItems = append(lineItems, lineItem)

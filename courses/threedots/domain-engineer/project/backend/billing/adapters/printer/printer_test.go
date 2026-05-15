@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"eats/backend/billing/adapters/printer"
+	"eats/backend/billing/adapters/tax"
 	"eats/backend/billing/domain"
 	"eats/backend/common"
 	"eats/backend/common/shared"
@@ -25,6 +26,14 @@ var receiptGoldenHTML string
 
 func TestPrintReceipt_Golden(t *testing.T) {
 	printer := printer.NewPrinter()
+
+	taxProvider := tax.NewConfiguredStub(map[shared.LineItemType]domain.TaxRate{
+		shared.LineItemTypeFood:     domain.UnmarshalTaxRate(decimal.NewFromFloat(0.23), domain.TaxTypeVAT),
+		shared.LineItemTypeBeverage: domain.UnmarshalTaxRate(decimal.NewFromFloat(0.10), domain.TaxTypeVAT),
+		shared.LineItemTypeDelivery: domain.UnmarshalTaxRate(decimal.NewFromFloat(0.05), domain.TaxTypeSalesTax),
+	})
+
+	factory := domain.NewDocumentFactory(taxProvider)
 
 	sellerAddress, err := shared.NewAddress("123 Food St.", "Suite 100", "98765", "Gourmet City", shared.MustNewCountryCode("US"))
 	require.NoError(t, err)
@@ -46,7 +55,7 @@ func TestPrintReceipt_Golden(t *testing.T) {
 	docNumber, err := domain.NewDocumentNumber(series, 1)
 	require.NoError(t, err)
 
-	doc, err := domain.NewReceipt(domain.NewDocumentData{
+	builder, err := factory.NewReceiptBuilder(context.Background(), domain.NewDocumentData{
 		ExternalReference: common.ToPtr("ORDER-456"),
 		IssueDate:         time.Date(2025, 3, 14, 0, 0, 0, 0, time.UTC),
 		Currency:          shared.MustNewCurrency("USD"),
@@ -72,7 +81,10 @@ func TestPrintReceipt_Golden(t *testing.T) {
 				UnitAmount:   shared.NewGrossAmount(decimal.NewFromFloat(5.00)),
 			},
 		},
-	}, docNumber)
+	})
+	require.NoError(t, err)
+
+	doc, err := builder.Build(docNumber)
 	require.NoError(t, err)
 
 	output, err := printer.PrintDocument(context.Background(), doc)

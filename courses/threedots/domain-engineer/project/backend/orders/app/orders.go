@@ -9,10 +9,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
+	"eats/backend/billing/api/module/client"
 	"eats/backend/common"
 	"eats/backend/common/log"
 	"eats/backend/common/shared"
-	"eats/backend/delivery/api/module/client"
+	deliveryModule "eats/backend/delivery/api/module/client"
 )
 
 type QuoteUUID struct {
@@ -48,6 +49,7 @@ func (c Quote) ExpirationTime() time.Time {
 type QuoteMenuItem struct {
 	MenuItemUUID RestaurantMenuItemUUID
 
+	Category   ItemCategory
 	GrossPrice decimal.Decimal
 	Quantity   int
 }
@@ -146,6 +148,12 @@ type OrderRepository interface {
 		restaurantUUID RestaurantUUID,
 	) (Restaurant, error)
 
+	GetMenuItems(
+		ctx context.Context,
+		restaurantUUID RestaurantUUID,
+		menuItemUUIDs []RestaurantMenuItemUUID,
+	) (map[RestaurantMenuItemUUID]MenuItem, error)
+
 	CreateQuote(
 		ctx context.Context,
 		restaurantUUID RestaurantUUID,
@@ -168,6 +176,7 @@ type OrderRepository interface {
 	) error
 
 	OrderByID(ctx context.Context, orderUUID OrderUUID) (Order, error)
+	OrderItemsByOrderID(ctx context.Context, orderUUID OrderUUID) ([]OrderItem, error)
 }
 
 type CreateQuote struct {
@@ -180,6 +189,13 @@ type CreateQuote struct {
 type CreateQuoteItem struct {
 	MenuItemUUID RestaurantMenuItemUUID
 	Quantity     int
+}
+
+type OrderItem struct {
+	Name       string
+	Category   ItemCategory
+	GrossPrice decimal.Decimal
+	Quantity   int
 }
 
 type CreateQuoteItems []CreateQuoteItem
@@ -235,23 +251,102 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 		})
 	}
 
-	// Call the delivery and billing services before starting the transaction. If these ran inside
-	// the transaction, a slow response would hold a database connection the entire time. If
-	// other modules share the same database, exhausting the pool this way is a self-inflicted DDoS.
-	// In production, use a separate database user per module with its own connection limit.
 	restaurant, err := s.orderRepository.GetRestaurant(ctx, req.RestaurantUUID)
 	if err != nil {
 		return Quote{}, err
 	}
 
-	deliveryFee, err := s.modules.CalculateDeliveryFee(ctx, client.CalculateDeliveryFeeRequest{
-		RestaurantAddress: restaurant.Address,
-		DeliveryAddress:   req.DeliveryAddress,
-		Currency:          restaurant.Currency,
-		When:              time.Now(),
+	menuItems, err := s.orderRepository.GetMenuItems(ctx, req.RestaurantUUID, quoteItems.MenuItemUUIDs())
+	if err != nil {
+		return Quote{}, err
+	}
+
+	if err := ensureQuoteItemsAreNotArchived(menuItems); err != nil {
+		return Quote{}, err
+	}
+
+	if restaurant.Address.City() != req.DeliveryAddress.City() {
+		return Quote{}, common.NewInvalidInputError(
+			"address-out-of-delivery-zone",
+			"restaurant does not deliver to the provided address",
+		).WithDetails([]common.ErrorDetails{{
+			EntityType: "quote",
+			ErrorSlug:  "address-out-of-delivery-zone",
+			Message:    fmt.Sprintf("restaurant delivers to %s only", restaurant.Address.City()),
+		}})
+	}
+
+	itemsSubtotal := decimal.Zero
+	quoteItemPositions := make([]QuoteMenuItem, 0, len(menuItems))
+	billingLineItems := make([]client.LineItem, 0, len(menuItems))
+
+	for _, item := range quoteItems {
+		menuItem := menuItems[item.MenuItemUUID]
+		grossPriceTotal := menuItem.GrossPrice.Mul(decimal.NewFromInt(int64(item.Quantity)))
+		itemsSubtotal = itemsSubtotal.Add(grossPriceTotal)
+
+		quoteItemPositions = append(quoteItemPositions, QuoteMenuItem{
+			MenuItemUUID: item.MenuItemUUID,
+			Category:     menuItem.Category,
+			GrossPrice:   menuItem.GrossPrice,
+			Quantity:     item.Quantity,
+		})
+
+		itemType, err := lineItemTypeFromCategory(menuItem.Category)
+		if err != nil {
+			return Quote{}, err
+		}
+
+		billingLineItems = append(billingLineItems, client.LineItem{
+			Name:       menuItem.Name,
+			Type:       itemType,
+			Quantity:   item.Quantity,
+			UnitAmount: shared.NewGrossAmount(menuItem.GrossPrice),
+		})
+	}
+
+	serviceFeeGross := itemsSubtotal.Mul(decimal.RequireFromString("0.06")).RoundBank(2) // 6%
+
+	billingLineItems = append(billingLineItems, client.LineItem{
+		Name:       "Service Fee",
+		Type:       shared.LineItemTypeService,
+		Quantity:   1,
+		UnitAmount: shared.NewGrossAmount(serviceFeeGross),
 	})
+
+	// Call the delivery and billing services before starting the transaction. If these ran inside
+	// the transaction, a slow response would hold a database connection the entire time. If
+	// other modules share the same database, exhausting the pool this way is a self-inflicted DDoS.
+	// In production, use a separate database user per module with its own connection limit.
+	deliveryFee, err := s.modules.CalculateDeliveryFee(
+		ctx,
+		deliveryModule.CalculateDeliveryFeeRequest{
+			RestaurantAddress: restaurant.Address,
+			DeliveryAddress:   req.DeliveryAddress,
+			Currency:          restaurant.Currency,
+			When:              time.Now(),
+		},
+	)
 	if err != nil {
 		return Quote{}, fmt.Errorf("error calculating delivery fee for quote: %w", err)
+	}
+
+	billingLineItems = append(billingLineItems, client.LineItem{
+		Name:       "Delivery Fee",
+		Type:       shared.LineItemTypeDelivery,
+		Quantity:   1,
+		UnitAmount: shared.NewGrossAmount(deliveryFee.GrossFee),
+	})
+
+	billingRes, err := s.modules.CalculateTaxes(ctx, client.CalculateTaxesRequest{
+		Currency:          restaurant.Currency,
+		BuyerCountryCode:  req.DeliveryAddress.CountryCode(),
+		BuyerTaxID:        nil,
+		SellerCountryCode: req.DeliveryAddress.CountryCode(),
+		LineItems:         billingLineItems,
+	})
+	if err != nil {
+		return Quote{}, fmt.Errorf("error calculating taxes for quote: %w", err)
 	}
 
 	return s.orderRepository.CreateQuote(
@@ -280,25 +375,6 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 				}})
 			}
 
-			itemsSubtotal := decimal.Zero
-			quoteItemPositions := make([]QuoteMenuItem, 0, len(menuItems))
-
-			for _, item := range quoteItems {
-				menuItem := menuItems[item.MenuItemUUID]
-				grossPriceTotal := menuItem.GrossPrice.Mul(decimal.NewFromInt(int64(item.Quantity)))
-				itemsSubtotal = itemsSubtotal.Add(grossPriceTotal)
-
-				quoteItemPositions = append(quoteItemPositions, QuoteMenuItem{
-					MenuItemUUID: item.MenuItemUUID,
-					GrossPrice:   grossPriceTotal,
-					Quantity:     item.Quantity,
-				})
-			}
-
-			serviceFeeGross := itemsSubtotal.Mul(decimal.RequireFromString("0.06")).RoundBank(2) // 6%
-
-			totalAmount := itemsSubtotal.Add(serviceFeeGross).Add(deliveryFee.GrossFee)
-
 			return Quote{
 				QuoteUUID:      QuoteUUID{common.NewUUIDv7()},
 				CustomerUUID:   req.CustomerUUID,
@@ -309,9 +385,9 @@ func (s *Service) CreateQuote(ctx context.Context, req CreateQuote) (Quote, erro
 				ItemsSubtotalGross: itemsSubtotal,
 				ServiceFeeGross:    serviceFeeGross,
 				DeliveryFeeGross:   deliveryFee.GrossFee,
-				TotalAmountGross:   totalAmount,
+				TotalAmountGross:   billingRes.GrossTotal,
 
-				TotalTax: totalAmount.Div(decimal.RequireFromString("1.23")).RoundBank(2),
+				TotalTax: billingRes.TaxTotal,
 
 				Currency: restaurant.Currency,
 			}, quoteItemPositions, nil

@@ -44,11 +44,27 @@ type MenuItem struct {
 	MenuItemUUID RestaurantMenuItemUUID
 
 	Name       string
+	Category   ItemCategory
 	Ordering   float64
 	GrossPrice decimal.Decimal
 
 	IsArchived bool
 }
+
+type ItemCategory struct {
+	common.Enum[ItemCategoryType]
+}
+
+type ItemCategoryType string
+
+func (ItemCategoryType) Values() []string {
+	return []string{"food", "beverage"}
+}
+
+var (
+	ItemCategoryFood     = common.MustEnum[ItemCategory]("food")
+	ItemCategoryBeverage = common.MustEnum[ItemCategory]("beverage")
+)
 
 type Restaurant struct {
 	RestaurantUUID RestaurantUUID

@@ -65,6 +65,7 @@ func (r *RestaurantRepository) UpsertRestaurant(ctx context.Context, restaurantU
 				RestaurantMenuItemUuid: item.MenuItemUUID,
 				RestaurantUuid:         restaurantUUID,
 				Name:                   item.Name,
+				Category:               item.Category,
 				GrossPrice:             item.GrossPrice,
 				Ordering:               item.Ordering,
 				IsArchived:             false,
@@ -112,8 +113,10 @@ func (r *RestaurantRepository) GetRestaurantMenu(ctx context.Context, restaurant
 		items[i] = app.MenuItem{
 			MenuItemUUID: dbItem.OrdersRestaurantMenuItem.RestaurantMenuItemUuid,
 			Name:         dbItem.OrdersRestaurantMenuItem.Name,
-			GrossPrice:   dbItem.OrdersRestaurantMenuItem.GrossPrice,
+			Category:     dbItem.OrdersRestaurantMenuItem.Category,
 			Ordering:     dbItem.OrdersRestaurantMenuItem.Ordering,
+			GrossPrice:   dbItem.OrdersRestaurantMenuItem.GrossPrice,
+			IsArchived:   dbItem.OrdersRestaurantMenuItem.IsArchived,
 		}
 	}
 

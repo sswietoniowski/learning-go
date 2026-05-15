@@ -196,7 +196,9 @@ type MarkOrderReady struct {
 
 // MenuItem defines model for MenuItem.
 type MenuItem struct {
-	GrossPrice Decimal `json:"gross_price"`
+	// Category Category of the item
+	Category   app.ItemCategory `json:"category"`
+	GrossPrice Decimal          `json:"gross_price"`
 
 	// Name Item name
 	Name string `json:"name"`

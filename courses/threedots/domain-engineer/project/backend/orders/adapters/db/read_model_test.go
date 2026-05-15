@@ -42,12 +42,14 @@ func TestReadModel_ListMenuItemsWithRestaurant(t *testing.T) {
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Margherita Pizza",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(12.99),
 				Ordering:     1,
 			},
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Pepperoni Pizza",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(14.99),
 				Ordering:     2,
 			},
@@ -66,6 +68,7 @@ func TestReadModel_ListMenuItemsWithRestaurant(t *testing.T) {
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Classic Burger",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(9.99),
 				Ordering:     1,
 			},
@@ -144,12 +147,14 @@ func TestReadModel_ListMenuItemsWithRestaurant_ExcludesArchived(t *testing.T) {
 	menuItem1 := app.MenuItem{
 		MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 		Name:         "Active Item",
+		Category:     app.ItemCategoryFood,
 		GrossPrice:   decimal.NewFromFloat(10.00),
 		Ordering:     1,
 	}
 	menuItem2 := app.MenuItem{
 		MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 		Name:         "To Be Archived",
+		Category:     app.ItemCategoryFood,
 		GrossPrice:   decimal.NewFromFloat(15.00),
 		Ordering:     2,
 	}
@@ -215,6 +220,7 @@ func TestReadModel_ListMenuItemsWithRestaurant_FilterByRestaurantName(t *testing
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Margherita",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(12.99),
 				Ordering:     1,
 			},
@@ -233,6 +239,7 @@ func TestReadModel_ListMenuItemsWithRestaurant_FilterByRestaurantName(t *testing
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Classic Burger",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(9.99),
 				Ordering:     1,
 			},
@@ -292,18 +299,21 @@ func TestReadModel_ListMenuItemsWithRestaurant_OrderByPrice(t *testing.T) {
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Expensive",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(50.00),
 				Ordering:     1,
 			},
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Cheap",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(5.00),
 				Ordering:     2,
 			},
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Medium",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(25.00),
 				Ordering:     3,
 			},
@@ -378,18 +388,21 @@ func TestReadModel_ListMenuItemsWithRestaurant_OrderByName(t *testing.T) {
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Zebra Cake",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(10.00),
 				Ordering:     1,
 			},
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Apple Pie",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(10.00),
 				Ordering:     2,
 			},
 			{
 				MenuItemUUID: app.RestaurantMenuItemUUID{common.NewUUIDv7()},
 				Name:         "Mango Smoothie",
+				Category:     app.ItemCategoryFood,
 				GrossPrice:   decimal.NewFromFloat(10.00),
 				Ordering:     3,
 			},

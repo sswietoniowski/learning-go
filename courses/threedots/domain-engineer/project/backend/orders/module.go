@@ -4,14 +4,12 @@ import (
 	"context"
 	"embed"
 
-	"github.com/ThreeDotsLabs/the-domain-engineer/clients"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"eats/backend/common"
 	"eats/backend/common/module"
 	"eats/backend/common/module/contracts"
 	"eats/backend/orders/adapters/db"
-	"eats/backend/orders/adapters/payments"
 	http2 "eats/backend/orders/api/http"
 	ordersModule "eats/backend/orders/api/module"
 	"eats/backend/orders/app"
@@ -21,15 +19,15 @@ type Module struct {
 	pgxDb       *pgxpool.Pool
 	httpHandler http2.Handler
 
-	modules *contracts.Contracts
-	clients *clients.Clients
+	modules  *contracts.Contracts
+	payments app.PaymentsService
 }
 
-func NewModule(pgxDb *pgxpool.Pool, modules *contracts.Contracts, apiClients *clients.Clients) *Module {
+func NewModule(pgxDb *pgxpool.Pool, modules *contracts.Contracts, payments app.PaymentsService) *Module {
 	return &Module{
-		pgxDb:   pgxDb,
-		modules: modules,
-		clients: apiClients,
+		pgxDb:    pgxDb,
+		modules:  modules,
+		payments: payments,
 	}
 }
 
@@ -46,9 +44,7 @@ func (m *Module) Init(ctx context.Context) error {
 	customerRepo := db.NewCustomerRepository(m.pgxDb)
 	courierRepo := db.NewCourierRepository(m.pgxDb)
 
-	paymentsClient := payments.NewClient(m.clients)
-
-	appService := app.NewService(restaurantRepo, customerRepo, ordersRepo, courierRepo, paymentsClient, m.modules)
+	appService := app.NewService(restaurantRepo, customerRepo, ordersRepo, courierRepo, m.payments, m.modules)
 
 	readModel := db.NewReadModel(m.pgxDb)
 

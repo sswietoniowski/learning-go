@@ -376,7 +376,7 @@ func (q *Queries) GetCustomerOrders(ctx context.Context, customerUuid app.Custom
 
 const getMenuItemsForQuote = `-- name: GetMenuItemsForQuote :many
 SELECT
-	restaurant_menu_items.restaurant_menu_item_uuid, restaurant_menu_items.restaurant_uuid, restaurant_menu_items.name, restaurant_menu_items.gross_price, restaurant_menu_items.ordering, restaurant_menu_items.is_archived
+	restaurant_menu_items.restaurant_menu_item_uuid, restaurant_menu_items.restaurant_uuid, restaurant_menu_items.name, restaurant_menu_items.gross_price, restaurant_menu_items.ordering, restaurant_menu_items.is_archived, restaurant_menu_items.category
 FROM
 	orders.restaurant_menu_items AS restaurant_menu_items
 	INNER JOIN orders.quote_items AS quote_items
@@ -402,6 +402,7 @@ func (q *Queries) GetMenuItemsForQuote(ctx context.Context, quoteUuid app.QuoteU
 			&i.GrossPrice,
 			&i.Ordering,
 			&i.IsArchived,
+			&i.Category,
 		); err != nil {
 			return nil, err
 		}
@@ -447,6 +448,56 @@ func (q *Queries) GetOrder(ctx context.Context, orderUuid app.OrderUUID) (Orders
 		&i.Currency,
 	)
 	return i, err
+}
+
+const getOrderItems = `-- name: GetOrderItems :many
+SELECT
+    quote_items.quote_item_uuid, quote_items.quote_uuid, quote_items.menu_item_uuid, quote_items.gross_price, quote_items.quantity,
+    restaurant_menu_items.name,
+    restaurant_menu_items.category
+FROM orders.quote_items
+INNER JOIN orders.restaurant_menu_items ON quote_items.menu_item_uuid = restaurant_menu_items.restaurant_menu_item_uuid
+WHERE quote_uuid = (
+    SELECT quote_uuid FROM orders.orders WHERE order_uuid = $1
+)
+`
+
+type GetOrderItemsRow struct {
+	QuoteItemUuid common.UUID
+	QuoteUuid     app.QuoteUUID
+	MenuItemUuid  app.RestaurantMenuItemUUID
+	GrossPrice    decimal.Decimal
+	Quantity      int32
+	Name          string
+	Category      app.ItemCategory
+}
+
+func (q *Queries) GetOrderItems(ctx context.Context, orderUuid app.OrderUUID) ([]GetOrderItemsRow, error) {
+	rows, err := q.db.Query(ctx, getOrderItems, orderUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetOrderItemsRow{}
+	for rows.Next() {
+		var i GetOrderItemsRow
+		if err := rows.Scan(
+			&i.QuoteItemUuid,
+			&i.QuoteUuid,
+			&i.MenuItemUuid,
+			&i.GrossPrice,
+			&i.Quantity,
+			&i.Name,
+			&i.Category,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getQuote = `-- name: GetQuote :one

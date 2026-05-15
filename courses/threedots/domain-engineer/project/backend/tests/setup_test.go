@@ -10,20 +10,27 @@ import (
 	"testing"
 	"time"
 
-	commonclients "github.com/ThreeDotsLabs/the-domain-engineer/clients"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	eats "eats/backend"
+	"eats/backend"
+	"eats/backend/billing/adapters/tax"
 	billingclient "eats/backend/billing/api/http/client"
 	commonHTTP "eats/backend/common/http"
 	"eats/backend/common/log"
+	"eats/backend/orders/adapters/payments"
 	ordersclient "eats/backend/orders/api/http/client"
 )
 
+type testStubs struct {
+	Payments *payments.StubClient
+	Tax      *tax.StubClient
+}
+
+var stubs testStubs
+
 type testClients struct {
-	Orders        *ordersclient.ClientWithResponses
-	Billing       *billingclient.ClientWithResponses
-	CommonClients *commonclients.Clients
+	Orders  *ordersclient.ClientWithResponses
+	Billing *billingclient.ClientWithResponses
 }
 
 func newTestClients(t *testing.T) testClients {
@@ -59,15 +66,9 @@ func newTestClients(t *testing.T) testClients {
 		t.Fatalf("creating billing client: %v", err)
 	}
 
-	commonAPIClients, err := commonclients.NewClients(os.Getenv("GATEWAY_ADDR"), editorFn)
-	if err != nil {
-		t.Fatalf("creating common clients: %v", err)
-	}
-
 	return testClients{
-		Orders:        orders,
-		Billing:       billing,
-		CommonClients: commonAPIClients,
+		Orders:  orders,
+		Billing: billing,
 	}
 }
 
@@ -87,10 +88,16 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	svc, err := eats.New(
+	paymentsStub := payments.NewStub()
+	taxStub := tax.NewStub()
+
+	svc, err := backend.New(
 		ctx,
 		dbPgx,
-		os.Getenv("GATEWAY_ADDR"),
+		backend.ExternalServices{
+			Payments: paymentsStub,
+			Tax:      taxStub,
+		},
 	)
 	if err != nil {
 		panic(err)
@@ -103,6 +110,11 @@ func TestMain(m *testing.M) {
 	}()
 
 	waitForHttpServerInMain()
+
+	stubs = testStubs{
+		Payments: paymentsStub,
+		Tax:      taxStub,
+	}
 
 	exitCode := m.Run()
 

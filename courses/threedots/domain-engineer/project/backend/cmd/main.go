@@ -3,14 +3,20 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/ThreeDotsLabs/the-domain-engineer/clients"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"eats/backend"
+	"eats/backend/billing/adapters/tax"
+	"eats/backend/common/file"
 	"eats/backend/common/log"
+	"eats/backend/orders/adapters/payments"
 )
 
 func main() {
@@ -29,10 +35,26 @@ func main() {
 		panic(err)
 	}
 
+	apiClients, err := clients.NewClientsWithHttpClient(
+		os.Getenv("GATEWAY_ADDR"),
+		func(ctx context.Context, req *http.Request) error {
+			req.Header.Set("Correlation-ID", log.CorrelationIDFromContext(ctx))
+			return nil
+		},
+		&http.Client{Timeout: 10 * time.Second},
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	svc, err := backend.New(
 		ctx,
 		dbPgx,
-		os.Getenv("GATEWAY_ADDR"),
+		backend.ExternalServices{
+			Payments:    payments.NewClient(apiClients),
+			Tax:         tax.NewClient(apiClients),
+			FileStorage: file.NewPublicStorage(apiClients),
+		},
 	)
 	if err != nil {
 		panic(err)
