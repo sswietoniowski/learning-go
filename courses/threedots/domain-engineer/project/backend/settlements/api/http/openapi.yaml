@@ -1,0 +1,260 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Settlements
+  contact:
+    name: Three Dots Labs
+    url: https://threedots.tech/
+servers:
+  - url: https://{hostname}/settlements
+    variables:
+      hostname:
+        default: localhost
+paths:
+  /settlements/onboard-partner:
+    post:
+      summary: Onboard a new partner
+      operationId: onboardPartner
+      tags:
+        - commands
+      parameters:
+        - name: Operator-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/OperatorUUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardPartner'
+      responses:
+        '204':
+          description: Partner onboarded successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /settlements/create-platform-entity:
+    post:
+      summary: Create a new platform entity
+      operationId: createPlatformEntity
+      tags:
+        - commands
+      parameters:
+        - name: Operator-UUID
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/OperatorUUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlatformEntity'
+      responses:
+        '201':
+          description: Entity created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [platform_entity_uuid]
+                properties:
+                  platform_entity_uuid:
+                    $ref: '#/components/schemas/PlatformEntityUUID'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+
+components:
+  schemas:
+    OnboardPartner:
+      type: object
+      required:
+        - partner_uuid
+        - platform_entity_uuid
+        - partner_type
+        - business_name
+        - tax_id
+        - address
+        - bank_account_iban
+        - currency
+      properties:
+        partner_uuid:
+          $ref: '#/components/schemas/LegalEntityUUID'
+        platform_entity_uuid:
+          $ref: '#/components/schemas/PlatformEntityUUID'
+        partner_type:
+          $ref: '#/components/schemas/PartnerType'
+        business_name:
+          type: string
+          description: Legal business name of the partner
+        tax_id:
+          type: string
+          description: Tax identification number
+        address:
+          $ref: '#/components/schemas/Address'
+        bank_account_iban:
+          type: string
+          description: Bank account IBAN for payouts
+        currency:
+          $ref: '#/components/schemas/Currency'
+
+    CreatePlatformEntity:
+      type: object
+      required:
+        - platform_entity_uuid
+        - business_name
+        - tax_id
+        - address
+        - bank_account_iban
+        - currency
+      properties:
+        platform_entity_uuid:
+          $ref: '#/components/schemas/LegalEntityUUID'
+        business_name:
+          type: string
+        tax_id:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        bank_account_iban:
+          type: string
+          description: Bank account IBAN for payouts
+        currency:
+          $ref: '#/components/schemas/Currency'
+
+    Address:
+      type: object
+      required:
+        - line1
+        - line2
+        - city
+        - postal_code
+        - country_code
+      properties:
+        line1:
+          type: string
+          description: First address line
+        line2:
+          type: string
+          description: Second address line
+        city:
+          type: string
+          description: City name
+        postal_code:
+          type: string
+          description: Postal code
+        country_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          x-go-type: shared.CountryCode
+          x-go-type-import:
+            path: eats/backend/common/shared
+
+    LegalEntityUUID:
+      type: string
+      format: uuid
+      description: UUID of a legal entity (partner)
+      x-go-type: domain.LegalEntityUUID
+      x-go-type-import:
+        path: eats/backend/settlements/domain
+
+    OperatorUUID:
+      type: string
+      format: uuid
+      description: UUID of an operator
+      x-go-type: common.UUID
+      x-go-type-import:
+        path: eats/backend/common
+
+    PlatformEntityUUID:
+      type: string
+      format: uuid
+      description: UUID of a platform entity
+      x-go-type: models.PlatformEntityUUID
+      x-go-type-import:
+
+    PartnerType:
+      type: string
+      enum: [ restaurant, courier ]
+      description: Type of partner being onboarded
+      x-go-type: domain.PartnerType
+      x-go-type-import:
+        path: eats/backend/settlements/domain
+
+    ErrorResponse:
+      type: object
+      required:
+        - slug
+        - message
+        - details
+      properties:
+        slug:
+          type: string
+          description: Error slug
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: array
+          description: Detailed error information
+          items:
+            $ref: '#/components/schemas/ErrorDetails'
+
+    ErrorDetails:
+      type: object
+      required:
+        - error_slug
+        - message
+      properties:
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+        error_slug:
+          type: string
+        message:
+          type: string
+
+    Currency:
+      type: string
+      description: Currency code in ISO 4217 format
+      x-go-type: shared.Currency
+      x-go-type-import:
+        path: eats/backend/common/shared
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

@@ -1,0 +1,103 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "queries"
+    schema: "migrations"
+    gen:
+      go:
+        package: "dbmodels"
+        out: "dbmodels"
+        sql_package: "pgx/v5"
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
+        overrides:
+          # Map nullable timestamptz to *time.Time (pointer for nil handling).
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
+
+          # Map non-nullable timestamptz to time.Time.
+          - db_type: "timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+
+          - db_type: "pg_catalog.numeric"
+            go_type:
+              import: "github.com/shopspring/decimal"
+              type: "Decimal"
+
+          - db_type: "uuid"
+            nullable: false
+            go_type:
+              import: "eats/backend/common"
+              type: "UUID"
+
+          - db_type: "uuid"
+            nullable: true
+            go_type:
+              import: "eats/backend/common"
+              type: "NullUUID"
+
+          - column: "settlements.orders.order_uuid"
+            go_type:
+              import: "eats/backend/settlements/app/models"
+              type: "OrderUUID"
+
+          - column: "settlements.orders.restaurant_uuid"
+            go_type:
+              import: "eats/backend/settlements/domain"
+              type: "LegalEntityUUID"
+
+          - column: "settlements.orders.courier_uuid"
+            go_type:
+              import: "eats/backend/settlements/domain"
+              type: "LegalEntityUUID"
+
+          - column: "settlements.orders.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"
+
+          - column: "settlements.order_breakdowns.order_uuid"
+            go_type:
+              import: "eats/backend/settlements/app/models"
+              type: "OrderUUID"
+
+          - column: "settlements.legal_entities.legal_entity_uuid"
+            go_type:
+              import: "eats/backend/settlements/domain"
+              type: "LegalEntityUUID"
+
+          - column: "settlements.legal_entities.legal_entity_type"
+            go_type:
+              import: "eats/backend/settlements/app/models"
+              type: "LegalEntityType"
+
+          - column: "settlements.legal_entities.address"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Address"
+
+          - column: "settlements.legal_entities.currency"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "Currency"
+
+          - column: "settlements.legal_entities.tax_id"
+            go_type:
+              import: "eats/backend/common/shared"
+              type: "TaxID"
+
+          - column: "settlements.partner_platform_mappings.partner_uuid"
+            go_type:
+              import: "eats/backend/settlements/domain"
+              type: "LegalEntityUUID"
+
+          - column: "settlements.partner_platform_mappings.platform_entity_uuid"
+            go_type:
+              import: "eats/backend/settlements/app/models"
+              type: "PlatformEntityUUID"

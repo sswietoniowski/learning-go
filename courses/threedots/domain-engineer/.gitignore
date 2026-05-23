@@ -1,0 +1,11 @@
+# Exercise content is subject to Three Dots Labs' copyright.
+**/exercise.md
+
+# TDL local state (managed by CLI)
+.tdl-training
+.tdl-exercise
+
+# AI coding tool configs (managed by CLI)
+CLAUDE.md
+AGENTS.md
+.mcp.json
