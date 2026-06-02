@@ -11,8 +11,8 @@ import (
 
 	"eats/backend/common/shared"
 	"eats/backend/settlements/app/models"
-	"github.com/shopspring/decimal"
 	"eats/backend/settlements/domain"
+	"github.com/shopspring/decimal"
 )
 
 const saveOrder = `-- name: SaveOrder :exec

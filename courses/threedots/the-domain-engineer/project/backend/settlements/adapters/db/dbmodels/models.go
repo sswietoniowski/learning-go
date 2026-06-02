@@ -11,8 +11,8 @@ import (
 
 	"eats/backend/common/shared"
 	"eats/backend/settlements/app/models"
-	"github.com/shopspring/decimal"
 	"eats/backend/settlements/domain"
+	"github.com/shopspring/decimal"
 )
 
 type SettlementsBreakdownType string
@@ -98,6 +98,64 @@ func (ns NullSettlementsLegalEntityType) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.SettlementsLegalEntityType), nil
+}
+
+type SettlementsPartnerType string
+
+const (
+	SettlementsPartnerTypeRestaurant SettlementsPartnerType = "restaurant"
+	SettlementsPartnerTypeCourier    SettlementsPartnerType = "courier"
+)
+
+func (e *SettlementsPartnerType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SettlementsPartnerType(s)
+	case string:
+		*e = SettlementsPartnerType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SettlementsPartnerType: %T", src)
+	}
+	return nil
+}
+
+type NullSettlementsPartnerType struct {
+	SettlementsPartnerType SettlementsPartnerType
+	Valid                  bool // Valid is true if SettlementsPartnerType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSettlementsPartnerType) Scan(value interface{}) error {
+	if value == nil {
+		ns.SettlementsPartnerType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SettlementsPartnerType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSettlementsPartnerType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.SettlementsPartnerType), nil
+}
+
+type SettlementsBillingCycle struct {
+	BillingCycleUuid   domain.BillingCycleUUID
+	PartnerUuid        domain.LegalEntityUUID
+	PartnerType        domain.PartnerType
+	BillingCycleNumber int32
+	Closed             bool
+	Settled            bool
+	StartDate          time.Time
+	EndDate            *time.Time
+}
+
+type SettlementsBillingCycleOrder struct {
+	BillingCycleUuid domain.BillingCycleUUID
+	OrderUuid        models.OrderUUID
 }
 
 type SettlementsLegalEntity struct {

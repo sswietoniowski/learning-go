@@ -12,13 +12,14 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"eats/backend/common"
 	"eats/backend/common/shared"
 	"eats/backend/settlements/app/models"
+	"eats/backend/settlements/domain"
 
 	"github.com/oapi-codegen/runtime"
-	"eats/backend/settlements/domain"
 )
 
 // Address defines model for Address.
@@ -38,6 +39,31 @@ type Address struct {
 	// PostalCode Postal code
 	PostalCode string `json:"postal_code"`
 }
+
+// BillingCycle defines model for BillingCycle.
+type BillingCycle struct {
+	// BillingCycleNumber Billing cycle number
+	BillingCycleNumber int `json:"billing_cycle_number"`
+
+	// BillingCycleUuid UUID of a billing cycle
+	BillingCycleUuid BillingCycleUUID `json:"billing_cycle_uuid"`
+
+	// Closed Whether the billing cycle is closed
+	Closed bool `json:"closed"`
+
+	// EndDate End date of the billing cycle (null if not closed)
+	EndDate *time.Time `json:"end_date"`
+
+	// PartnerUuid UUID of a legal entity (partner)
+	PartnerUuid LegalEntityUUID `json:"partner_uuid"`
+	Settled     bool            `json:"settled"`
+
+	// StartDate Start date of the billing cycle
+	StartDate time.Time `json:"start_date"`
+}
+
+// BillingCycleUUID UUID of a billing cycle
+type BillingCycleUUID = domain.BillingCycleUUID
 
 // CreatePlatformEntity defines model for CreatePlatformEntity.
 type CreatePlatformEntity struct {
@@ -118,6 +144,9 @@ type PlatformEntityUUID = models.PlatformEntityUUID
 
 // BadRequest defines model for BadRequest.
 type BadRequest = ErrorResponse
+
+// NotFound defines model for NotFound.
+type NotFound = ErrorResponse
 
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = ErrorResponse
@@ -211,6 +240,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetBillingCyclesByPartner request
+	GetBillingCyclesByPartner(ctx context.Context, partnerUuid LegalEntityUUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreatePlatformEntityWithBody request with any body
 	CreatePlatformEntityWithBody(ctx context.Context, params *CreatePlatformEntityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -220,6 +252,18 @@ type ClientInterface interface {
 	OnboardPartnerWithBody(ctx context.Context, params *OnboardPartnerParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	OnboardPartner(ctx context.Context, params *OnboardPartnerParams, body OnboardPartnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetBillingCyclesByPartner(ctx context.Context, partnerUuid LegalEntityUUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetBillingCyclesByPartnerRequest(c.Server, partnerUuid)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) CreatePlatformEntityWithBody(ctx context.Context, params *CreatePlatformEntityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -268,6 +312,40 @@ func (c *Client) OnboardPartner(ctx context.Context, params *OnboardPartnerParam
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetBillingCyclesByPartnerRequest generates requests for GetBillingCyclesByPartner
+func NewGetBillingCyclesByPartnerRequest(server string, partnerUuid LegalEntityUUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "partner_uuid", runtime.ParamLocationPath, partnerUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settlements/billing-cycles/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewCreatePlatformEntityRequest calls the generic CreatePlatformEntity builder with application/json body
@@ -419,6 +497,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetBillingCyclesByPartnerWithResponse request
+	GetBillingCyclesByPartnerWithResponse(ctx context.Context, partnerUuid LegalEntityUUID, reqEditors ...RequestEditorFn) (*GetBillingCyclesByPartnerResponse, error)
+
 	// CreatePlatformEntityWithBodyWithResponse request with any body
 	CreatePlatformEntityWithBodyWithResponse(ctx context.Context, params *CreatePlatformEntityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePlatformEntityResponse, error)
 
@@ -428,6 +509,31 @@ type ClientWithResponsesInterface interface {
 	OnboardPartnerWithBodyWithResponse(ctx context.Context, params *OnboardPartnerParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OnboardPartnerResponse, error)
 
 	OnboardPartnerWithResponse(ctx context.Context, params *OnboardPartnerParams, body OnboardPartnerJSONRequestBody, reqEditors ...RequestEditorFn) (*OnboardPartnerResponse, error)
+}
+
+type GetBillingCyclesByPartnerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]BillingCycle
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r GetBillingCyclesByPartnerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetBillingCyclesByPartnerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type CreatePlatformEntityResponse struct {
@@ -480,6 +586,15 @@ func (r OnboardPartnerResponse) StatusCode() int {
 	return 0
 }
 
+// GetBillingCyclesByPartnerWithResponse request returning *GetBillingCyclesByPartnerResponse
+func (c *ClientWithResponses) GetBillingCyclesByPartnerWithResponse(ctx context.Context, partnerUuid LegalEntityUUID, reqEditors ...RequestEditorFn) (*GetBillingCyclesByPartnerResponse, error) {
+	rsp, err := c.GetBillingCyclesByPartner(ctx, partnerUuid, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetBillingCyclesByPartnerResponse(rsp)
+}
+
 // CreatePlatformEntityWithBodyWithResponse request with arbitrary body returning *CreatePlatformEntityResponse
 func (c *ClientWithResponses) CreatePlatformEntityWithBodyWithResponse(ctx context.Context, params *CreatePlatformEntityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePlatformEntityResponse, error) {
 	rsp, err := c.CreatePlatformEntityWithBody(ctx, params, contentType, body, reqEditors...)
@@ -512,6 +627,53 @@ func (c *ClientWithResponses) OnboardPartnerWithResponse(ctx context.Context, pa
 		return nil, err
 	}
 	return ParseOnboardPartnerResponse(rsp)
+}
+
+// ParseGetBillingCyclesByPartnerResponse parses an HTTP response from a GetBillingCyclesByPartnerWithResponse call
+func ParseGetBillingCyclesByPartnerResponse(rsp *http.Response) (*GetBillingCyclesByPartnerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetBillingCyclesByPartnerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []BillingCycle
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseCreatePlatformEntityResponse parses an HTTP response from a CreatePlatformEntityWithResponse call

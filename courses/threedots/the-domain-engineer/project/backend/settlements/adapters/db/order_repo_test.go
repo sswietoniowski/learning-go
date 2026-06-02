@@ -30,7 +30,7 @@ func TestSaveOrder_PersistsOrderAndBreakdownsAtomically(t *testing.T) {
 	restaurantUUID, courierUUID := setupRestaurantAndCourier(t, ctx, pool)
 
 	repo := db.NewOrderRepository(pool)
-	order := newTestOrder(t, restaurantUUID, courierUUID)
+	order := newOrderTestOrder(t, restaurantUUID, courierUUID)
 
 	require.NoError(t, repo.SaveOrder(ctx, order))
 
@@ -45,7 +45,7 @@ func TestSaveOrder_IsIdempotent_SameOrderUUID(t *testing.T) {
 	restaurantUUID, courierUUID := setupRestaurantAndCourier(t, ctx, pool)
 
 	repo := db.NewOrderRepository(pool)
-	order := newTestOrder(t, restaurantUUID, courierUUID)
+	order := newOrderTestOrder(t, restaurantUUID, courierUUID)
 
 	require.NoError(t, repo.SaveOrder(ctx, order))
 	require.NoError(t, repo.SaveOrder(ctx, order))
@@ -63,7 +63,7 @@ func TestSaveOrder_RejectsUnknownRestaurant(t *testing.T) {
 	bogusRestaurant := domain.LegalEntityUUID{UUID: common.NewUUIDv7()}
 
 	repo := db.NewOrderRepository(pool)
-	order := newTestOrder(t, bogusRestaurant, courierUUID)
+	order := newOrderTestOrder(t, bogusRestaurant, courierUUID)
 
 	err := repo.SaveOrder(ctx, order)
 	require.Error(t, err)
@@ -81,7 +81,7 @@ func TestSaveOrder_RejectsUnknownCourier(t *testing.T) {
 	bogusCourier := domain.LegalEntityUUID{UUID: common.NewUUIDv7()}
 
 	repo := db.NewOrderRepository(pool)
-	order := newTestOrder(t, restaurantUUID, bogusCourier)
+	order := newOrderTestOrder(t, restaurantUUID, bogusCourier)
 
 	err := repo.SaveOrder(ctx, order)
 	require.Error(t, err)
@@ -97,7 +97,7 @@ func TestSaveOrder_PersistsAllThreeBreakdownTypes(t *testing.T) {
 	restaurantUUID, courierUUID := setupRestaurantAndCourier(t, ctx, pool)
 
 	repo := db.NewOrderRepository(pool)
-	order := newTestOrder(t, restaurantUUID, courierUUID)
+	order := newOrderTestOrder(t, restaurantUUID, courierUUID)
 
 	require.NoError(t, repo.SaveOrder(ctx, order))
 
@@ -123,10 +123,14 @@ func setupRestaurantAndCourier(t *testing.T, ctx context.Context, pool *pgxpool.
 	require.NoError(t, repo.SavePlatformEntity(ctx, platform))
 
 	restaurant := newOrderTestPartner(t, "Mama's Pizzeria", models.PlatformEntityUUID{LegalEntityUUID: platform.UUID})
-	require.NoError(t, repo.SavePartner(ctx, restaurant))
+	restaurantBillingCycle, err := domain.NewInitialBillingCycle(restaurant.LegalEntity.UUID, domain.PartnerTypeRestaurant)
+	require.NoError(t, err)
+	require.NoError(t, repo.SavePartner(ctx, restaurant, restaurantBillingCycle))
 
 	courier := newOrderTestPartner(t, "Speedy Couriers", models.PlatformEntityUUID{LegalEntityUUID: platform.UUID})
-	require.NoError(t, repo.SavePartner(ctx, courier))
+	courierBillingCycle, err := domain.NewInitialBillingCycle(courier.LegalEntity.UUID, domain.PartnerTypeCourier)
+	require.NoError(t, err)
+	require.NoError(t, repo.SavePartner(ctx, courier, courierBillingCycle))
 
 	return restaurant.LegalEntity.UUID, courier.LegalEntity.UUID
 }
@@ -183,7 +187,7 @@ func newOrderTestPartner(t *testing.T, name string, platformUUID models.Platform
 	return models.NewPartner(legalEntity, platformUUID)
 }
 
-func newTestOrder(t *testing.T, restaurantUUID, courierUUID domain.LegalEntityUUID) models.Order {
+func newOrderTestOrder(t *testing.T, restaurantUUID, courierUUID domain.LegalEntityUUID) models.Order {
 	t.Helper()
 
 	receipt := client.DocumentReadModel{

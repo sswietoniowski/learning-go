@@ -8,15 +8,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"eats/backend/common"
 	"eats/backend/common/shared"
 	"eats/backend/settlements/app/models"
+	"eats/backend/settlements/domain"
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
-	"eats/backend/settlements/domain"
 )
 
 // Address defines model for Address.
@@ -36,6 +37,31 @@ type Address struct {
 	// PostalCode Postal code
 	PostalCode string `json:"postal_code"`
 }
+
+// BillingCycle defines model for BillingCycle.
+type BillingCycle struct {
+	// BillingCycleNumber Billing cycle number
+	BillingCycleNumber int `json:"billing_cycle_number"`
+
+	// BillingCycleUuid UUID of a billing cycle
+	BillingCycleUuid BillingCycleUUID `json:"billing_cycle_uuid"`
+
+	// Closed Whether the billing cycle is closed
+	Closed bool `json:"closed"`
+
+	// EndDate End date of the billing cycle (null if not closed)
+	EndDate *time.Time `json:"end_date"`
+
+	// PartnerUuid UUID of a legal entity (partner)
+	PartnerUuid LegalEntityUUID `json:"partner_uuid"`
+	Settled     bool            `json:"settled"`
+
+	// StartDate Start date of the billing cycle
+	StartDate time.Time `json:"start_date"`
+}
+
+// BillingCycleUUID UUID of a billing cycle
+type BillingCycleUUID = domain.BillingCycleUUID
 
 // CreatePlatformEntity defines model for CreatePlatformEntity.
 type CreatePlatformEntity struct {
@@ -117,6 +143,9 @@ type PlatformEntityUUID = models.PlatformEntityUUID
 // BadRequest defines model for BadRequest.
 type BadRequest = ErrorResponse
 
+// NotFound defines model for NotFound.
+type NotFound = ErrorResponse
+
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = ErrorResponse
 
@@ -138,6 +167,9 @@ type OnboardPartnerJSONRequestBody = OnboardPartner
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get billing cycles for a partner
+	// (GET /settlements/billing-cycles/{partner_uuid})
+	GetBillingCyclesByPartner(ctx echo.Context, partnerUuid LegalEntityUUID) error
 	// Create a new platform entity
 	// (POST /settlements/create-platform-entity)
 	CreatePlatformEntity(ctx echo.Context, params CreatePlatformEntityParams) error
@@ -149,6 +181,22 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// GetBillingCyclesByPartner converts echo context to params.
+func (w *ServerInterfaceWrapper) GetBillingCyclesByPartner(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "partner_uuid" -------------
+	var partnerUuid LegalEntityUUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "partner_uuid", ctx.Param("partner_uuid"), &partnerUuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter partner_uuid: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetBillingCyclesByPartner(ctx, partnerUuid)
+	return err
 }
 
 // CreatePlatformEntity converts echo context to params.
@@ -241,6 +289,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/settlements/billing-cycles/:partner_uuid", wrapper.GetBillingCyclesByPartner)
 	router.POST(baseURL+"/settlements/create-platform-entity", wrapper.CreatePlatformEntity)
 	router.POST(baseURL+"/settlements/onboard-partner", wrapper.OnboardPartner)
 
@@ -248,7 +297,53 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 type BadRequestJSONResponse ErrorResponse
 
+type NotFoundJSONResponse ErrorResponse
+
 type UnauthorizedJSONResponse ErrorResponse
+
+type GetBillingCyclesByPartnerRequestObject struct {
+	PartnerUuid LegalEntityUUID `json:"partner_uuid"`
+}
+
+type GetBillingCyclesByPartnerResponseObject interface {
+	VisitGetBillingCyclesByPartnerResponse(w http.ResponseWriter) error
+}
+
+type GetBillingCyclesByPartner200JSONResponse []BillingCycle
+
+func (response GetBillingCyclesByPartner200JSONResponse) VisitGetBillingCyclesByPartnerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetBillingCyclesByPartner400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetBillingCyclesByPartner400JSONResponse) VisitGetBillingCyclesByPartnerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetBillingCyclesByPartner401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetBillingCyclesByPartner401JSONResponse) VisitGetBillingCyclesByPartnerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetBillingCyclesByPartner404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetBillingCyclesByPartner404JSONResponse) VisitGetBillingCyclesByPartnerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
 
 type CreatePlatformEntityRequestObject struct {
 	Params CreatePlatformEntityParams
@@ -326,6 +421,9 @@ func (response OnboardPartner401JSONResponse) VisitOnboardPartnerResponse(w http
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// Get billing cycles for a partner
+	// (GET /settlements/billing-cycles/{partner_uuid})
+	GetBillingCyclesByPartner(ctx context.Context, request GetBillingCyclesByPartnerRequestObject) (GetBillingCyclesByPartnerResponseObject, error)
 	// Create a new platform entity
 	// (POST /settlements/create-platform-entity)
 	CreatePlatformEntity(ctx context.Context, request CreatePlatformEntityRequestObject) (CreatePlatformEntityResponseObject, error)
@@ -344,6 +442,31 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// GetBillingCyclesByPartner operation middleware
+func (sh *strictHandler) GetBillingCyclesByPartner(ctx echo.Context, partnerUuid LegalEntityUUID) error {
+	var request GetBillingCyclesByPartnerRequestObject
+
+	request.PartnerUuid = partnerUuid
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetBillingCyclesByPartner(ctx.Request().Context(), request.(GetBillingCyclesByPartnerRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetBillingCyclesByPartner")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetBillingCyclesByPartnerResponseObject); ok {
+		return validResponse.VisitGetBillingCyclesByPartnerResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
 }
 
 // CreatePlatformEntity operation middleware

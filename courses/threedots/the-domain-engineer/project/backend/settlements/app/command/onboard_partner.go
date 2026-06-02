@@ -40,7 +40,12 @@ func (h *Handlers) OnboardPartner(ctx context.Context, cmd OnboardPartner) error
 
 	partner := models.NewPartner(legalEntity, cmd.PlatformEntityUUID)
 
-	err = h.legalEntityRepository.SavePartner(ctx, partner)
+	billingCycle, err := domain.NewInitialBillingCycle(legalEntity.UUID, cmd.PartnerType)
+	if err != nil {
+		return fmt.Errorf("could not create initial billing cycle: %w", err)
+	}
+
+	err = h.legalEntityRepository.SavePartner(ctx, partner, billingCycle)
 	if err != nil {
 		return fmt.Errorf("could not save partner: %w", err)
 	}

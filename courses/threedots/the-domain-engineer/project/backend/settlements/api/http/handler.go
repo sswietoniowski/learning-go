@@ -7,20 +7,26 @@ import (
 	"eats/backend/common"
 	"eats/backend/common/shared"
 	"eats/backend/settlements/app/command"
+	"eats/backend/settlements/app/query"
 	"eats/backend/settlements/domain"
 )
 
 type Handler struct {
 	commandHandler *command.Handlers
+	queryHandler   *query.Handlers
 }
 
-func NewHandler(commandHandler *command.Handlers) *Handler {
+func NewHandler(commandHandler *command.Handlers, queryHandler *query.Handlers) *Handler {
 	if commandHandler == nil {
 		panic("command handler is required")
+	}
+	if queryHandler == nil {
+		panic("query handler is required")
 	}
 
 	return &Handler{
 		commandHandler: commandHandler,
+		queryHandler:   queryHandler,
 	}
 }
 
@@ -113,8 +119,33 @@ func (h Handler) CreatePlatformEntity(ctx context.Context, request CreatePlatfor
 	}, nil
 }
 
-func Register(e EchoRouter, commandHandlers *command.Handlers) error {
-	handler := NewHandler(commandHandlers)
+func (h Handler) GetBillingCyclesByPartner(ctx context.Context, request GetBillingCyclesByPartnerRequestObject) (GetBillingCyclesByPartnerResponseObject, error) {
+	cycles, err := h.queryHandler.BillingCycleByPartner(ctx, query.BillingCycleByPartner{
+		PartnerUUID: request.PartnerUuid,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]BillingCycle, 0, len(cycles))
+	for _, c := range cycles {
+		bc := BillingCycle{
+			BillingCycleUuid:   c.BillingCycleUUID,
+			PartnerUuid:        c.PartnerUUID,
+			BillingCycleNumber: c.BillingCycleNumber,
+			StartDate:          c.StartDate,
+			EndDate:            c.EndDate,
+			Closed:             c.Closed,
+			Settled:            c.Settled,
+		}
+		result = append(result, bc)
+	}
+
+	return GetBillingCyclesByPartner200JSONResponse(result), nil
+}
+
+func Register(e EchoRouter, commandHandlers *command.Handlers, queryHandlers *query.Handlers) error {
+	handler := NewHandler(commandHandlers, queryHandlers)
 
 	RegisterHandlers(e, NewStrictHandler(handler, nil))
 

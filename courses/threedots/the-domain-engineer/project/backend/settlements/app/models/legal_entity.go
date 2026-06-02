@@ -12,7 +12,7 @@ import (
 type LegalEntityRepository interface {
 	LegalEntityByUUID(ctx context.Context, uuid domain.LegalEntityUUID) (LegalEntity, error)
 	PartnerByUUID(ctx context.Context, uuid domain.LegalEntityUUID) (Partner, error)
-	SavePartner(ctx context.Context, partner Partner) error
+	SavePartner(ctx context.Context, partner Partner, billingCycle *domain.BillingCycle) error
 	SavePlatformEntity(ctx context.Context, platform LegalEntity) error
 }
 

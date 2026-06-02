@@ -42,6 +42,31 @@ sql:
               import: "eats/backend/common"
               type: "NullUUID"
 
+          - column: "settlements.billing_cycles.billing_cycle_uuid"
+            go_type:
+              import: "eats/backend/settlements/domain"
+              type: "BillingCycleUUID"
+
+          - column: "settlements.billing_cycles.partner_uuid"
+            go_type:
+              import: "eats/backend/settlements/domain"
+              type: "LegalEntityUUID"
+
+          - column: "settlements.billing_cycles.partner_type"
+            go_type:
+              import: "eats/backend/settlements/domain"
+              type: "PartnerType"
+
+          - column: "settlements.billing_cycle_orders.billing_cycle_uuid"
+            go_type:
+              import: "eats/backend/settlements/domain"
+              type: "BillingCycleUUID"
+
+          - column: "settlements.billing_cycle_orders.order_uuid"
+            go_type:
+              import: "eats/backend/settlements/app/models"
+              type: "OrderUUID"
+
           - column: "settlements.orders.order_uuid"
             go_type:
               import: "eats/backend/settlements/app/models"

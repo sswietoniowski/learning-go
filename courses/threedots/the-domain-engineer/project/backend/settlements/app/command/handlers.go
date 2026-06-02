@@ -5,24 +5,34 @@ import (
 
 	"eats/backend/billing/api/module/client"
 	"eats/backend/settlements/app/models"
+	"eats/backend/settlements/domain"
 )
 
 type ModulesContract interface {
 	IssueReceipt(ctx context.Context, req client.IssueReceiptRequest) (client.DocumentReadModel, error)
 }
 
+type billingCycleRepository interface {
+	AddOrderToCurrentBillingCycle(ctx context.Context, partnerUUID domain.LegalEntityUUID, orderUUID models.OrderUUID) error
+}
+
 type Handlers struct {
-	orderRepository       models.OrderRepository
-	legalEntityRepository models.LegalEntityRepository
+	billingCycleRepository billingCycleRepository
+	orderRepository        models.OrderRepository
+	legalEntityRepository  models.LegalEntityRepository
 
 	modules ModulesContract
 }
 
 func NewHandlers(
+	billingCycleRepository billingCycleRepository,
 	orderRepository models.OrderRepository,
 	legalEntityRepository models.LegalEntityRepository,
 	modules ModulesContract,
 ) *Handlers {
+	if billingCycleRepository == nil {
+		panic("billingCycleRepository is required")
+	}
 	if orderRepository == nil {
 		panic("orderRepository is required")
 	}
@@ -34,8 +44,9 @@ func NewHandlers(
 	}
 
 	return &Handlers{
-		orderRepository:       orderRepository,
-		legalEntityRepository: legalEntityRepository,
-		modules:               modules,
+		billingCycleRepository: billingCycleRepository,
+		orderRepository:        orderRepository,
+		legalEntityRepository:  legalEntityRepository,
+		modules:                modules,
 	}
 }

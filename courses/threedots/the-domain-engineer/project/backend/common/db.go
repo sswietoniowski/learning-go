@@ -27,6 +27,14 @@ func UpdateInTx(
 	return updateInTxWithIsolation(ctx, db, pgx.RepeatableRead, fn)
 }
 
+func UpdateInSerializableTx(
+	ctx context.Context,
+	db Beginner,
+	fn func(ctx context.Context, tx pgx.Tx) error,
+) error {
+	return updateInTxWithIsolation(ctx, db, pgx.Serializable, fn)
+}
+
 func UpdateInReadCommittedTx(
 	ctx context.Context,
 	db Beginner,

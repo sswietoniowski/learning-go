@@ -88,7 +88,7 @@ func (r *LegalEntityRepository) PartnerByUUID(ctx context.Context, uuid domain.L
 	}, nil
 }
 
-func (r *LegalEntityRepository) SavePartner(ctx context.Context, partner models.Partner) error {
+func (r *LegalEntityRepository) SavePartner(ctx context.Context, partner models.Partner, billingCycle *domain.BillingCycle) error {
 	return common.UpdateInTx(ctx, r.db, func(ctx context.Context, tx pgx.Tx) error {
 		queries := dbmodels.New(tx)
 
@@ -120,6 +120,11 @@ func (r *LegalEntityRepository) SavePartner(ctx context.Context, partner models.
 		})
 		if err != nil {
 			return fmt.Errorf("error saving partner-platform mapping: %w", err)
+		}
+
+		err = queries.SaveBillingCycle(ctx, newBillingCycleSaveParams(billingCycle))
+		if err != nil {
+			return fmt.Errorf("error saving billing cycle: %w", err)
 		}
 
 		return nil

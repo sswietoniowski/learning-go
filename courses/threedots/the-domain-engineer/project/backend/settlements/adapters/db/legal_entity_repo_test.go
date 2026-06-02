@@ -39,7 +39,6 @@ func TestLegalEntityRepository_SaveAndLoadPlatformEntity(t *testing.T) {
 		assert.Equal(t, platform.Address, saved.Address)
 		assert.Equal(t, platform.BankAccountNumber.String(), saved.BankAccountNumber.String())
 		assert.Equal(t, platform.Currency, saved.Currency)
-
 	})
 
 	t.Run("update", func(t *testing.T) {
@@ -87,14 +86,18 @@ func TestLegalEntityRepository_LegalEntityByUUID_NotFound(t *testing.T) {
 
 func TestLegalEntityRepository_SavePartner_AtomicSaveAndPartnerByUUID(t *testing.T) {
 	ctx := context.Background()
-	repo := db.NewLegalEntityRepository(testutils.NewDB(t))
+	pool := testutils.NewDB(t)
+	repo := db.NewLegalEntityRepository(pool)
+	billingCycleRepo := db.NewBillingCycleRepository(pool)
 
 	platform := newPlatformLegalEntity(t)
 	require.NoError(t, repo.SavePlatformEntity(ctx, platform))
 
 	partner := newPartner(t, models.PlatformEntityUUID{LegalEntityUUID: platform.UUID})
+	billingCycle, err := domain.NewInitialBillingCycle(partner.LegalEntity.UUID, domain.PartnerTypeRestaurant)
+	require.NoError(t, err)
 
-	err := repo.SavePartner(ctx, partner)
+	err = repo.SavePartner(ctx, partner, billingCycle)
 	require.NoError(t, err)
 
 	loaded, err := repo.PartnerByUUID(ctx, partner.LegalEntity.UUID)
@@ -102,6 +105,13 @@ func TestLegalEntityRepository_SavePartner_AtomicSaveAndPartnerByUUID(t *testing
 	assert.Equal(t, partner.LegalEntity.UUID, loaded.LegalEntity.UUID)
 	assert.Equal(t, models.LegalEntityPartner, loaded.LegalEntity.Type)
 	assert.Equal(t, partner.PlatformEntityUUID, loaded.PlatformEntityUUID)
+
+	cycles, err := billingCycleRepo.BillingCyclesForPartner(ctx, partner.LegalEntity.UUID)
+	require.NoError(t, err)
+	require.Len(t, cycles, 1, "SavePartner should atomically persist the initial billing cycle")
+	assert.Equal(t, billingCycle.UUID(), cycles[0].BillingCycleUUID)
+	assert.Equal(t, 1, cycles[0].BillingCycleNumber)
+	assert.False(t, cycles[0].Closed)
 }
 
 func TestLegalEntityRepository_SavePartner_RejectsNonPlatformReference(t *testing.T) {
@@ -113,12 +123,16 @@ func TestLegalEntityRepository_SavePartner_RejectsNonPlatformReference(t *testin
 	require.NoError(t, repo.SavePlatformEntity(ctx, platform))
 
 	wrongRef := newPartner(t, models.PlatformEntityUUID{LegalEntityUUID: platform.UUID})
-	require.NoError(t, repo.SavePartner(ctx, wrongRef))
+	wrongRefBillingCycle, err := domain.NewInitialBillingCycle(wrongRef.LegalEntity.UUID, domain.PartnerTypeRestaurant)
+	require.NoError(t, err)
+	require.NoError(t, repo.SavePartner(ctx, wrongRef, wrongRefBillingCycle))
 
 	// Try to onboard another partner referencing the partner UUID instead of the platform UUID.
 	bogus := newPartner(t, models.PlatformEntityUUID{LegalEntityUUID: wrongRef.LegalEntity.UUID})
+	bogusBillingCycle, err := domain.NewInitialBillingCycle(bogus.LegalEntity.UUID, domain.PartnerTypeRestaurant)
+	require.NoError(t, err)
 
-	err := repo.SavePartner(ctx, bogus)
+	err = repo.SavePartner(ctx, bogus, bogusBillingCycle)
 	require.Error(t, err)
 
 	// Tx must roll back: bogus partner's legal entity should not be persisted.
@@ -132,8 +146,10 @@ func TestLegalEntityRepository_SavePartner_RejectsMissingPlatform(t *testing.T) 
 
 	missingPlatform := models.PlatformEntityUUID{LegalEntityUUID: domain.LegalEntityUUID{UUID: common.NewUUIDv7()}}
 	partner := newPartner(t, missingPlatform)
+	billingCycle, err := domain.NewInitialBillingCycle(partner.LegalEntity.UUID, domain.PartnerTypeRestaurant)
+	require.NoError(t, err)
 
-	err := repo.SavePartner(ctx, partner)
+	err = repo.SavePartner(ctx, partner, billingCycle)
 	require.Error(t, err)
 
 	// Tx must roll back: partner legal entity should not be persisted.

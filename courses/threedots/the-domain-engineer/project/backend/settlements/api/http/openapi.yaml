@@ -71,6 +71,34 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /settlements/billing-cycles/{partner_uuid}:
+    get:
+      summary: Get billing cycles for a partner
+      operationId: getBillingCyclesByPartner
+      tags:
+        - queries
+      parameters:
+        - name: partner_uuid
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/LegalEntityUUID'
+          description: UUID of the partner
+      responses:
+        '200':
+          description: Billing cycles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BillingCycle'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
 components:
   schemas:
@@ -130,6 +158,38 @@ components:
         currency:
           $ref: '#/components/schemas/Currency'
 
+    BillingCycle:
+      type: object
+      required:
+        - billing_cycle_uuid
+        - partner_uuid
+        - billing_cycle_number
+        - start_date
+        - closed
+        - settled
+      properties:
+        billing_cycle_uuid:
+          $ref: '#/components/schemas/BillingCycleUUID'
+        partner_uuid:
+          $ref: '#/components/schemas/LegalEntityUUID'
+        billing_cycle_number:
+          type: integer
+          description: Billing cycle number
+        start_date:
+          type: string
+          format: date-time
+          description: Start date of the billing cycle
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: End date of the billing cycle (null if not closed)
+        closed:
+          type: boolean
+          description: Whether the billing cycle is closed
+        settled:
+          type: boolean
+
     Address:
       type: object
       required:
@@ -157,6 +217,14 @@ components:
           x-go-type: shared.CountryCode
           x-go-type-import:
             path: eats/backend/common/shared
+
+    BillingCycleUUID:
+      type: string
+      format: uuid
+      description: UUID of a billing cycle
+      x-go-type: domain.BillingCycleUUID
+      x-go-type-import:
+        path: eats/backend/settlements/domain
 
     LegalEntityUUID:
       type: string
