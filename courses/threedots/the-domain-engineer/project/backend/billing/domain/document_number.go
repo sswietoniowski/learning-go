@@ -24,7 +24,10 @@ func (s DocumentSeries) String() string {
 	return s.series
 }
 
-var DocumentSeriesReceipt = DocumentSeries{"R"}
+var (
+	DocumentSeriesReceipt = DocumentSeries{"R"}
+	DocumentSeriesInvoice = DocumentSeries{"INV"}
+)
 
 type DocumentNumber struct {
 	series DocumentSeries

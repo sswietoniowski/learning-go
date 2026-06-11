@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice - {{.DocumentNumber}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            border-bottom: 3px solid #333;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .document-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .info-item {
+            font-size: 14px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+        }
+        .parties {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .party {
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .party h3 {
+            font-size: 14px;
+            color: #555;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+        }
+        .party-details {
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        .party-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .party-address {
+            color: #666;
+        }
+        .tax-id {
+            color: #666;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .lines-section h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        thead {
+            background-color: #f5f5f5;
+        }
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #333;
+            font-size: 12px;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 12px;
+        }
+        tr:last-child td {
+            border-bottom: 2px solid #333;
+        }
+        .amount {
+            text-align: right;
+        }
+        .totals {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            width: 50%;
+            margin-left: auto;
+            margin-bottom: 30px;
+        }
+        .total-label {
+            font-weight: bold;
+            text-align: right;
+            padding-right: 15px;
+        }
+        .total-value {
+            text-align: right;
+            padding-left: 15px;
+        }
+        .total-gross {
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .currency {
+            margin-left: 5px;
+        }
+        .tax-summary-section {
+            margin-bottom: 30px;
+        }
+        .tax-summary-section h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .tax-summary-section table {
+            width: 50%;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Invoice</h1>
+            <div class="document-info">
+                <div class="info-item">
+                    <span class="info-label">Invoice Number:</span>
+                    <span class="info-value">{{.DocumentNumber}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Issue Date:</span>
+                    <span class="info-value">{{.IssueDate.Format "2006-01-02"}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Currency:</span>
+                    <span class="info-value">{{.Currency}}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="parties">
+            <div class="party">
+                <h3>Seller</h3>
+                <div class="party-details">
+                    <div class="party-name">{{.Seller.Name}}</div>
+                    <div class="party-address">
+                        {{if .Seller.Address.Line1}}{{.Seller.Address.Line1}}<br>{{end}}
+                        {{if .Seller.Address.Line2}}{{.Seller.Address.Line2}}<br>{{end}}
+                        {{.Seller.Address.PostalCode}} {{.Seller.Address.City}}<br>
+                        {{.Seller.Address.CountryCode}}
+                    </div>
+                    {{if .Seller.TaxID}}<div class="tax-id"><strong>Tax ID:</strong> {{.Seller.TaxID}}</div>{{end}}
+                </div>
+            </div>
+
+            <div class="party">
+                <h3>Buyer</h3>
+                <div class="party-details">
+                    <div class="party-name">{{.Buyer.Name}}</div>
+                    <div class="party-address">
+                        {{if .Buyer.Address.Line1}}{{.Buyer.Address.Line1}}<br>{{end}}
+                        {{if .Buyer.Address.Line2}}{{.Buyer.Address.Line2}}<br>{{end}}
+                        {{.Buyer.Address.PostalCode}} {{.Buyer.Address.City}}<br>
+                        {{.Buyer.Address.CountryCode}}
+                    </div>
+                    {{if .Buyer.TaxID}}<div class="tax-id"><strong>Tax ID:</strong> {{.Buyer.TaxID}}</div>{{end}}
+                </div>
+            </div>
+        </div>
+
+        <div class="lines-section">
+            <h2>Invoice Items</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="amount">Quantity</th>
+                        <th class="amount">Unit Price</th>
+                        <th class="amount">Tax Rate</th>
+                        <th class="amount">Tax Amount</th>
+                        <th class="amount">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .LineItems}}
+                    <tr>
+                        <td>{{.Name}}</td>
+                        <td class="amount">{{.Quantity}}</td>
+                        <td class="amount">{{.UnitNetAmount}} <span class="currency">{{.Currency}}</span></td>
+                        <td class="amount">{{.TaxType}} {{.TaxRate}}</td>
+                        <td class="amount">{{.TaxAmount}} <span class="currency">{{.Currency}}</span></td>
+                        <td class="amount">{{.GrossAmount}} <span class="currency">{{.Currency}}</span></td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tax-summary-section">
+            <h2>Tax Summary</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Tax Type</th>
+                    <th class="amount">Rate</th>
+                    <th class="amount">Net Amount</th>
+                    <th class="amount">Tax Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{range .TaxSummaries}}
+                <tr>
+                    <td>{{.TaxType}}</td>
+                    <td class="amount">{{.Rate}}</td>
+                    <td class="amount">{{.NetAmount}} <span class="currency">{{$.Currency}}</span></td>
+                    <td class="amount">{{.TaxAmount}} <span class="currency">{{$.Currency}}</span></td>
+                </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals">
+            <div class="total-label">Net Total:</div>
+            <div class="total-value">{{.NetTotal}} <span class="currency">{{.Currency}}</span></div>
+            <div class="total-label">Tax Total:</div>
+            <div class="total-value">{{.TaxTotal}} <span class="currency">{{.Currency}}</span></div>
+            <div class="total-label total-gross">Gross Total:</div>
+            <div class="total-value total-gross">{{.GrossTotal}} <span class="currency">{{.Currency}}</span></div>
+        </div>
+    </div>
+</body>
+</html>

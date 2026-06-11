@@ -201,6 +201,9 @@ type NotFound = ErrorResponse
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = ErrorResponse
 
+// CreateInvoiceJSONRequestBody defines body for CreateInvoice for application/json ContentType.
+type CreateInvoiceJSONRequestBody = CreateDocument
+
 // CreateReceiptJSONRequestBody defines body for CreateReceipt for application/json ContentType.
 type CreateReceiptJSONRequestBody = CreateDocument
 
@@ -277,6 +280,11 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// CreateInvoiceWithBody request with any body
+	CreateInvoiceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateInvoice(ctx context.Context, body CreateInvoiceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateReceiptWithBody request with any body
 	CreateReceiptWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -287,6 +295,30 @@ type ClientInterface interface {
 
 	// PrintDocument request
 	PrintDocument(ctx context.Context, documentUuid DocumentUUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) CreateInvoiceWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateInvoiceRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateInvoice(ctx context.Context, body CreateInvoiceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateInvoiceRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) CreateReceiptWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -335,6 +367,46 @@ func (c *Client) PrintDocument(ctx context.Context, documentUuid DocumentUUID, r
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewCreateInvoiceRequest calls the generic CreateInvoice builder with application/json body
+func NewCreateInvoiceRequest(server string, body CreateInvoiceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateInvoiceRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateInvoiceRequestWithBody generates requests for CreateInvoice with any type of body
+func NewCreateInvoiceRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/billing/documents/invoice")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewCreateReceiptRequest calls the generic CreateReceipt builder with application/json body
@@ -488,6 +560,11 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// CreateInvoiceWithBodyWithResponse request with any body
+	CreateInvoiceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInvoiceResponse, error)
+
+	CreateInvoiceWithResponse(ctx context.Context, body CreateInvoiceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateInvoiceResponse, error)
+
 	// CreateReceiptWithBodyWithResponse request with any body
 	CreateReceiptWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateReceiptResponse, error)
 
@@ -498,6 +575,33 @@ type ClientWithResponsesInterface interface {
 
 	// PrintDocumentWithResponse request
 	PrintDocumentWithResponse(ctx context.Context, documentUuid DocumentUUID, reqEditors ...RequestEditorFn) (*PrintDocumentResponse, error)
+}
+
+type CreateInvoiceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		// DocumentUuid UUID of a document
+		DocumentUuid DocumentUUID `json:"document_uuid"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateInvoiceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateInvoiceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type CreateReceiptResponse struct {
@@ -576,6 +680,23 @@ func (r PrintDocumentResponse) StatusCode() int {
 	return 0
 }
 
+// CreateInvoiceWithBodyWithResponse request with arbitrary body returning *CreateInvoiceResponse
+func (c *ClientWithResponses) CreateInvoiceWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateInvoiceResponse, error) {
+	rsp, err := c.CreateInvoiceWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateInvoiceResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateInvoiceWithResponse(ctx context.Context, body CreateInvoiceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateInvoiceResponse, error) {
+	rsp, err := c.CreateInvoice(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateInvoiceResponse(rsp)
+}
+
 // CreateReceiptWithBodyWithResponse request with arbitrary body returning *CreateReceiptResponse
 func (c *ClientWithResponses) CreateReceiptWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateReceiptResponse, error) {
 	rsp, err := c.CreateReceiptWithBody(ctx, contentType, body, reqEditors...)
@@ -609,6 +730,49 @@ func (c *ClientWithResponses) PrintDocumentWithResponse(ctx context.Context, doc
 		return nil, err
 	}
 	return ParsePrintDocumentResponse(rsp)
+}
+
+// ParseCreateInvoiceResponse parses an HTTP response from a CreateInvoiceWithResponse call
+func ParseCreateInvoiceResponse(rsp *http.Response) (*CreateInvoiceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateInvoiceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			// DocumentUuid UUID of a document
+			DocumentUuid DocumentUUID `json:"document_uuid"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseCreateReceiptResponse parses an HTTP response from a CreateReceiptWithResponse call

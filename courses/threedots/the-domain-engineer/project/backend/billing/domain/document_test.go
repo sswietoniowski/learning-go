@@ -16,6 +16,115 @@ import (
 	"eats/backend/common/shared"
 )
 
+func TestNewInvoice(t *testing.T) {
+	factory := domain.NewDocumentFactory(stubTaxProvider{})
+
+	sellerAddress, err := shared.NewAddress("123 Food St.", "Suite 100", "98765", "Gourmet City", shared.MustNewCountryCode("US"))
+	require.NoError(t, err)
+
+	sellerTaxID, err := shared.NewTaxID("1234567890")
+	require.NoError(t, err)
+
+	seller, err := domain.NewLegalEntity("Food Delivery Inc.", sellerAddress, &sellerTaxID)
+	require.NoError(t, err)
+
+	buyerAddress, err := shared.NewAddress("456 Main St.", "", "12345", "Hometown", shared.MustNewCountryCode("US"))
+	require.NoError(t, err)
+
+	buyer, err := domain.NewLegalEntity("John Doe", buyerAddress, nil)
+	require.NoError(t, err)
+
+	series, err := domain.NewDocumentSeries("TEST-INVOICE")
+	require.NoError(t, err)
+	docNumber, err := domain.NewDocumentNumber(series, 1)
+	require.NoError(t, err)
+
+	builder, err := factory.NewInvoiceBuilder(context.Background(), domain.NewDocumentData{
+		ExternalReference: common.ToPtr("EXTERNAL-REF-123"),
+		IssueDate:         time.Date(2025, 3, 14, 0, 0, 0, 0, time.UTC),
+		Currency:          shared.MustNewCurrency("USD"),
+		Seller:            seller,
+		Buyer:             buyer,
+		LineItems: []domain.NewLineItemData{
+			{
+				Name:         "Cheeseburger",
+				LineItemType: shared.LineItemTypeFood,
+				Quantity:     2,
+				UnitAmount:   shared.NewNetAmount(decimal.NewFromFloat(10.00)),
+			},
+			{
+				Name:         "Hamburger",
+				LineItemType: shared.LineItemTypeFood,
+				Quantity:     3,
+				UnitAmount:   shared.NewNetAmount(decimal.NewFromFloat(8.00)),
+			},
+			{
+				Name:         "French Fries",
+				LineItemType: shared.LineItemTypeFood,
+				Quantity:     5,
+				UnitAmount:   shared.NewNetAmount(decimal.NewFromFloat(3.00)),
+			},
+			{
+				Name:         "Delivery",
+				LineItemType: shared.LineItemTypeDelivery,
+				Quantity:     1,
+				UnitAmount:   shared.NewNetAmount(decimal.NewFromFloat(9.00)),
+			},
+			{
+				Name:         "Service fees",
+				LineItemType: shared.LineItemTypeService,
+				Quantity:     1,
+				UnitAmount:   shared.NewNetAmount(decimal.NewFromFloat(5.00)),
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	doc, err := builder.Build(docNumber)
+	require.NoError(t, err)
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(73.00), doc.Summary().NetAmount(), "total net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(14.47), doc.Summary().TaxAmount(), "total tax amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(87.47), doc.Summary().GrossAmount(), "total gross amount")
+
+	require.Len(t, doc.LineItems(), 5)
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(20.00), doc.LineItems()[0].PriceBreakdown().NetAmount(), "cheeseburger net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(4.60), doc.LineItems()[0].PriceBreakdown().TaxAmount(), "cheeseburger tax amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(24.60), doc.LineItems()[0].PriceBreakdown().GrossAmount(), "cheeseburger gross amount")
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(24.00), doc.LineItems()[1].PriceBreakdown().NetAmount(), "hamburger net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(5.52), doc.LineItems()[1].PriceBreakdown().TaxAmount(), "hamburger tax amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(29.52), doc.LineItems()[1].PriceBreakdown().GrossAmount(), "hamburger gross amount")
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(15.00), doc.LineItems()[2].PriceBreakdown().NetAmount(), "french fries net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(3.45), doc.LineItems()[2].PriceBreakdown().TaxAmount(), "french fries tax amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(18.45), doc.LineItems()[2].PriceBreakdown().GrossAmount(), "french fries gross amount")
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(9.00), doc.LineItems()[3].PriceBreakdown().NetAmount(), "delivery net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(0.90), doc.LineItems()[3].PriceBreakdown().TaxAmount(), "delivery tax amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(9.90), doc.LineItems()[3].PriceBreakdown().GrossAmount(), "delivery gross amount")
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(5.00), doc.LineItems()[4].PriceBreakdown().NetAmount(), "service fees net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(0.00), doc.LineItems()[4].PriceBreakdown().TaxAmount(), "service fees tax amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(5.00), doc.LineItems()[4].PriceBreakdown().GrossAmount(), "service fees gross amount")
+
+	require.Len(t, doc.Summary().Taxes(), 3)
+
+	gst10 := findTax(t, doc.Summary().Taxes(), domain.UnmarshalTaxRate(decimal.NewFromFloat(0.10), domain.TaxTypeGST))
+	sales0 := findTax(t, doc.Summary().Taxes(), domain.UnmarshalTaxRate(decimal.Zero, domain.TaxTypeSalesTax))
+	vat23 := findTax(t, doc.Summary().Taxes(), domain.UnmarshalTaxRate(decimal.NewFromFloat(0.23), domain.TaxTypeVAT))
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(9.00), gst10.NetAmount(), "GST 10% net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(0.90), gst10.TaxAmount(), "GST 10% tax amount")
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(5.00), sales0.NetAmount(), "Sales Tax 0% net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(0.00), sales0.TaxAmount(), "Sales Tax 0% tax amount")
+
+	assertDecimalsEqual(t, decimal.NewFromFloat(59.00), vat23.NetAmount(), "VAT 23% net amount")
+	assertDecimalsEqual(t, decimal.NewFromFloat(13.57), vat23.TaxAmount(), "VAT 23% tax amount")
+}
+
 func TestNewReceipt_ValidReceipt(t *testing.T) {
 	factory := domain.NewDocumentFactory(stubTaxProvider{})
 	data := validReceiptData(t)

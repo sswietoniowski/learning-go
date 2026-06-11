@@ -17,10 +17,13 @@ type DocumentType struct {
 type DocumentTypeValues string
 
 func (DocumentTypeValues) Values() []string {
-	return []string{"receipt"}
+	return []string{"receipt", "invoice"}
 }
 
-var DocumentTypeReceipt = common.MustEnum[DocumentType]("receipt")
+var (
+	DocumentTypeReceipt = common.MustEnum[DocumentType]("receipt")
+	DocumentTypeInvoice = common.MustEnum[DocumentType]("invoice")
+)
 
 type DocumentFactory struct {
 	taxRateProvider TaxRateProvider
@@ -84,6 +87,12 @@ func (f DocumentFactory) NewReceiptBuilder(ctx context.Context, data NewDocument
 	}
 
 	return f.newDocumentBuilder(ctx, DocumentTypeReceipt, data)
+}
+
+// NewInvoiceBuilder resolves all external data (tax rates) upfront,
+// so Build() can safely run inside a database transaction.
+func (f DocumentFactory) NewInvoiceBuilder(ctx context.Context, data NewDocumentData) (*DocumentBuilder, error) {
+	return f.newDocumentBuilder(ctx, DocumentTypeInvoice, data)
 }
 
 func (f DocumentFactory) newDocumentBuilder(

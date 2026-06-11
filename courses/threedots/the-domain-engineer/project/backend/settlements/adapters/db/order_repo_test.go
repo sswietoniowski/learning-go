@@ -112,6 +112,100 @@ func TestSaveOrder_PersistsAllThreeBreakdownTypes(t *testing.T) {
 	}
 }
 
+// TestSaveOrder_PersistsBreakdownAmounts verifies the persisted breakdown rows
+// hold the exact net/tax/gross values from the order, not zeros or swapped columns.
+// Without this, broken SaveOrder code (dropped precision, wrong column mapping,
+// hardcoded values) surfaces only much later as a wrong payout amount during settle.
+//
+// The order is built inline rather than via newTestOrder to avoid coupling to a
+// helper that's renamed in later exercises in the chain.
+func TestSaveOrder_PersistsBreakdownAmounts(t *testing.T) {
+	ctx := context.Background()
+	pool := testutils.NewDB(t)
+
+	restaurantUUID, courierUUID := setupRestaurantAndCourier(t, ctx, pool)
+
+	// Expected amounts: food line net=10.00/tax=2.30/gross=12.30 → items breakdown,
+	// delivery line net=4.00/tax=0.92/gross=4.92 → delivery breakdown, and
+	// receipt totals net=14.00/tax=3.22/gross=17.22 → total breakdown.
+	receipt := client.DocumentReadModel{
+		UUID:           "doc-uuid",
+		DocumentNumber: "INV/2026/01/0002",
+		LineItems: []client.LineItemReadModel{
+			{
+				Type:        shared.LineItemTypeFood,
+				NetAmount:   decimal.NewFromFloat(10.00),
+				TaxAmount:   decimal.NewFromFloat(2.30),
+				GrossAmount: decimal.NewFromFloat(12.30),
+			},
+			{
+				Type:        shared.LineItemTypeDelivery,
+				NetAmount:   decimal.NewFromFloat(4.00),
+				TaxAmount:   decimal.NewFromFloat(0.92),
+				GrossAmount: decimal.NewFromFloat(4.92),
+			},
+		},
+		NetTotal:   decimal.NewFromFloat(14.00),
+		TaxTotal:   decimal.NewFromFloat(3.22),
+		GrossTotal: decimal.NewFromFloat(17.22),
+	}
+
+	order, err := models.NewOrder(
+		models.OrderUUID{UUID: common.NewUUIDv7()},
+		restaurantUUID,
+		courierUUID,
+		shared.MustNewCurrency("EUR"),
+		time.Now(),
+		receipt,
+	)
+	require.NoError(t, err)
+
+	repo := db.NewOrderRepository(pool)
+	require.NoError(t, repo.SaveOrder(ctx, order))
+
+	expected := map[string]struct {
+		net, tax, gross decimal.Decimal
+	}{
+		"items":    {decimal.NewFromFloat(10.00), decimal.NewFromFloat(2.30), decimal.NewFromFloat(12.30)},
+		"delivery": {decimal.NewFromFloat(4.00), decimal.NewFromFloat(0.92), decimal.NewFromFloat(4.92)},
+		"total":    {decimal.NewFromFloat(14.00), decimal.NewFromFloat(3.22), decimal.NewFromFloat(17.22)},
+	}
+
+	rows, err := pool.Query(ctx,
+		`SELECT breakdown_type, net_amount, tax_amount, gross_amount
+		 FROM settlements.order_breakdowns
+		 WHERE order_uuid = $1`,
+		order.UUID().UUID,
+	)
+	require.NoError(t, err)
+	defer rows.Close()
+
+	seen := map[string]bool{}
+	for rows.Next() {
+		var (
+			brType                string
+			netAmt, taxAmt, gross decimal.Decimal
+		)
+		require.NoError(t, rows.Scan(&brType, &netAmt, &taxAmt, &gross))
+
+		want, ok := expected[brType]
+		require.True(t, ok, "unexpected breakdown_type %q persisted", brType)
+		seen[brType] = true
+
+		assert.True(t, netAmt.Equal(want.net),
+			"breakdown %s: net mismatch (got %s, want %s)", brType, netAmt, want.net)
+		assert.True(t, taxAmt.Equal(want.tax),
+			"breakdown %s: tax mismatch (got %s, want %s)", brType, taxAmt, want.tax)
+		assert.True(t, gross.Equal(want.gross),
+			"breakdown %s: gross mismatch (got %s, want %s)", brType, gross, want.gross)
+	}
+	require.NoError(t, rows.Err())
+
+	for brType := range expected {
+		assert.True(t, seen[brType], "breakdown_type %q never persisted", brType)
+	}
+}
+
 // setupRestaurantAndCourier persists a platform plus two partners (restaurant, courier)
 // so SaveOrder's FK constraints can resolve.
 func setupRestaurantAndCourier(t *testing.T, ctx context.Context, pool *pgxpool.Pool) (domain.LegalEntityUUID, domain.LegalEntityUUID) {

@@ -46,8 +46,8 @@ func TestCreateDocument_ConcurrentDocumentNumbers(t *testing.T) {
 	documentData := domain.NewDocumentData{
 		IssueDate: time.Now(),
 		Currency:  shared.MustNewCurrency("USD"),
-		Seller:    newSeller(t),
-		Buyer:     newBuyer(t),
+		Seller:    newLegalEntity(t),
+		Buyer:     newLegalEntity(t),
 		LineItems: []domain.NewLineItemData{
 			{
 				Name:         "Test Item",
@@ -66,7 +66,7 @@ func TestCreateDocument_ConcurrentDocumentNumbers(t *testing.T) {
 
 	for i := 0; i < concurrentDocuments; i++ {
 		wg.Go(func() {
-			builder, builderErr := f.NewReceiptBuilder(ctx, documentData)
+			builder, builderErr := f.NewInvoiceBuilder(ctx, documentData)
 			assert.NoError(t, builderErr)
 
 			_, err := repo.CreateDocument(ctx, series, func(documentNumber domain.DocumentNumber) (*domain.Document, error) {
@@ -116,8 +116,8 @@ func TestCreateDocument_ExternalReference(t *testing.T) {
 		ExternalReference: &externalRef,
 		IssueDate:         time.Now(),
 		Currency:          shared.MustNewCurrency("USD"),
-		Seller:            newSeller(t),
-		Buyer:             newBuyer(t),
+		Seller:            newLegalEntity(t),
+		Buyer:             newLegalEntity(t),
 		LineItems: []domain.NewLineItemData{
 			{
 				Name:         "Test Item",
@@ -130,7 +130,7 @@ func TestCreateDocument_ExternalReference(t *testing.T) {
 
 	f := domain.NewDocumentFactory(tax.NewStub())
 
-	builder, err := f.NewReceiptBuilder(ctx, documentData)
+	builder, err := f.NewInvoiceBuilder(ctx, documentData)
 	require.NoError(t, err)
 
 	docUUID, err := repo.CreateDocument(ctx, series, func(documentNumber domain.DocumentNumber) (*domain.Document, error) {
@@ -144,7 +144,7 @@ func TestCreateDocument_ExternalReference(t *testing.T) {
 	assert.Equal(t, externalRef, *doc.ExternalReference())
 
 	// Saving the document with the same external reference should be idempotent
-	builder2, err := f.NewReceiptBuilder(ctx, documentData)
+	builder2, err := f.NewInvoiceBuilder(ctx, documentData)
 	require.NoError(t, err)
 
 	doc2UUID, err := repo.CreateDocument(ctx, series, func(documentNumber domain.DocumentNumber) (*domain.Document, error) {
@@ -171,8 +171,8 @@ func TestCreateDocument_WithLineItemsAndTaxes(t *testing.T) {
 	err = q.SaveDocumentSeries(ctx, seriesStr)
 	require.NoError(t, err)
 
-	seller := newSeller(t)
-	buyer := newBuyer(t)
+	seller := newLegalEntity(t)
+	buyer := newLegalEntity(t)
 
 	documentData := domain.NewDocumentData{
 		IssueDate: time.Now(),
@@ -197,7 +197,7 @@ func TestCreateDocument_WithLineItemsAndTaxes(t *testing.T) {
 
 	f := domain.NewDocumentFactory(tax.NewStub())
 
-	builder, err := f.NewReceiptBuilder(ctx, documentData)
+	builder, err := f.NewInvoiceBuilder(ctx, documentData)
 	require.NoError(t, err)
 
 	docUUID, err := repo.CreateDocument(ctx, series, func(documentNumber domain.DocumentNumber) (*domain.Document, error) {
@@ -208,7 +208,7 @@ func TestCreateDocument_WithLineItemsAndTaxes(t *testing.T) {
 	doc, err := repo.DocumentByUUID(ctx, docUUID)
 	require.NoError(t, err)
 
-	assert.Equal(t, domain.DocumentTypeReceipt, doc.DocumentType())
+	assert.Equal(t, domain.DocumentTypeInvoice, doc.DocumentType())
 	assert.Len(t, doc.LineItems(), 2)
 
 	assert.Equal(t, "Pizza Margherita", doc.LineItems()[0].Name())
@@ -235,7 +235,8 @@ func TestCreateDocument_WithLineItemsAndTaxes(t *testing.T) {
 	assert.Equal(t, buyer.Address().City(), doc.Buyer().Address().City())
 	assert.Equal(t, buyer.Address().PostalCode(), doc.Buyer().Address().PostalCode())
 	assert.Equal(t, buyer.Address().CountryCode(), doc.Buyer().Address().CountryCode())
-	assert.Nil(t, doc.Buyer().TaxID())
+	require.NotNil(t, doc.Buyer().TaxID())
+	assert.Equal(t, buyer.TaxID().String(), doc.Buyer().TaxID().String())
 
 	taxes := doc.Summary().Taxes()
 	require.Len(t, taxes, 1)
@@ -244,7 +245,7 @@ func TestCreateDocument_WithLineItemsAndTaxes(t *testing.T) {
 	assert.True(t, taxes[0].TaxAmount().GreaterThan(decimal.Zero))
 }
 
-func newSeller(t *testing.T) domain.LegalEntity {
+func newLegalEntity(t *testing.T) domain.LegalEntity {
 	addr := gofakeit.Address()
 
 	address, err := shared.NewAddress(addr.Street, "", addr.Zip, addr.City, shared.MustNewCountryCode("US"))

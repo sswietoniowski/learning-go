@@ -30,6 +30,19 @@ func NewHandler(commandHandler *command.Handlers, queryHandler *query.Handlers) 
 	}
 }
 
+func (h Handler) CloseBillingCycle(ctx context.Context, request CloseBillingCycleRequestObject) (CloseBillingCycleResponseObject, error) {
+	cmd := command.CloseBillingCycle{
+		PartnerUUID: request.Body.PartnerUuid,
+	}
+
+	err := h.commandHandler.CloseBillingCycle(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return CloseBillingCycle204Response{}, nil
+}
+
 func (h Handler) OnboardPartner(ctx context.Context, request OnboardPartnerRequestObject) (OnboardPartnerResponseObject, error) {
 	if request.Params.OperatorUUID.IsZero() {
 		return nil, common.NewUnauthorizedError("missing-operator-uuid", "operator UUID is required")

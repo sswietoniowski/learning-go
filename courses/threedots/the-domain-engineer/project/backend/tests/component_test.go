@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	billingclient "eats/backend/billing/api/http/client"
 	"eats/backend/common"
 	"eats/backend/common/shared"
 	"eats/backend/common/testutils"
@@ -29,6 +30,25 @@ func TestComponent_IssueReceipt(t *testing.T) {
 
 	documentUUID := issueReceipt(ctx, t, clients)
 	require.NotEmpty(t, documentUUID, "document UUID should not be empty")
+}
+
+func TestComponent_IssueInvoice(t *testing.T) {
+	t.Parallel()
+	clients := newTestClients(t)
+
+	ctx := t.Context()
+
+	documentUUID := issueInvoice(ctx, t, clients)
+	require.False(t, documentUUID.IsZero(), "document UUID should not be empty")
+
+	getResp, err := clients.Billing.GetDocumentWithResponse(ctx, documentUUID)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, getResp.StatusCode())
+	require.NotNil(t, getResp.JSON200)
+
+	assert.Equal(t, billingclient.DocumentType("invoice"), getResp.JSON200.DocumentType)
+	assert.True(t, strings.HasPrefix(getResp.JSON200.DocumentNumber, "INV-"),
+		"invoice document number should start with INV-, got: %s", getResp.JSON200.DocumentNumber)
 }
 
 func TestComponent_CriticalFlow(t *testing.T) {

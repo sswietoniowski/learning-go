@@ -1374,3 +1374,57 @@ func issueReceipt(
 
 	return resp.JSON201.DocumentUuid.String()
 }
+
+func issueInvoice(
+	ctx context.Context,
+	t *testing.T,
+	clients testClients,
+) billingclient.DocumentUUID {
+	t.Helper()
+
+	sellerTaxID, err := shared.NewTaxID("12-3456789")
+	require.NoError(t, err)
+
+	buyerTaxID, err := shared.NewTaxID("98-7654321")
+	require.NoError(t, err)
+
+	resp, err := clients.Billing.CreateInvoiceWithResponse(ctx, billingclient.CreateDocument{
+		IssueDate: time.Now(),
+		Currency:  shared.MustNewCurrency("USD"),
+		Seller: billingclient.LegalEntity{
+			Name: "Eats Inc.",
+			Address: billingclient.Address{
+				Line1:       "123 Main St",
+				Line2:       "Suite 100",
+				City:        "New York",
+				PostalCode:  "10001",
+				CountryCode: shared.MustNewCountryCode("US"),
+			},
+			TaxId: &sellerTaxID,
+		},
+		Buyer: billingclient.LegalEntity{
+			Name: "Acme Corp.",
+			Address: billingclient.Address{
+				Line1:       "789 Business Blvd",
+				City:        "Chicago",
+				PostalCode:  "60601",
+				CountryCode: shared.MustNewCountryCode("US"),
+			},
+			TaxId: &buyerTaxID,
+		},
+		LineItems: []billingclient.LineItem{
+			{
+				Name:         "Platform Service Fee",
+				LineItemType: shared.LineItemTypeService,
+				Quantity:     1,
+				UnitAmount:   decimal.RequireFromString("250.00"),
+				IsGross:      false,
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode(), "creating invoice failed: %s", string(resp.Body))
+	require.NotNil(t, resp.JSON201)
+
+	return resp.JSON201.DocumentUuid
+}

@@ -79,6 +79,52 @@ func (b *Billing) IssueReceipt(ctx context.Context, req client.IssueReceiptReque
 	return newDocumentReadModel(doc), nil
 }
 
+func (b *Billing) IssueInvoice(ctx context.Context, req client.IssueInvoiceRequest) (client.DocumentReadModel, error) {
+	buyer, err := newDomainLegalEntityFromContract(req.Buyer)
+	if err != nil {
+		return client.DocumentReadModel{}, fmt.Errorf("could not create buyer domain legal entity: %w", err)
+	}
+
+	seller, err := newDomainLegalEntityFromContract(req.Seller)
+	if err != nil {
+		return client.DocumentReadModel{}, fmt.Errorf("could not create seller domain legal entity: %w", err)
+	}
+
+	lineItems := make([]domain.NewLineItemData, 0, len(req.LineItems))
+	for _, lineItem := range req.LineItems {
+		domainLineItem := domain.NewLineItemData{
+			Name:         lineItem.Name,
+			LineItemType: lineItem.Type,
+			Quantity:     lineItem.Quantity,
+			UnitAmount:   lineItem.UnitAmount,
+		}
+		lineItems = append(lineItems, domainLineItem)
+	}
+
+	uuid, err := b.commandHandlers.IssueInvoice(ctx, command.IssueInvoice{
+		DocumentData: domain.NewDocumentData{
+			ExternalReference: req.ExternalReference,
+			IssueDate:         req.IssueDate,
+			Currency:          req.Currency,
+			Seller:            *seller,
+			Buyer:             *buyer,
+			LineItems:         lineItems,
+		},
+	})
+	if err != nil {
+		return client.DocumentReadModel{}, err
+	}
+
+	doc, err := b.queryHandlers.GetDocumentByUUID(ctx, query.GetDocumentByUUID{
+		DocumentUUID: uuid,
+	})
+	if err != nil {
+		return client.DocumentReadModel{}, fmt.Errorf("error getting document: %w", err)
+	}
+
+	return newDocumentReadModel(doc), nil
+}
+
 func (b *Billing) CalculateTaxes(ctx context.Context, req client.CalculateTaxesRequest) (client.CalculateTaxesResponse, error) {
 	return b.queryHandlers.CalculateTaxes(ctx, req)
 }

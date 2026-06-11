@@ -63,6 +63,12 @@ type BillingCycle struct {
 // BillingCycleUUID UUID of a billing cycle
 type BillingCycleUUID = domain.BillingCycleUUID
 
+// CloseBillingCycle defines model for CloseBillingCycle.
+type CloseBillingCycle struct {
+	// PartnerUuid UUID of a legal entity (partner)
+	PartnerUuid LegalEntityUUID `json:"partner_uuid"`
+}
+
 // CreatePlatformEntity defines model for CreatePlatformEntity.
 type CreatePlatformEntity struct {
 	Address Address `json:"address"`
@@ -159,6 +165,9 @@ type OnboardPartnerParams struct {
 	OperatorUUID OperatorUUID `json:"Operator-UUID"`
 }
 
+// CloseBillingCycleJSONRequestBody defines body for CloseBillingCycle for application/json ContentType.
+type CloseBillingCycleJSONRequestBody = CloseBillingCycle
+
 // CreatePlatformEntityJSONRequestBody defines body for CreatePlatformEntity for application/json ContentType.
 type CreatePlatformEntityJSONRequestBody = CreatePlatformEntity
 
@@ -170,6 +179,9 @@ type ServerInterface interface {
 	// Get billing cycles for a partner
 	// (GET /settlements/billing-cycles/{partner_uuid})
 	GetBillingCyclesByPartner(ctx echo.Context, partnerUuid LegalEntityUUID) error
+	// Close billing cycle for a partner
+	// (POST /settlements/close-billing-cycle)
+	CloseBillingCycle(ctx echo.Context) error
 	// Create a new platform entity
 	// (POST /settlements/create-platform-entity)
 	CreatePlatformEntity(ctx echo.Context, params CreatePlatformEntityParams) error
@@ -196,6 +208,15 @@ func (w *ServerInterfaceWrapper) GetBillingCyclesByPartner(ctx echo.Context) err
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetBillingCyclesByPartner(ctx, partnerUuid)
+	return err
+}
+
+// CloseBillingCycle converts echo context to params.
+func (w *ServerInterfaceWrapper) CloseBillingCycle(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CloseBillingCycle(ctx)
 	return err
 }
 
@@ -290,6 +311,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/settlements/billing-cycles/:partner_uuid", wrapper.GetBillingCyclesByPartner)
+	router.POST(baseURL+"/settlements/close-billing-cycle", wrapper.CloseBillingCycle)
 	router.POST(baseURL+"/settlements/create-platform-entity", wrapper.CreatePlatformEntity)
 	router.POST(baseURL+"/settlements/onboard-partner", wrapper.OnboardPartner)
 
@@ -339,6 +361,49 @@ func (response GetBillingCyclesByPartner401JSONResponse) VisitGetBillingCyclesBy
 type GetBillingCyclesByPartner404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response GetBillingCyclesByPartner404JSONResponse) VisitGetBillingCyclesByPartnerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CloseBillingCycleRequestObject struct {
+	Body *CloseBillingCycleJSONRequestBody
+}
+
+type CloseBillingCycleResponseObject interface {
+	VisitCloseBillingCycleResponse(w http.ResponseWriter) error
+}
+
+type CloseBillingCycle204Response struct {
+}
+
+func (response CloseBillingCycle204Response) VisitCloseBillingCycleResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type CloseBillingCycle400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CloseBillingCycle400JSONResponse) VisitCloseBillingCycleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CloseBillingCycle401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CloseBillingCycle401JSONResponse) VisitCloseBillingCycleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CloseBillingCycle404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response CloseBillingCycle404JSONResponse) VisitCloseBillingCycleResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
@@ -424,6 +489,9 @@ type StrictServerInterface interface {
 	// Get billing cycles for a partner
 	// (GET /settlements/billing-cycles/{partner_uuid})
 	GetBillingCyclesByPartner(ctx context.Context, request GetBillingCyclesByPartnerRequestObject) (GetBillingCyclesByPartnerResponseObject, error)
+	// Close billing cycle for a partner
+	// (POST /settlements/close-billing-cycle)
+	CloseBillingCycle(ctx context.Context, request CloseBillingCycleRequestObject) (CloseBillingCycleResponseObject, error)
 	// Create a new platform entity
 	// (POST /settlements/create-platform-entity)
 	CreatePlatformEntity(ctx context.Context, request CreatePlatformEntityRequestObject) (CreatePlatformEntityResponseObject, error)
@@ -463,6 +531,35 @@ func (sh *strictHandler) GetBillingCyclesByPartner(ctx echo.Context, partnerUuid
 		return err
 	} else if validResponse, ok := response.(GetBillingCyclesByPartnerResponseObject); ok {
 		return validResponse.VisitGetBillingCyclesByPartnerResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// CloseBillingCycle operation middleware
+func (sh *strictHandler) CloseBillingCycle(ctx echo.Context) error {
+	var request CloseBillingCycleRequestObject
+
+	var body CloseBillingCycleJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CloseBillingCycle(ctx.Request().Context(), request.(CloseBillingCycleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CloseBillingCycle")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(CloseBillingCycleResponseObject); ok {
+		return validResponse.VisitCloseBillingCycleResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}

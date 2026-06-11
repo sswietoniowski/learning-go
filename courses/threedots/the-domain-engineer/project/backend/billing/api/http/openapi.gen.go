@@ -199,11 +199,17 @@ type NotFound = ErrorResponse
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = ErrorResponse
 
+// CreateInvoiceJSONRequestBody defines body for CreateInvoice for application/json ContentType.
+type CreateInvoiceJSONRequestBody = CreateDocument
+
 // CreateReceiptJSONRequestBody defines body for CreateReceipt for application/json ContentType.
 type CreateReceiptJSONRequestBody = CreateDocument
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Create a new invoice
+	// (POST /billing/documents/invoice)
+	CreateInvoice(ctx echo.Context) error
 	// Create a new receipt
 	// (POST /billing/documents/receipt)
 	CreateReceipt(ctx echo.Context) error
@@ -218,6 +224,15 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// CreateInvoice converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateInvoice(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateInvoice(ctx)
+	return err
 }
 
 // CreateReceipt converts echo context to params.
@@ -289,6 +304,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.POST(baseURL+"/billing/documents/invoice", wrapper.CreateInvoice)
 	router.POST(baseURL+"/billing/documents/receipt", wrapper.CreateReceipt)
 	router.GET(baseURL+"/billing/documents/:document_uuid", wrapper.GetDocument)
 	router.POST(baseURL+"/billing/documents/:document_uuid/print", wrapper.PrintDocument)
@@ -300,6 +316,44 @@ type BadRequestJSONResponse ErrorResponse
 type NotFoundJSONResponse ErrorResponse
 
 type UnauthorizedJSONResponse ErrorResponse
+
+type CreateInvoiceRequestObject struct {
+	Body *CreateInvoiceJSONRequestBody
+}
+
+type CreateInvoiceResponseObject interface {
+	VisitCreateInvoiceResponse(w http.ResponseWriter) error
+}
+
+type CreateInvoice201JSONResponse struct {
+	// DocumentUuid UUID of a document
+	DocumentUuid DocumentUUID `json:"document_uuid"`
+}
+
+func (response CreateInvoice201JSONResponse) VisitCreateInvoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateInvoice400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateInvoice400JSONResponse) VisitCreateInvoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateInvoice401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateInvoice401JSONResponse) VisitCreateInvoiceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
 
 type CreateReceiptRequestObject struct {
 	Body *CreateReceiptJSONRequestBody
@@ -428,6 +482,9 @@ func (response PrintDocument404JSONResponse) VisitPrintDocumentResponse(w http.R
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// Create a new invoice
+	// (POST /billing/documents/invoice)
+	CreateInvoice(ctx context.Context, request CreateInvoiceRequestObject) (CreateInvoiceResponseObject, error)
 	// Create a new receipt
 	// (POST /billing/documents/receipt)
 	CreateReceipt(ctx context.Context, request CreateReceiptRequestObject) (CreateReceiptResponseObject, error)
@@ -449,6 +506,35 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// CreateInvoice operation middleware
+func (sh *strictHandler) CreateInvoice(ctx echo.Context) error {
+	var request CreateInvoiceRequestObject
+
+	var body CreateInvoiceJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateInvoice(ctx.Request().Context(), request.(CreateInvoiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateInvoice")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(CreateInvoiceResponseObject); ok {
+		return validResponse.VisitCreateInvoiceResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
 }
 
 // CreateReceipt operation middleware

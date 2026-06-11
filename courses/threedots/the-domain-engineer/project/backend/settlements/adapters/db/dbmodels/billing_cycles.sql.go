@@ -69,6 +69,32 @@ func (q *Queries) BillingCyclesByPartnerUUID(ctx context.Context, partnerUuid do
 	return items, nil
 }
 
+const commissionInvoiceByBillingCycleUUID = `-- name: CommissionInvoiceByBillingCycleUUID :one
+SELECT
+    bc.partner_uuid AS buyer_uuid,
+    COUNT(o.order_uuid) AS quantity,
+    SUM(o.commission_net_amount)::DECIMAL AS net_amount
+FROM settlements.orders o
+JOIN settlements.billing_cycle_orders bco ON o.order_uuid = bco.order_uuid
+JOIN settlements.billing_cycles bc USING (billing_cycle_uuid)
+WHERE bc.billing_cycle_uuid = $1
+    AND bc.partner_type = 'restaurant'
+GROUP BY bc.partner_uuid
+`
+
+type CommissionInvoiceByBillingCycleUUIDRow struct {
+	BuyerUuid domain.LegalEntityUUID
+	Quantity  int64
+	NetAmount decimal.Decimal
+}
+
+func (q *Queries) CommissionInvoiceByBillingCycleUUID(ctx context.Context, billingCycleUuid domain.BillingCycleUUID) (CommissionInvoiceByBillingCycleUUIDRow, error) {
+	row := q.db.QueryRow(ctx, commissionInvoiceByBillingCycleUUID, billingCycleUuid)
+	var i CommissionInvoiceByBillingCycleUUIDRow
+	err := row.Scan(&i.BuyerUuid, &i.Quantity, &i.NetAmount)
+	return i, err
+}
+
 const currentBillingCycle = `-- name: CurrentBillingCycle :one
 SELECT billing_cycle_uuid, partner_uuid, partner_type, billing_cycle_number, closed, settled, start_date, end_date FROM settlements.billing_cycles
 WHERE partner_uuid = $1 AND closed = false
@@ -77,6 +103,75 @@ LIMIT 1
 
 func (q *Queries) CurrentBillingCycle(ctx context.Context, partnerUuid domain.LegalEntityUUID) (SettlementsBillingCycle, error) {
 	row := q.db.QueryRow(ctx, currentBillingCycle, partnerUuid)
+	var i SettlementsBillingCycle
+	err := row.Scan(
+		&i.BillingCycleUuid,
+		&i.PartnerUuid,
+		&i.PartnerType,
+		&i.BillingCycleNumber,
+		&i.Closed,
+		&i.Settled,
+		&i.StartDate,
+		&i.EndDate,
+	)
+	return i, err
+}
+
+const deliveryInvoicesByBillingCycleUUID = `-- name: DeliveryInvoicesByBillingCycleUUID :many
+SELECT
+    bc.partner_uuid AS seller_uuid,
+    o.restaurant_uuid AS buyer_uuid,
+    COUNT(o.order_uuid) AS quantity,
+    SUM(ob.net_amount)::DECIMAL AS net_amount
+FROM settlements.orders o
+JOIN settlements.order_breakdowns ob ON o.order_uuid = ob.order_uuid AND ob.breakdown_type = 'delivery'
+JOIN settlements.billing_cycle_orders bco ON o.order_uuid = bco.order_uuid
+JOIN settlements.billing_cycles bc USING (billing_cycle_uuid)
+WHERE bc.billing_cycle_uuid = $1
+    AND bc.partner_type = 'courier'
+GROUP BY (bc.partner_uuid, o.restaurant_uuid)
+ORDER BY (bc.partner_uuid, o.restaurant_uuid)
+`
+
+type DeliveryInvoicesByBillingCycleUUIDRow struct {
+	SellerUuid domain.LegalEntityUUID
+	BuyerUuid  domain.LegalEntityUUID
+	Quantity   int64
+	NetAmount  decimal.Decimal
+}
+
+func (q *Queries) DeliveryInvoicesByBillingCycleUUID(ctx context.Context, billingCycleUuid domain.BillingCycleUUID) ([]DeliveryInvoicesByBillingCycleUUIDRow, error) {
+	rows, err := q.db.Query(ctx, deliveryInvoicesByBillingCycleUUID, billingCycleUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DeliveryInvoicesByBillingCycleUUIDRow{}
+	for rows.Next() {
+		var i DeliveryInvoicesByBillingCycleUUIDRow
+		if err := rows.Scan(
+			&i.SellerUuid,
+			&i.BuyerUuid,
+			&i.Quantity,
+			&i.NetAmount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getBillingCycleByUUID = `-- name: GetBillingCycleByUUID :one
+SELECT billing_cycle_uuid, partner_uuid, partner_type, billing_cycle_number, closed, settled, start_date, end_date FROM settlements.billing_cycles
+WHERE billing_cycle_uuid = $1
+`
+
+func (q *Queries) GetBillingCycleByUUID(ctx context.Context, billingCycleUuid domain.BillingCycleUUID) (SettlementsBillingCycle, error) {
+	row := q.db.QueryRow(ctx, getBillingCycleByUUID, billingCycleUuid)
 	var i SettlementsBillingCycle
 	err := row.Scan(
 		&i.BillingCycleUuid,
@@ -233,4 +328,39 @@ func (q *Queries) SaveBillingCycle(ctx context.Context, arg SaveBillingCyclePara
 		arg.EndDate,
 	)
 	return err
+}
+
+const unsettledClosedCycles = `-- name: UnsettledClosedCycles :many
+SELECT billing_cycle_uuid, partner_uuid, partner_type, billing_cycle_number, closed, settled, start_date, end_date FROM settlements.billing_cycles
+WHERE partner_uuid = $1 AND closed = true AND settled = false
+ORDER BY billing_cycle_number ASC
+`
+
+func (q *Queries) UnsettledClosedCycles(ctx context.Context, partnerUuid domain.LegalEntityUUID) ([]SettlementsBillingCycle, error) {
+	rows, err := q.db.Query(ctx, unsettledClosedCycles, partnerUuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SettlementsBillingCycle{}
+	for rows.Next() {
+		var i SettlementsBillingCycle
+		if err := rows.Scan(
+			&i.BillingCycleUuid,
+			&i.PartnerUuid,
+			&i.PartnerType,
+			&i.BillingCycleNumber,
+			&i.Closed,
+			&i.Settled,
+			&i.StartDate,
+			&i.EndDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

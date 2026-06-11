@@ -11,6 +11,35 @@ servers:
       hostname:
         default: localhost
 paths:
+  /billing/documents/invoice:
+    post:
+      summary: Create a new invoice
+      operationId: createInvoice
+      tags:
+        - documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDocument'
+      responses:
+        '201':
+          description: Invoice created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - document_uuid
+                properties:
+                  document_uuid:
+                    $ref: '#/components/schemas/DocumentUUID'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /billing/documents/receipt:
     post:
       summary: Create a new receipt

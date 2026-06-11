@@ -5,29 +5,27 @@ import (
 
 	"eats/backend/billing/api/module/client"
 	"eats/backend/settlements/app/models"
-	"eats/backend/settlements/domain"
 )
 
 type ModulesContract interface {
 	IssueReceipt(ctx context.Context, req client.IssueReceiptRequest) (client.DocumentReadModel, error)
-}
-
-type billingCycleRepository interface {
-	AddOrderToCurrentBillingCycle(ctx context.Context, partnerUUID domain.LegalEntityUUID, orderUUID models.OrderUUID) error
+	IssueInvoice(ctx context.Context, req client.IssueInvoiceRequest) (client.DocumentReadModel, error)
 }
 
 type Handlers struct {
-	billingCycleRepository billingCycleRepository
+	billingCycleRepository models.BillingCycleRepository
 	orderRepository        models.OrderRepository
 	legalEntityRepository  models.LegalEntityRepository
+	invoiceDataGenerator   invoiceDataGenerator
 
 	modules ModulesContract
 }
 
 func NewHandlers(
-	billingCycleRepository billingCycleRepository,
+	billingCycleRepository models.BillingCycleRepository,
 	orderRepository models.OrderRepository,
 	legalEntityRepository models.LegalEntityRepository,
+	invoiceDataGenerator invoiceDataGenerator,
 	modules ModulesContract,
 ) *Handlers {
 	if billingCycleRepository == nil {
@@ -39,6 +37,9 @@ func NewHandlers(
 	if legalEntityRepository == nil {
 		panic("legalEntityRepository is required")
 	}
+	if invoiceDataGenerator == nil {
+		panic("invoiceDataGenerator is required")
+	}
 	if modules == nil {
 		panic("modules is required")
 	}
@@ -47,6 +48,7 @@ func NewHandlers(
 		billingCycleRepository: billingCycleRepository,
 		orderRepository:        orderRepository,
 		legalEntityRepository:  legalEntityRepository,
+		invoiceDataGenerator:   invoiceDataGenerator,
 		modules:                modules,
 	}
 }

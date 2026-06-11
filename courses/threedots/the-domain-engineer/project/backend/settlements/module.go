@@ -59,6 +59,7 @@ func (m *Module) Init(ctx context.Context) error {
 		billingCycleRepository,
 		orderRepository,
 		m.legalEntityRepository,
+		billingCycleRepository,
 		m.modules,
 	)
 

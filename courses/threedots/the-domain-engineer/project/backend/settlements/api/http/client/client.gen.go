@@ -65,6 +65,12 @@ type BillingCycle struct {
 // BillingCycleUUID UUID of a billing cycle
 type BillingCycleUUID = domain.BillingCycleUUID
 
+// CloseBillingCycle defines model for CloseBillingCycle.
+type CloseBillingCycle struct {
+	// PartnerUuid UUID of a legal entity (partner)
+	PartnerUuid LegalEntityUUID `json:"partner_uuid"`
+}
+
 // CreatePlatformEntity defines model for CreatePlatformEntity.
 type CreatePlatformEntity struct {
 	Address Address `json:"address"`
@@ -161,6 +167,9 @@ type OnboardPartnerParams struct {
 	OperatorUUID OperatorUUID `json:"Operator-UUID"`
 }
 
+// CloseBillingCycleJSONRequestBody defines body for CloseBillingCycle for application/json ContentType.
+type CloseBillingCycleJSONRequestBody = CloseBillingCycle
+
 // CreatePlatformEntityJSONRequestBody defines body for CreatePlatformEntity for application/json ContentType.
 type CreatePlatformEntityJSONRequestBody = CreatePlatformEntity
 
@@ -243,6 +252,11 @@ type ClientInterface interface {
 	// GetBillingCyclesByPartner request
 	GetBillingCyclesByPartner(ctx context.Context, partnerUuid LegalEntityUUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CloseBillingCycleWithBody request with any body
+	CloseBillingCycleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CloseBillingCycle(ctx context.Context, body CloseBillingCycleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreatePlatformEntityWithBody request with any body
 	CreatePlatformEntityWithBody(ctx context.Context, params *CreatePlatformEntityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -256,6 +270,30 @@ type ClientInterface interface {
 
 func (c *Client) GetBillingCyclesByPartner(ctx context.Context, partnerUuid LegalEntityUUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetBillingCyclesByPartnerRequest(c.Server, partnerUuid)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CloseBillingCycleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCloseBillingCycleRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CloseBillingCycle(ctx context.Context, body CloseBillingCycleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCloseBillingCycleRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -344,6 +382,46 @@ func NewGetBillingCyclesByPartnerRequest(server string, partnerUuid LegalEntityU
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewCloseBillingCycleRequest calls the generic CloseBillingCycle builder with application/json body
+func NewCloseBillingCycleRequest(server string, body CloseBillingCycleJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCloseBillingCycleRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCloseBillingCycleRequestWithBody generates requests for CloseBillingCycle with any type of body
+func NewCloseBillingCycleRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/settlements/close-billing-cycle")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -500,6 +578,11 @@ type ClientWithResponsesInterface interface {
 	// GetBillingCyclesByPartnerWithResponse request
 	GetBillingCyclesByPartnerWithResponse(ctx context.Context, partnerUuid LegalEntityUUID, reqEditors ...RequestEditorFn) (*GetBillingCyclesByPartnerResponse, error)
 
+	// CloseBillingCycleWithBodyWithResponse request with any body
+	CloseBillingCycleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CloseBillingCycleResponse, error)
+
+	CloseBillingCycleWithResponse(ctx context.Context, body CloseBillingCycleJSONRequestBody, reqEditors ...RequestEditorFn) (*CloseBillingCycleResponse, error)
+
 	// CreatePlatformEntityWithBodyWithResponse request with any body
 	CreatePlatformEntityWithBodyWithResponse(ctx context.Context, params *CreatePlatformEntityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePlatformEntityResponse, error)
 
@@ -530,6 +613,30 @@ func (r GetBillingCyclesByPartnerResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetBillingCyclesByPartnerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CloseBillingCycleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r CloseBillingCycleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CloseBillingCycleResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -595,6 +702,23 @@ func (c *ClientWithResponses) GetBillingCyclesByPartnerWithResponse(ctx context.
 	return ParseGetBillingCyclesByPartnerResponse(rsp)
 }
 
+// CloseBillingCycleWithBodyWithResponse request with arbitrary body returning *CloseBillingCycleResponse
+func (c *ClientWithResponses) CloseBillingCycleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CloseBillingCycleResponse, error) {
+	rsp, err := c.CloseBillingCycleWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCloseBillingCycleResponse(rsp)
+}
+
+func (c *ClientWithResponses) CloseBillingCycleWithResponse(ctx context.Context, body CloseBillingCycleJSONRequestBody, reqEditors ...RequestEditorFn) (*CloseBillingCycleResponse, error) {
+	rsp, err := c.CloseBillingCycle(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCloseBillingCycleResponse(rsp)
+}
+
 // CreatePlatformEntityWithBodyWithResponse request with arbitrary body returning *CreatePlatformEntityResponse
 func (c *ClientWithResponses) CreatePlatformEntityWithBodyWithResponse(ctx context.Context, params *CreatePlatformEntityParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePlatformEntityResponse, error) {
 	rsp, err := c.CreatePlatformEntityWithBody(ctx, params, contentType, body, reqEditors...)
@@ -650,6 +774,46 @@ func ParseGetBillingCyclesByPartnerResponse(rsp *http.Response) (*GetBillingCycl
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCloseBillingCycleResponse parses an HTTP response from a CloseBillingCycleWithResponse call
+func ParseCloseBillingCycleResponse(rsp *http.Response) (*CloseBillingCycleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CloseBillingCycleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest BadRequest
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

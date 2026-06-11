@@ -35,6 +35,8 @@ func (h *Handlers) PrintDocument(ctx context.Context, cmd PrintDocument) error {
 	switch doc.DocumentType() {
 	case domain.DocumentTypeReceipt:
 		subdir = "receipts"
+	case domain.DocumentTypeInvoice:
+		subdir = "invoices"
 	default:
 		return fmt.Errorf("unknown document type: %s", doc.DocumentType())
 	}

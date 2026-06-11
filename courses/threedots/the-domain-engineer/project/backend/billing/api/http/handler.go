@@ -57,6 +57,25 @@ func (h Handler) PrintDocument(ctx context.Context, request PrintDocumentRequest
 	return PrintDocument204Response{}, nil
 }
 
+func (h Handler) CreateInvoice(ctx context.Context, request CreateInvoiceRequestObject) (CreateInvoiceResponseObject, error) {
+	details, err := newDocumentDetailsFromCreateDocument(*request.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := command.IssueInvoice{
+		DocumentData: details,
+	}
+	uuid, err := h.commands.IssueInvoice(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return CreateInvoice201JSONResponse{
+		DocumentUuid: uuid,
+	}, nil
+}
+
 func documentToResponse(doc *domain.Document) DocumentResponse {
 	lineItems := make([]ResponseLineItem, 0, len(doc.LineItems()))
 	for _, li := range doc.LineItems() {

@@ -96,6 +96,8 @@ func (p *Printer) PrintDocument(ctx context.Context, doc *domain.Document) ([]by
 
 func getTemplateName(docType domain.DocumentType) (string, error) {
 	switch docType {
+	case domain.DocumentTypeInvoice:
+		return "invoice.html", nil
 	case domain.DocumentTypeReceipt:
 		return "receipt.html", nil
 	default:
