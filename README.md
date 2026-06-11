@@ -96,7 +96,7 @@ I also used these (paid) courses & books:
 - 📖 [Hands-On Software Engineering with Golang](https://learning.oreilly.com/library/view/hands-on-software-engineering/9781838554491/) [:file_folder:](https://github.com/PacktPublishing/Hands-On-Software-Engineering-with-Golang),
 - 📖 [Hands-On Software Architecture with Golang](https://learning.oreilly.com/library/view/hands-on-software-architecture/9781788622592/) [:file_folder:](https://github.com/packtpublishing/hands-on-software-architecture-with-golang),
 - ✅ 📖 [Domain-Driven Design with Golang](https://learning.oreilly.com/library/view/domain-driven-design-with/9781804613450/) [:file_folder:](https://github.com/PacktPublishing/Domain-Driven-Design-with-GoLang),
-- ▶️ 📖 [The Domain Engineer](https://threedots.tech/the-domain-engineer/),
+- ✅ 📖 [The Domain Engineer](https://threedots.tech/the-domain-engineer/) :+1:,
 - 📖 [Event-Driven Architecture in Golang](https://learning.oreilly.com/library/view/event-driven-architecture-in/9781803238012/) [:file_folder:](https://github.com/PacktPublishing/Event-Driven-Architecture-in-Golang),
 - ▶️ 📖 [Watermill Quickstart](https://watermill.io/learn/quickstart/),
 - 📖 [Microservices with Go](https://learning.oreilly.com/library/view/microservices-with-go/9781804617007/) [:file_folder:](https://github.com/PacktPublishing/microservices-with-go),
