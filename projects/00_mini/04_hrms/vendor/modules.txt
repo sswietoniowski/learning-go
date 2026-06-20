@@ -21,7 +21,7 @@ github.com/gofiber/utils/v2/bytes
 github.com/gofiber/utils/v2/internal/caseconv
 github.com/gofiber/utils/v2/internal/unsafeconv
 github.com/gofiber/utils/v2/strings
-# github.com/golang/snappy v0.0.1
+# github.com/golang/snappy v0.0.4
 ## explicit
 github.com/golang/snappy
 # github.com/google/uuid v1.6.0
@@ -49,8 +49,8 @@ github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.21
 ## explicit; go 1.21
 github.com/mattn/go-isatty
-# github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe
-## explicit
+# github.com/montanaflynn/stats v0.7.1
+## explicit; go 1.13
 github.com/montanaflynn/stats
 # github.com/philhofer/fwd v1.2.0
 ## explicit; go 1.20
@@ -78,10 +78,10 @@ github.com/xdg-go/scram
 # github.com/xdg-go/stringprep v1.0.4
 ## explicit; go 1.11
 github.com/xdg-go/stringprep
-# github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d
-## explicit
+# github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78
+## explicit; go 1.17
 github.com/youmark/pkcs8
-# go.mongodb.org/mongo-driver v1.14.0
+# go.mongodb.org/mongo-driver v1.17.7
 ## explicit; go 1.18
 go.mongodb.org/mongo-driver/bson
 go.mongodb.org/mongo-driver/bson/bsoncodec
@@ -136,6 +136,7 @@ golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/scrypt
 # golang.org/x/net v0.53.0
 ## explicit; go 1.25.0
 golang.org/x/net/idna
