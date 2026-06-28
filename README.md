@@ -105,7 +105,7 @@ I also used these (paid) courses & books:
 - 📖 [gRPC Microservices in Go](https://learning.oreilly.com/library/view/grpc-microservices-in/9781633439207/) [:file_folder:](https://github.com/huseyinbabal/grpc-microservices-in-go),
 - 📖 [Go With The Domain](https://threedots.tech/go-with-the-domain/) [:file_folder:](https://github.com/ThreeDotsLabs/wild-workouts-go-ddd-example) [:file_folder:](https://github.com/sswietoniowski/learning-go-wild-workouts),
 - 📖 [Pro Go: The Complete Guide to Programming Reliable and Efficient Software Using Golang](https://learning.oreilly.com/library/view/pro-go-the/9781484273555/) [:file_folder:](https://github.com/Apress/pro-go),
-- ▶️ 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
+- 📖 [Go Crazy: A Fun Projects-based Approach to Golang Programming](https://learning.oreilly.com/library/view/go-crazy-a/9781484296660/) [:file_folder:](https://github.com/Apress/Go-Crazy),
 - 📖 [Software Development with Go: Cloud-Native Programming using Golang with Linux and Docker](https://learning.oreilly.com/library/view/software-development-with/9781484287316/) [:file_folder:](https://github.com/Apress/Software-Development-Go),
 - 📖 [Hands-On System Programming with Go](https://learning.oreilly.com/library/view/hands-on-system-programming/9781789804072/) [📁](https://github.com/packtpublishing/hands-on-system-programming-with-go),
 - 📖 [Go for DevOps](https://learning.oreilly.com/library/view/go-for-devops/9781801818896/) [📁](https://github.com/PacktPublishing/Go-for-DevOps),
