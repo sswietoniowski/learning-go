@@ -691,8 +691,18 @@ func (r *DefaultRes) Render(name string, bind any, layouts ...string) error {
 
 			// Render template from Views
 			if app.config.Views != nil {
-				if err := app.config.Views.Render(buf, name, bind, layouts...); err != nil {
-					return fmt.Errorf("failed to render: %w", err)
+				if err := func() error {
+					viewsLock := getViewsLock(app.config.Views)
+					viewsLock.RLock()
+					defer viewsLock.RUnlock()
+
+					if err := app.config.Views.Render(buf, name, bind, layouts...); err != nil {
+						return fmt.Errorf("failed to render: %w", err)
+					}
+
+					return nil
+				}(); err != nil {
+					return err
 				}
 
 				rendered = true
@@ -1082,11 +1092,6 @@ func (r *DefaultRes) Writef(f string, a ...any) (int, error) {
 func (r *DefaultRes) WriteString(s string) (int, error) {
 	r.c.fasthttp.Response.AppendBodyString(s)
 	return len(s), nil
-}
-
-// Release is a method to reset Res fields when to use ReleaseCtx()
-func (r *DefaultRes) release() {
-	r.c = nil
 }
 
 // Drop closes the underlying connection without sending any response headers or body.

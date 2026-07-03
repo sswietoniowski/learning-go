@@ -143,12 +143,12 @@ func (h *ResponseHeader) StatusMessage() []byte {
 
 // SetStatusMessage sets response status message bytes.
 func (h *ResponseHeader) SetStatusMessage(statusMessage []byte) {
-	h.statusMessage = append(h.statusMessage[:0], statusMessage...)
+	h.statusMessage = initHeaderValueBytes(h.statusMessage, statusMessage)
 }
 
 // SetProtocol sets response protocol bytes.
 func (h *ResponseHeader) SetProtocol(protocol []byte) {
-	h.protocol = append(h.protocol[:0], protocol...)
+	h.protocol = initHeaderValueBytes(h.protocol, protocol)
 }
 
 // SetLastModified sets 'Last-Modified' header to the given value.
@@ -206,14 +206,15 @@ func (h *ResponseHeader) ContentLength() int {
 // -2 means Transfer-Encoding: identity.
 func (h *RequestHeader) ContentLength() int {
 	if h.disableSpecialHeader {
-		// Parse Content-Length from raw headers when special headers are disabled
+		// Parse framing headers from raw headers when special headers are disabled.
+		// Transfer-Encoding takes precedence over Content-Length, matching
+		// the normal parser path.
+		te := peekArgBytes(h.h, strTransferEncoding)
+		if caseInsensitiveCompare(te, strChunked) {
+			return -1 // chunked
+		}
 		v := peekArgBytes(h.h, strContentLength)
 		if len(v) == 0 {
-			// Check for Transfer-Encoding: chunked
-			te := peekArgBytes(h.h, strTransferEncoding)
-			if bytes.Equal(te, strChunked) {
-				return -1 // chunked
-			}
 			return -2 // identity
 		}
 		n, err := parseContentLength(v)
@@ -505,20 +506,14 @@ func (h *header) AddTrailerBytes(trailer []byte) (err error) {
 		if i < 0 {
 			i = len(trailer)
 		}
-		key := trailer[:i]
-		for len(key) > 0 && key[0] == ' ' {
-			key = key[1:]
-		}
-		for len(key) > 0 && key[len(key)-1] == ' ' {
-			key = key[:len(key)-1]
-		}
+		key := trim(trailer[:i])
 		// Forbidden by RFC 7230, section 4.1.2
-		if isBadTrailer(key) {
+		if !isValidTrailerKey(key) || isBadTrailer(key) {
 			err = ErrBadTrailer
 			continue
 		}
 		h.bufK = append(h.bufK[:0], key...)
-		normalizeHeaderKey(h.bufK, h.disableNormalizing || bytes.IndexByte(h.bufK, ' ') != -1)
+		normalizeHeaderKeyValidated(h.bufK, h.disableNormalizing)
 		if cap(h.trailer) > len(h.trailer) {
 			h.trailer = h.trailer[:len(h.trailer)+1]
 			h.trailer[len(h.trailer)-1] = append(h.trailer[len(h.trailer)-1][:0], h.bufK...)
@@ -530,6 +525,18 @@ func (h *header) AddTrailerBytes(trailer []byte) (err error) {
 	}
 
 	return err
+}
+
+func isValidTrailerKey(key []byte) bool {
+	if len(key) == 0 {
+		return false
+	}
+	for _, c := range key {
+		if !validHeaderFieldByte(c) {
+			return false
+		}
+	}
+	return true
 }
 
 // validHeaderFieldByte returns true if c valid header field byte
@@ -750,12 +757,12 @@ func (h *RequestHeader) Method() []byte {
 
 // SetMethod sets HTTP request method.
 func (h *RequestHeader) SetMethod(method string) {
-	h.method = append(h.method[:0], method...)
+	h.method = initHeaderValueString(h.method, method)
 }
 
 // SetMethodBytes sets HTTP request method.
 func (h *RequestHeader) SetMethodBytes(method []byte) {
-	h.method = append(h.method[:0], method...)
+	h.method = initHeaderValueBytes(h.method, method)
 }
 
 // Protocol returns HTTP protocol.
@@ -768,13 +775,13 @@ func (h *header) Protocol() []byte {
 
 // SetProtocol sets HTTP request protocol.
 func (h *RequestHeader) SetProtocol(protocol string) {
-	h.protocol = append(h.protocol[:0], protocol...)
+	h.protocol = initHeaderValueString(h.protocol, protocol)
 	h.noHTTP11 = !bytes.Equal(h.protocol, strHTTP11)
 }
 
 // SetProtocolBytes sets HTTP request protocol.
 func (h *RequestHeader) SetProtocolBytes(protocol []byte) {
-	h.protocol = append(h.protocol[:0], protocol...)
+	h.protocol = initHeaderValueBytes(h.protocol, protocol)
 	h.noHTTP11 = !bytes.Equal(h.protocol, strHTTP11)
 }
 
@@ -791,14 +798,14 @@ func (h *RequestHeader) RequestURI() []byte {
 // RequestURI must be properly encoded.
 // Use URI.RequestURI for constructing proper RequestURI if unsure.
 func (h *RequestHeader) SetRequestURI(requestURI string) {
-	h.requestURI = append(h.requestURI[:0], requestURI...)
+	h.requestURI = initHeaderValueString(h.requestURI, requestURI)
 }
 
 // SetRequestURIBytes sets RequestURI for the first HTTP request line.
 // RequestURI must be properly encoded.
 // Use URI.RequestURI for constructing proper RequestURI if unsure.
 func (h *RequestHeader) SetRequestURIBytes(requestURI []byte) {
-	h.requestURI = append(h.requestURI[:0], requestURI...)
+	h.requestURI = initHeaderValueBytes(h.requestURI, requestURI)
 }
 
 // IsGet returns true if request method is GET.
@@ -1655,13 +1662,17 @@ func (h *ResponseHeader) SetCanonical(key, value []byte) {
 //
 // It is safe re-using the cookie after the function returns.
 func (h *ResponseHeader) SetCookie(cookie *Cookie) {
-	h.cookies = setArgBytes(h.cookies, cookie.Key(), cookie.Cookie(), argsHasValue)
+	h.bufK = initHeaderValueBytes(h.bufK, cookie.Key())
+	h.bufV = initHeaderValueBytes(h.bufV, cookie.Cookie())
+	h.cookies = setArgBytes(h.cookies, h.bufK, h.bufV, argsHasValue)
 }
 
 // SetCookie sets 'key: value' cookies.
 func (h *RequestHeader) SetCookie(key, value string) {
 	h.collectCookies()
-	h.cookies = setArg(h.cookies, key, value, argsHasValue)
+	h.bufK = initHeaderValueString(h.bufK, key)
+	h.bufV = initHeaderValueString(h.bufV, value)
+	h.cookies = setArgBytes(h.cookies, h.bufK, h.bufV, argsHasValue)
 }
 
 // SetCookieBytesK sets 'key: value' cookies.
@@ -2981,6 +2992,7 @@ func (h *ResponseHeader) parseHeaders(buf []byte) (int, error) {
 	var s headerScanner
 	s.b = buf
 	var kv *argsKV
+	transferEncodingSeen := false
 
 	for s.next() {
 		// Trim trailing whitespace before the colon to normalize headers
@@ -3026,14 +3038,15 @@ func (h *ResponseHeader) parseHeaders(buf []byte) (int, error) {
 				continue
 			}
 			if caseInsensitiveCompare(s.key, strContentLength) {
+				var err error
+				contentLength, err := parseContentLength(s.value)
+				if err != nil {
+					h.contentLength = -2
+					h.connectionClose = true
+					return 0, err
+				}
 				if h.contentLength != -1 {
-					var err error
-					h.contentLength, err = parseContentLength(s.value)
-					if err != nil {
-						h.contentLength = -2
-						h.connectionClose = true
-						return 0, err
-					}
+					h.contentLength = contentLength
 					h.contentLengthBytes = append(h.contentLengthBytes[:0], s.value...)
 				}
 				continue
@@ -3060,10 +3073,26 @@ func (h *ResponseHeader) parseHeaders(buf []byte) (int, error) {
 			}
 		case 't':
 			if caseInsensitiveCompare(s.key, strTransferEncoding) {
-				if len(s.value) > 0 && !bytes.Equal(s.value, strIdentity) {
-					h.contentLength = -1
-					h.h = setArgBytes(h.h, strTransferEncoding, strChunked, argsHasValue)
+				if h.noHTTP11 {
+					continue
 				}
+				if transferEncodingSeen {
+					h.connectionClose = true
+					if h.secureErrorLogMessage {
+						return 0, ErrUnsupportedTransferEncoding
+					}
+					return 0, errors.New("too many Transfer-Encoding headers")
+				}
+				transferEncodingSeen = true
+				if !caseInsensitiveCompare(s.value, strChunked) {
+					h.connectionClose = true
+					if h.secureErrorLogMessage {
+						return 0, ErrUnsupportedTransferEncoding
+					}
+					return 0, fmt.Errorf("unsupported Transfer-Encoding: %q", s.value)
+				}
+				h.contentLength = -1
+				h.h = setArgBytes(h.h, strTransferEncoding, strChunked, argsHasValue)
 				continue
 			}
 			if caseInsensitiveCompare(s.key, strTrailer) {
@@ -3113,9 +3142,12 @@ func (h *RequestHeader) parseHeaders(buf []byte) (int, error) {
 	s.b = buf
 
 	for s.next() {
-		// Trim trailing whitespace before the colon to normalize headers
-		// like "Content-Length :" to "Content-Length:".
+		key := s.key
 		s.key = trimTrailingSpace(s.key)
+		if len(s.key) != len(key) {
+			h.connectionClose = true
+			return 0, fmt.Errorf("invalid header key %q", key)
+		}
 
 		if len(s.key) == 0 {
 			h.connectionClose = true
@@ -3139,6 +3171,32 @@ func (h *RequestHeader) parseHeaders(buf []byte) (int, error) {
 			if !validHeaderValueByte(ch) {
 				h.connectionClose = true
 				return 0, fmt.Errorf("invalid header value %q", s.value)
+			}
+		}
+
+		isContentLength := false
+		isTransferEncoding := false
+		contentLength := 0
+		switch s.key[0] | 0x20 {
+		case 'c':
+			if caseInsensitiveCompare(s.key, strContentLength) {
+				isContentLength = true
+				if contentLengthSeen {
+					h.connectionClose = true
+					return 0, ErrDuplicateContentLength
+				}
+				contentLengthSeen = true
+				var err error
+				contentLength, err = parseContentLength(s.value)
+				if err != nil {
+					h.contentLength = -2
+					h.connectionClose = true
+					return 0, err
+				}
+			}
+		case 't':
+			if caseInsensitiveCompare(s.key, strTransferEncoding) {
+				isTransferEncoding = true
 			}
 		}
 
@@ -3168,21 +3226,9 @@ func (h *RequestHeader) parseHeaders(buf []byte) (int, error) {
 				h.contentType = append(h.contentType[:0], s.value...)
 				continue
 			}
-			if caseInsensitiveCompare(s.key, strContentLength) {
-				if contentLengthSeen {
-					h.connectionClose = true
-					return 0, ErrDuplicateContentLength
-				}
-				contentLengthSeen = true
-
+			if isContentLength {
 				if h.contentLength != -1 {
-					var err error
-					h.contentLength, err = parseContentLength(s.value)
-					if err != nil {
-						h.contentLength = -2
-						h.connectionClose = true
-						return 0, err
-					}
+					h.contentLength = contentLength
 					h.contentLengthBytes = append(h.contentLengthBytes[:0], s.value...)
 				}
 				continue
@@ -3197,7 +3243,7 @@ func (h *RequestHeader) parseHeaders(buf []byte) (int, error) {
 				continue
 			}
 		case 't':
-			if caseInsensitiveCompare(s.key, strTransferEncoding) {
+			if isTransferEncoding {
 				isIdentity := caseInsensitiveCompare(s.value, strIdentity)
 				isChunked := caseInsensitiveCompare(s.value, strChunked)
 

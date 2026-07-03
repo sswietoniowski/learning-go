@@ -194,6 +194,26 @@ type Server struct {
 	// like they are normal requests.
 	ContinueHandler func(header *RequestHeader) bool
 
+	// ExpectHandler is called after receiving the Expect 100 Continue Header.
+	//
+	// https://www.rfc-editor.org/rfc/rfc9110.html#field.expect
+	//
+	// ExpectHandler provides more control than ContinueHandler by allowing
+	// the server to respond with any final status code. The handler should return
+	// StatusContinue (100) to accept the request and proceed to read the body,
+	// or any other status code to reject it and close the connection since the
+	// client may have already started sending the request body.
+	//
+	// The ctx provides access to request headers and connection metadata (e.g.
+	// RemoteAddr for IP-based filtering). The response must not be modified.
+	//
+	// If both ExpectHandler and ContinueHandler are set, ExpectHandler
+	// takes precedence.
+	//
+	// The default behavior (when neither handler is set) is to automatically accept
+	// the request body.
+	ExpectHandler func(ctx *RequestCtx) int
+
 	// ConnState specifies an optional callback function that is
 	// called when a client connection changes state. See the
 	// ConnState type and associated constants for details.
@@ -1139,6 +1159,10 @@ func (ctx *RequestCtx) FormFile(key string) (*multipart.FileHeader, error) {
 var ErrMissingFile = errors.New("there is no uploaded file associated with the given key")
 
 // SaveMultipartFile saves multipart file fh under the given filename path.
+//
+// The path is used as-is and must be a server-trusted destination filename.
+// Do not pass the attacker-controlled fh.Filename directly without validating
+// it and constraining it to the intended destination directory.
 func SaveMultipartFile(fh *multipart.FileHeader, path string) (err error) {
 	var (
 		f  multipart.File
@@ -1450,7 +1474,7 @@ func (ctx *RequestCtx) RedirectBytes(uri []byte, statusCode int) {
 }
 
 func (ctx *RequestCtx) redirect(uri []byte, statusCode int) {
-	ctx.Response.Header.setNonSpecial(strLocation, uri)
+	ctx.Response.Header.SetCanonical(strLocation, uri)
 	statusCode = getRedirectStatusCode(statusCode)
 	ctx.Response.SetStatusCode(statusCode)
 }
@@ -2290,8 +2314,15 @@ func (s *Server) serveConn(c net.Conn) error {
 	for {
 		connRequestNum++
 
-		// If this is a keep-alive connection set the idle timeout.
-		if connRequestNum > 1 {
+		if connRequestNum == 1 {
+			// Apply ReadTimeout to the first request byte.
+			if s.ReadTimeout > 0 {
+				if err = c.SetReadDeadline(time.Now().Add(s.ReadTimeout)); err != nil {
+					break
+				}
+			}
+		} else {
+			// If this is a keep-alive connection set the idle timeout.
 			if d := s.idleTimeout(); d > 0 {
 				if err = c.SetReadDeadline(time.Now().Add(d)); err != nil {
 					break
@@ -2318,8 +2349,8 @@ func (s *Server) serveConn(c net.Conn) error {
 				}
 			}
 		} else {
-			// If this is a keep-alive connection acquireByteReader will try to peek
-			// a couple of bytes already so the idle timeout will already be used.
+			// On keep-alive connections acquireByteReader will read the first byte
+			// while the idle timeout is active.
 			br, err = acquireByteReader(&ctx)
 		}
 
@@ -2445,10 +2476,20 @@ func (s *Server) serveConn(c net.Conn) error {
 		}
 
 		// 'Expect: 100-continue' request handling.
-		// See https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3 for details.
+		// See https://www.rfc-editor.org/rfc/rfc9110.html#field.expect for details.
 		if ctx.Request.MayContinue() {
-			// Allow the ability to deny reading the incoming request body
-			if s.ContinueHandler != nil {
+			// Allow the ability to deny reading the incoming request body.
+			if s.ExpectHandler != nil {
+				if expectStatus := s.ExpectHandler(ctx); expectStatus != StatusContinue {
+					continueReadingRequest = false
+					if br != nil {
+						br.Reset(ctx.c)
+					}
+					ctx.SetStatusCode(expectStatus)
+					// Close connection since client may have already started sending body data.
+					connectionClose = true
+				}
+			} else if s.ContinueHandler != nil {
 				if continueReadingRequest = s.ContinueHandler(&ctx.Request.Header); !continueReadingRequest {
 					if br != nil {
 						br.Reset(ctx.c)
@@ -2498,8 +2539,9 @@ func (s *Server) serveConn(c net.Conn) error {
 			}
 		}
 
-		// store req.ConnectionClose so even if it was changed inside of handler
-		connectionClose = s.DisableKeepalive || ctx.Request.Header.ConnectionClose()
+		// store req.ConnectionClose so even if it was changed inside of handler.
+		// Preserve connectionClose if already set (e.g., by ExpectHandler).
+		connectionClose = connectionClose || s.DisableKeepalive || ctx.Request.Header.ConnectionClose()
 
 		if serverName != "" {
 			ctx.Response.Header.SetServer(serverName)
@@ -2660,7 +2702,9 @@ func hijackConnHandler(ctx *RequestCtx, r io.Reader, c net.Conn, s *Server, h Hi
 	hjc := s.acquireHijackConn(r, c)
 	h(hjc)
 
-	if br, ok := r.(*bufio.Reader); ok {
+	// When the caller keeps using the hijacked connection after return,
+	// the buffered reader must remain owned by that escaped connection.
+	if br, ok := r.(*bufio.Reader); ok && !s.KeepHijackedConns {
 		releaseReader(s, br)
 	}
 	if !s.KeepHijackedConns {

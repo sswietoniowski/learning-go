@@ -225,6 +225,8 @@ func (r *Route) match(detectionPath, path string, params *[maxParams]string) boo
 func (app *App) next(c *DefaultCtx) (bool, error) {
 	methodInt := c.methodInt
 	treeHash := c.treePathHash
+	detectionPath := utils.UnsafeString(c.detectionPath)
+	path := utils.UnsafeString(c.path)
 	// Get stack length
 	tree, ok := app.treeStack[methodInt][treeHash]
 	if !ok {
@@ -247,11 +249,11 @@ func (app *App) next(c *DefaultCtx) (bool, error) {
 		}
 
 		// Check if it matches the request path
-		if !route.match(utils.UnsafeString(c.detectionPath), utils.UnsafeString(c.path), &c.values) {
+		if !route.match(detectionPath, path, &c.values) {
 			continue
 		}
 
-		if c.skipNonUseRoutes && !route.use {
+		if c.shouldSkipNonUseRoutes && !route.use {
 			continue
 		}
 
@@ -259,7 +261,7 @@ func (app *App) next(c *DefaultCtx) (bool, error) {
 		c.route = route
 		// Non use handler matched
 		if !route.use {
-			c.matched = true
+			c.isMatched = true
 		}
 		// Execute first handler of route
 		if len(route.Handlers) > 0 {
@@ -274,7 +276,7 @@ func (app *App) next(c *DefaultCtx) (bool, error) {
 	// If c.Next() does not match, return 404
 	// If no match, scan stack again if other methods match the request
 	// Moved from app.handler because middleware may break the route chain
-	if c.matched {
+	if c.isMatched {
 		return false, ErrNotFound
 	}
 
@@ -306,7 +308,7 @@ func (app *App) next(c *DefaultCtx) (bool, error) {
 			}
 			// Check if it matches the request path
 			// No match, next route
-			if route.match(utils.UnsafeString(c.detectionPath), utils.UnsafeString(c.path), &c.values) {
+			if route.match(detectionPath, path, &c.values) {
 				// We matched
 				exists = true
 				// Add method to Allow header
@@ -422,47 +424,57 @@ func (app *App) nextCustom(c CustomCtx) (bool, error) {
 	return false, ErrNotFound
 }
 
-func (app *App) requestHandler(rctx *fasthttp.RequestCtx) {
-	// Acquire context from the pool
-	ctx := app.AcquireCtx(rctx)
-	defer app.ReleaseCtx(ctx)
-
-	var err error
-	// Attempt to match a route and execute the chain
-	if d, isDefault := ctx.(*DefaultCtx); isDefault {
-		// Check if the HTTP method is valid
-		if d.methodInt == -1 {
-			_ = d.SendStatus(StatusNotImplemented) //nolint:errcheck // Always return nil
-			return
-		}
-
-		// Optional: check flash messages (hot path, see hasFlashCookie).
-		if hasFlashCookie(&d.Request().Header) {
-			d.Redirect().parseAndClearFlashMessages()
-		}
-		_, err = app.next(d)
-	} else {
-		// Check if the HTTP method is valid
-		if ctx.getMethodInt() == -1 {
-			_ = ctx.SendStatus(StatusNotImplemented) //nolint:errcheck // Always return nil
-			return
-		}
-
-		// Optional: check flash messages (hot path, see hasFlashCookie).
-		if hasFlashCookie(&ctx.Request().Header) {
-			ctx.Redirect().parseAndClearFlashMessages()
-		}
-		_, err = app.nextCustom(ctx)
+func (app *App) defaultRequestHandler(rctx *fasthttp.RequestCtx) {
+	ctx, ok := app.acquireDefaultCtx(rctx)
+	if !ok {
+		app.customRequestHandler(rctx)
+		return
 	}
+	defer app.releaseDefaultCtx(ctx)
+
+	// Check if the HTTP method is valid
+	if ctx.methodInt == -1 {
+		_ = ctx.SendStatus(StatusNotImplemented) //nolint:errcheck // Always return nil
+		return
+	}
+
+	// Optional: check flash messages (hot path, see hasFlashCookie).
+	if hasFlashCookie(&ctx.fasthttp.Request.Header) {
+		ctx.Redirect().parseAndClearFlashMessages()
+	}
+
+	_, err := app.next(ctx)
 	if err != nil {
 		if catch := ctx.App().ErrorHandler(ctx, err); catch != nil {
 			_ = ctx.SendStatus(StatusInternalServerError) //nolint:errcheck // Always return nil
 		}
-		return
 	}
 }
 
-func (app *App) addPrefixToRoute(prefix string, route *Route) *Route {
+func (app *App) customRequestHandler(rctx *fasthttp.RequestCtx) {
+	ctx := app.AcquireCtx(rctx)
+	defer app.ReleaseCtx(ctx)
+
+	// Check if the HTTP method is valid
+	if ctx.getMethodInt() == -1 {
+		_ = ctx.SendStatus(StatusNotImplemented) //nolint:errcheck // Always return nil
+		return
+	}
+
+	// Optional: check flash messages (hot path, see hasFlashCookie).
+	if hasFlashCookie(&ctx.Request().Header) {
+		ctx.Redirect().parseAndClearFlashMessages()
+	}
+
+	_, err := app.nextCustom(ctx)
+	if err != nil {
+		if catch := ctx.App().ErrorHandler(ctx, err); catch != nil {
+			_ = ctx.SendStatus(StatusInternalServerError) //nolint:errcheck // Always return nil
+		}
+	}
+}
+
+func (app *App) addPrefixToRoute(prefix string, route *Route, regexHandler any, customConstraints ...CustomConstraint) *Route {
 	prefixedPath := getGroupPath(prefix, route.Path)
 	prettyPath := prefixedPath
 	// Case-sensitive routing, all to lowercase
@@ -476,7 +488,7 @@ func (app *App) addPrefixToRoute(prefix string, route *Route) *Route {
 
 	route.Path = prefixedPath
 	route.path = RemoveEscapeChar(prettyPath)
-	route.routeParser = parseRoute(prettyPath, app.customConstraints...)
+	route.routeParser = parseRoute(prettyPath, regexHandler, customConstraints...)
 	route.root = false
 	route.star = false
 	route.caseSensitive = app.config.CaseSensitive
@@ -579,7 +591,7 @@ func (app *App) deleteRoute(methods []string, matchFunc func(r *Route) bool) {
 			}
 
 			app.stack[m] = append(app.stack[m][:i], app.stack[m][i+1:]...)
-			app.routesRefreshed = true
+			app.hasRoutesRefreshed = true
 
 			// Decrement global handler count. In middleware routes, only decrement once
 			if _, ok := removedUseRoutes[route.path]; (route.use && slices.Equal(methods, app.config.RequestMethods) && !ok) || !route.use {
@@ -616,7 +628,7 @@ func (app *App) pruneAutoHeadRouteLocked(path string) {
 		}
 
 		app.stack[headIndex] = append(headStack[:i], headStack[i+1:]...)
-		app.routesRefreshed = true
+		app.hasRoutesRefreshed = true
 		atomic.AddUint32(&app.handlersCount, ^uint32(len(headRoute.Handlers)-1)) //nolint:gosec // G115 - handler count is always small
 		return
 	}
@@ -650,8 +662,8 @@ func (app *App) register(methods []string, pathRaw string, group *Group, handler
 	}
 	pathClean := RemoveEscapeChar(pathPretty)
 
-	parsedRaw := parseRoute(pathRaw, app.customConstraints...)
-	parsedPretty := parseRoute(pathPretty, app.customConstraints...)
+	parsedRaw := parseRoute(pathRaw, app.config.RegexHandler, app.customConstraints...)
+	parsedPretty := parseRoute(pathPretty, app.config.RegexHandler, app.customConstraints...)
 
 	isMount := group != nil && group.app != app
 
@@ -720,7 +732,7 @@ func (app *App) addRoute(method string, route *Route) {
 		route.Method = method
 		// Add route to the stack
 		app.stack[m] = append(app.stack[m], route)
-		app.routesRefreshed = true
+		app.hasRoutesRefreshed = true
 	}
 
 	// Execute onRoute hooks & change latestRoute if not adding mounted route
@@ -783,7 +795,7 @@ func (app *App) ensureAutoHeadRoutesLocked() {
 
 		headStack = append(headStack, headRoute)
 		existing[route.path] = struct{}{}
-		app.routesRefreshed = true
+		app.hasRoutesRefreshed = true
 		added = true
 
 		atomic.AddUint32(&app.handlersCount, uint32(len(headRoute.Handlers))) //nolint:gosec // G115 - handler count is always small
@@ -817,7 +829,7 @@ func (app *App) RebuildTree() *App {
 // buildTree build the prefix tree from the previously registered routes
 func (app *App) buildTree() *App {
 	// If routes haven't been refreshed, nothing to do
-	if !app.routesRefreshed {
+	if !app.hasRoutesRefreshed {
 		return app
 	}
 
@@ -868,7 +880,7 @@ func (app *App) buildTree() *App {
 	}
 
 	// reset the flag and return
-	app.routesRefreshed = false
+	app.hasRoutesRefreshed = false
 	return app
 }
 
